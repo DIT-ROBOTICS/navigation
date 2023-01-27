@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d /home/pithreeone/catkin_ws/src/navigation/navigation_test/rviz/rviz.rviz"> 
+  </node> 
+
+</launch>
