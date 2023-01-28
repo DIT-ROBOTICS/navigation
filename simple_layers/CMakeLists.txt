@@ -127,7 +127,7 @@ include
 #   src/${PROJECT_NAME}/simple_layers.cpp
 # )
 add_library(simple_layer plugins/simple_layer.cpp)
-add_library(grid_layer plugins/grid_layer.cpp)
+# add_library(grid_layer plugins/grid_layer.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

@@ -5,6 +5,7 @@
 #include <costmap_2d/layered_costmap.h>
 #include <costmap_2d/GenericPluginConfig.h>
 #include <dynamic_reconfigure/server.h>
+#include "geometry_msgs/PoseStamped.h" 
 
 namespace simple_layer_namespace
 {
@@ -13,7 +14,7 @@ class GridLayer : public costmap_2d::Layer, public costmap_2d::Costmap2D
 {
 public:
   GridLayer();
-
+  void obs_callback(const geometry_msgs::PoseStamped& pose);
   virtual void onInitialize();
   virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double* min_x, double* min_y, double* max_x,
                              double* max_y);
@@ -28,6 +29,8 @@ public:
 private:
   void reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t level);
   dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
+  std::vector<std::vector<double>> obstacle_pos_;
+  int obstacle_num_ = 0;
 };
 }
 #endif

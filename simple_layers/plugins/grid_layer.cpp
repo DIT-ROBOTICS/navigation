@@ -1,5 +1,6 @@
 #include<simple_layers/grid_layer.h>
 #include <pluginlib/class_list_macros.h>
+#include "geometry_msgs/PoseStamped.h" 
 
 PLUGINLIB_EXPORT_CLASS(simple_layer_namespace::GridLayer, costmap_2d::Layer)
 
@@ -8,12 +9,28 @@ using costmap_2d::NO_INFORMATION;
 
 namespace simple_layer_namespace
 {
+std::vector<std::vector<double>> obstacle_pos_;
+int obstacle_num_ = 0;
 
-GridLayer::GridLayer() {}
+GridLayer::GridLayer() {
+  // ros::NodeHandle nh;
+  // ros::Subscriber sub = nh.subscribe("obstacle_position", 1000, &GridLayer::obs_callback, this);
+
+}
+void obs_callback(const geometry_msgs::PoseStamped& pose)
+{
+  double mx = pose.pose.position.x;
+  double my = pose.pose.position.y;
+  obstacle_pos_[obstacle_num_].push_back(mx);
+  obstacle_pos_[obstacle_num_].push_back(my);
+  obstacle_num_++;
+
+}
 
 void GridLayer::onInitialize()
 {
   ros::NodeHandle nh("~/" + name_);
+  ros::Subscriber sub = nh.subscribe("obstacle_position", 1000, &GridLayer::obs_callback, this);
   current_ = true;
   default_value_ = NO_INFORMATION;
   matchSize();

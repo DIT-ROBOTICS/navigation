@@ -121,4 +121,8 @@
       <rosparam file="$(find robot_navigation)/params/pathTracker_yellow.yaml" command="load" /> 
   </node>
 
+  <!-- obstacle_simulation.launch -->
+  <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+  </include> -->
+
 </launch>

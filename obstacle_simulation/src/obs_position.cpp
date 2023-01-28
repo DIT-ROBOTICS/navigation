@@ -30,7 +30,6 @@ int main(int argc, char** argv){
     
     int update_frequency;
     private_nh.param("update_frequency", update_frequency, 10);
-    
     ros::Rate loop_rate(update_frequency);
 
     
