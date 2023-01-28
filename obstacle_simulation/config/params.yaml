@@ -1,0 +1,4 @@
+filename: "obstacle_position.csv"
+frame: "map"
+
+update_frequency: 3
