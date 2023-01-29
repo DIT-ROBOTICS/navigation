@@ -1,6 +1,9 @@
-#include<simple_layers/grid_layer.h>
+#include <simple_layers/grid_layer.h>
 #include <pluginlib/class_list_macros.h>
 #include "geometry_msgs/PoseStamped.h" 
+#include "geometry_msgs/PoseArray.h"
+#include <ros/callback_queue.h>
+
 
 PLUGINLIB_EXPORT_CLASS(simple_layer_namespace::GridLayer, costmap_2d::Layer)
 
@@ -9,26 +12,30 @@ using costmap_2d::NO_INFORMATION;
 
 namespace simple_layer_namespace
 {
-std::vector<std::vector<double>> obstacle_pos_;
-int obstacle_num_ = 0;
 
-GridLayer::GridLayer() {}
+GridLayer::GridLayer() {
+  obstacle_updated_ = false;
+  obstacle_num_ = 0;
+}
 
-void GridLayer::obs_callback(const geometry_msgs::PoseStamped& pose)
+void GridLayer::obs_callback(const geometry_msgs::PoseArray& poses)
 {
-  double mx = pose.pose.position.x;
-  double my = pose.pose.position.y;
-  obstacle_pos_[obstacle_num_].push_back(mx);
-  obstacle_pos_[obstacle_num_].push_back(my);
-  obstacle_num_++;
-  std::cout << obstacle_num_ << std::endl;
+  ROS_INFO("obstacle_updated\n");
+  // double mx = pose.pose.position.x;
+  // double my = pose.pose.position.y;
+  // obstacle_pos_[obstacle_num_].push_back(mx);
+  // obstacle_pos_[obstacle_num_].push_back(my);
+  // obstacle_num_++;
+  obstacle_updated_ = true;
+  
 
 }
 
 void GridLayer::onInitialize()
 {
   ros::NodeHandle nh("~/" + name_),g_nh;
-  ros::Subscriber sub = g_nh.subscribe("obstacle_position", 1000, &GridLayer::obs_callback, this);
+  ros::Subscriber sub = g_nh.subscribe("obstacle_position_array", 1000, &GridLayer::obs_callback, this);
+  g_nh.setCallbackQueue(&my_queue);
   current_ = true;
   default_value_ = NO_INFORMATION;
   matchSize();
@@ -72,20 +79,33 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
   // *max_x = std::max(*max_x, mark_x);
   // *max_y = std::max(*max_y, mark_y);
 
-  double extra_obstacle[3][2]={{0.5,0.5},{1,0.5},{1.5,0.5}};
-  for (int i = 0; i<3; i++)
-  {
-    unsigned int mx;
-    unsigned int my;
-    double mark_x = extra_obstacle[i][0], mark_y = extra_obstacle[i][1];
-    if(worldToMap(mark_x, mark_y, mx, my)){
-      setCost(mx, my, LETHAL_OBSTACLE);
-    }
-    *min_x = std::min(*min_x, mark_x);
-    *min_y = std::min(*min_y, mark_y);
-    *max_x = std::max(*max_x, mark_x);
-    *max_y = std::max(*max_y, mark_y);
-  }
+  ros::NodeHandle nh("temp");
+  ros::Rate r(5);
+
+  
+  my_queue.callAvailable(ros::WallDuration());
+  // while(!obstacle_updated_ && nh.ok()){
+  //   ros::spinOnce();
+  //   r.sleep();
+  //   std::cout << "hello"<< std::endl;
+  // }
+  ros::spinOnce();
+
+  // double extra_obstacle[3][2]={{0.5,0.5},{1,0.5},{1.5,0.5}};
+  // for (int i = 0; i<3; i++)
+  // {
+  //   unsigned int mx;
+  //   unsigned int my;
+  //   double mark_x = extra_obstacle[i][0], mark_y = extra_obstacle[i][1];
+  //   if(worldToMap(mark_x, mark_y, mx, my)){
+  //     setCost(mx, my, LETHAL_OBSTACLE);
+  //   }
+  //   *min_x = std::min(*min_x, mark_x);
+  //   *min_y = std::min(*min_y, mark_y);
+  //   *max_x = std::max(*max_x, mark_x);
+  //   *max_y = std::max(*max_y, mark_y);
+  // }
+  
   // std::printf("mark_x:%lf, mark_y:%lf, mx:%d, my:%d \n", mark_x, mark_y, mx, my);
 
 

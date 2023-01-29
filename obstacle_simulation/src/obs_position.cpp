@@ -80,9 +80,6 @@ int main(int argc, char** argv){
 
     while(ros::ok())
     {
-
-        ROS_INFO("hello world");
-
         obstaclePub(obs_pub_PoseStamped, frame, obstacle_pos);
         obstaclePubArray(obs_pub_PoseArray, frame, obstacle_pos);
         ros::spinOnce();

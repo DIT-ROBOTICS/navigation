@@ -11,10 +11,12 @@ publish_frequency: 10.0
 
 plugins:
   - {name: static_layer, type: "costmap_2d::StaticLayer"}
-  - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
-  - {name: simple_layer, type: "simple_layer_namespace::GridLayer", output: "screen"}    
+  - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"} 
+# ... your own plugins   
+  - {name: simple_layer, type: "simple_layer_namespace::GridLayer", output: "screen"}   
+  - {name: costmap_prohibition_layer, type: "costmap_prohibition_layer_namespace::CostmapProhibitionLayer"}
+# ... final layer
   - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
-
 
 static_layer:
   enabled: true

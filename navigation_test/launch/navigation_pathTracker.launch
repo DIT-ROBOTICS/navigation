@@ -111,6 +111,9 @@
     <!-- <rosparam file="$(find navigation_test)/config/base_local_planner_params.yaml" command="load" /> -->
     <rosparam file="$(find navigation_test)/config/global_planner_params.yaml" command="load" />
     <rosparam file="$(find navigation_test)/config/move_base_params.yaml" command="load" />
+
+    <!-- costmap_prohibition_layer -->
+    <rosparam file="$(find navigation_test)/config/prohibition_areas.yaml" command="load" ns="global_costmap/costmap_prohibition_layer"/>
   </node>
 
   <!-- path_Tracker -->
@@ -124,5 +127,8 @@
   <!-- obstacle_simulation.launch -->
   <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
   </include>
+
+
+
 
 </launch>
