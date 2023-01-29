@@ -122,7 +122,7 @@
   </node>
 
   <!-- obstacle_simulation.launch -->
-  <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-  </include> -->
+  <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+  </include>
 
 </launch>

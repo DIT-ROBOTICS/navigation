@@ -21,13 +21,14 @@ void GridLayer::obs_callback(const geometry_msgs::PoseStamped& pose)
   obstacle_pos_[obstacle_num_].push_back(mx);
   obstacle_pos_[obstacle_num_].push_back(my);
   obstacle_num_++;
+  std::cout << obstacle_num_ << std::endl;
 
 }
 
 void GridLayer::onInitialize()
 {
-  ros::NodeHandle nh("~/" + name_);
-  ros::Subscriber sub = nh.subscribe("obstacle_position", 1000, &GridLayer::obs_callback, this);
+  ros::NodeHandle nh("~/" + name_),g_nh;
+  ros::Subscriber sub = g_nh.subscribe("obstacle_position", 1000, &GridLayer::obs_callback, this);
   current_ = true;
   default_value_ = NO_INFORMATION;
   matchSize();
