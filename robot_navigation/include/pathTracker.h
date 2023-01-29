@@ -77,7 +77,7 @@ class pathTracker
     ros::Publisher goalreachedPub_;
 
     // Client
-    void plannerClient(RobotState, RobotState);
+    bool plannerClient(RobotState, RobotState);
 
     RobotState goal_pose_;
     RobotState cur_pose_;

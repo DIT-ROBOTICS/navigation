@@ -268,7 +268,7 @@ void pathTracker::switchMode(Mode next_mode)
     workingMode_ = next_mode;
 }
 
-void pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
+bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
 {
     geometry_msgs::PoseStamped cur;
     cur.header.frame_id = "map";
@@ -305,7 +305,16 @@ void pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
 
     if (client.call(srv))
     {
-        ROS_INFO("1 - Path received from global planner !");
+        // ******* add by Ben
+        if(srv.response.plan.poses.empty()){
+            ROS_WARN("Got empty plan");
+            return false;
+        }else{
+            ROS_INFO("Path received from make_plan service");
+        }
+        // *******
+
+        // ROS_INFO("1 - Path received from global planner !");
         nav_msgs::Path path_msg;
         path_msg.poses = srv.response.plan.poses;
         global_path_.clear();
@@ -324,7 +333,10 @@ void pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
             global_path_.push_back(pose);
         }
         global_path_ = orientationFilter(global_path_);
-        ROS_INFO("2 - Path received from global planner !");
+        
+        // add by Ben
+        return true;
+        // ROS_INFO("2 - Path received from global planner !");
 
         // print global path
         // ROS_INFO("--- global path ---");
@@ -338,6 +350,7 @@ void pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     {
         ROS_ERROR("Failed to call service make_plan");
         // return 1;
+        return false;
     }
 }
 
@@ -396,7 +409,10 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
         // {
         //     ROS_INFO("Unable to clear the map!!");
         // }
-        plannerClient(cur_pose_, goal_pose_);
+        if(!plannerClient(cur_pose_, goal_pose_)){
+            ROS_WARN("Goal might not be reached...");
+            return;
+        }
         // 
 
         linear_brake_distance_ = linear_brake_distance_ratio_ * cur_pose_.distanceTo(goal_pose_);
