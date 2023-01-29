@@ -12,12 +12,9 @@ namespace simple_layer_namespace
 std::vector<std::vector<double>> obstacle_pos_;
 int obstacle_num_ = 0;
 
-GridLayer::GridLayer() {
-  // ros::NodeHandle nh;
-  // ros::Subscriber sub = nh.subscribe("obstacle_position", 1000, &GridLayer::obs_callback, this);
+GridLayer::GridLayer() {}
 
-}
-void obs_callback(const geometry_msgs::PoseStamped& pose)
+void GridLayer::obs_callback(const geometry_msgs::PoseStamped& pose)
 {
   double mx = pose.pose.position.x;
   double my = pose.pose.position.y;
