@@ -17,6 +17,8 @@ plugins:
   - {name: costmap_prohibition_layer, type: "costmap_prohibition_layer_namespace::CostmapProhibitionLayer"}
 # ... final layer
 
+
+
   - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
 
 static_layer:
