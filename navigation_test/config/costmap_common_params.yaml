@@ -16,6 +16,7 @@ plugins:
   - {name: simple_layer, type: "simple_layer_namespace::GridLayer", output: "screen"}   
   - {name: costmap_prohibition_layer, type: "costmap_prohibition_layer_namespace::CostmapProhibitionLayer"}
 # ... final layer
+
   - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
 
 static_layer:
