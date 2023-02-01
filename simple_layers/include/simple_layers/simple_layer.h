@@ -24,6 +24,8 @@ private:
  
   double mark_x_, mark_y_;
   dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
+  int state_, step_;
+  double mark_x_bef, mark_y_bef;
 };
 }
 #endif

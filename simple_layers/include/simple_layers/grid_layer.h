@@ -35,6 +35,8 @@ private:
   bool obstacle_updated_;
   int obstacle_num_;
   ros::CallbackQueue my_queue;
+  int state_, step_;
+  double mark_x_bef, mark_y_bef;
 };
 }
 #endif
