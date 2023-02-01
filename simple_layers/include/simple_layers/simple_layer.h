@@ -21,7 +21,8 @@ public:
  
 private:
   void reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t level);
- 
+  void updateObjCosts(costmap_2d::Costmap2D& master_grid, double mark_x, double mark_y, double r, int cost);
+
   double mark_x_, mark_y_;
   dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
   int state_, step_;
