@@ -5,6 +5,7 @@ prohibition_areas:
  # it will become the thickness of the costmap resolution
  - [[1, 1],
     [2, 1]]
+    
  # and last but not least a polygon with an individual number of points
 #  - [[-11.15, -15.614],
 #     [-12.35, -13.89],
