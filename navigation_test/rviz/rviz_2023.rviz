@@ -5,11 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Status1
-        - /Map2
-        - /Map2/Status1
+        - /Grid1
       Splitter Ratio: 0.5
-    Tree Height: 549
+    Tree Height: 426
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -18,7 +16,7 @@ Panels:
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
-    Splitter Ratio: 0.5886790156364441
+    Splitter Ratio: 0.5764925479888916
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -37,7 +35,7 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
-      Cell Size: 1
+      Cell Size: 0.05000000074505806
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: true
@@ -47,11 +45,11 @@ Visualization Manager:
       Name: Grid
       Normal Cell Count: 0
       Offset:
-        X: 0
-        Y: 0
+        X: 1.5
+        Y: 1
         Z: 0
       Plane: XY
-      Plane Cell Count: 10
+      Plane Cell Count: 60
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
@@ -83,6 +81,22 @@ Visualization Manager:
       Shaft Radius: 0.05000000074505806
       Shape: Arrow
       Topic: /ekf_pose
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz/Pose
+      Color: 32; 74; 135
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Goal
+      Queue Size: 10
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Arrow
+      Topic: /nav_goal
       Unreliable: false
       Value: true
     - Circles color: 170; 0; 0
@@ -117,15 +131,25 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /move_base/GlobalPlanner/potential
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
     - Alpha: 1
       Class: rviz/Polygon
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Name: Polygon
       Queue Size: 10
       Topic: /move_base/global_costmap/footprint
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -150,6 +174,65 @@ Visualization Manager:
       Topic: /move_base/GlobalPlanner/plan
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz/Pose
+      Color: 32; 74; 135
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Queue Size: 10
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Arrow
+      Topic: /move_base_simple/goal
+      Unreliable: false
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base_footprint:
+          Value: true
+        beacon1:
+          Value: true
+        beacon2:
+          Value: true
+        beacon3:
+          Value: true
+        laser_frame:
+          Value: true
+        map:
+          Value: true
+        mpu9250_frame:
+          Value: true
+        odom:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        map:
+          beacon1:
+            {}
+          beacon2:
+            {}
+          beacon3:
+            {}
+          odom:
+            base_footprint:
+              laser_frame:
+                {}
+              mpu9250_frame:
+                {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -170,7 +253,7 @@ Visualization Manager:
       X std deviation: 0.5
       Y std deviation: 0.5
     - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
+      Topic: /nav_goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
@@ -178,7 +261,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.47654390335083
+      Distance: 4.355637073516846
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -186,25 +269,25 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.0317795276641846
-        Y: 0.9620258808135986
-        Z: -0.7988574504852295
+        X: 1.5423945188522339
+        Y: 1.3289531469345093
+        Z: 0.00557278748601675
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.175397515296936
+      Pitch: 1.1497968435287476
       Target Frame: <Fixed Frame>
-      Yaw: 1.9153976440429688
+      Yaw: 6.205383777618408
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 846
+  Height: 752
   Hide Left Dock: false
-  Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000156000002b0fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000002b0000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004f30000003efc0100000002fb0000000800540069006d00650100000000000004f3000002eb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000282000002b000000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd00000004000000000000021a00000252fc0200000007fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d00000252000000e60100001cfa000000010100000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000000ffffffff0000009d00fffffffb000000100044006900730070006c0061007900730100000000000001560000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000056a0000003efc0100000002fb0000000800540069006d006501000000000000056a000002eb00fffffffb0000000800540069006d006501000000000000045000000000000000000000034a0000025200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -212,7 +295,7 @@ Window Geometry:
   Tool Properties:
     collapsed: false
   Views:
-    collapsed: false
-  Width: 1267
-  X: 608
-  Y: 107
+    collapsed: true
+  Width: 1386
+  X: 159
+  Y: 64

@@ -156,6 +156,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 
 void pathTracker::timerCallback(const ros::TimerEvent& e)
 {
+
     // ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
     // std_srvs::Empty srv;
 
@@ -168,6 +169,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
     // {
     //     ROS_INFO("Unable to clear the map!!");
     // }
+
 
     switch (workingMode_)
     {
@@ -637,8 +639,10 @@ void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
     localgoal_bf = rot * goal_base_vec;
 
     t_now_ = ros::Time::now();
+
     dt_ = (t_now_ - t_now_).toSec();
     ROS_INFO("dt: %f", dt_);
+
     if (xy_goal_reached(cur_pose_, goal_pose_))
     {
         velocity_state_.x_ = 0;
@@ -755,7 +759,6 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
                 output_vel = -angular_max_vel_;
         }
     }
-
     else if (workingMode_ == Mode::TRANSITION)
     {
         if (vel_type == Velocity::linear)
@@ -785,6 +788,7 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
             }
         }
     }
+
     return output_vel;
 }
 

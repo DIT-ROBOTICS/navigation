@@ -150,7 +150,9 @@ class pathTracker
     void diffController(RobotState local_goal, RobotState cur_pos);
     void omniController(RobotState local_goal, RobotState cur_pos);
 
+    // add by ben
     ros::Time t_bef_;
     ros::Time t_now_;
     double dt_;
+
 };
