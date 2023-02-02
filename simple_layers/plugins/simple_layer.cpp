@@ -59,23 +59,23 @@ void SimpleLayer::updateBounds(double origin_x, double origin_y, double origin_y
   if(state_ == 0){
     if(step_ < res){
       step_++;
-      ROS_INFO("1");
+      // ROS_INFO("1");
     }else if(step_ == res){
       step_--;
       state_ = 1;
-      ROS_INFO("2");
+      // ROS_INFO("2");
     }
   }else if(state_ == 1){
     if(step_ > 0){
       step_--;
-      ROS_INFO("3");
+      // ROS_INFO("3");
     }else if(step_ == 0){
       step_++;
       state_ = 0;
-      ROS_INFO("4");
+      // ROS_INFO("4");
     }
   }
-  ROS_INFO("mark_x: %lf, mark_y: %lf \n", mark_x_, mark_y_);
+  // ROS_INFO("mark_x: %lf, mark_y: %lf \n", mark_x_, mark_y_);
 
 
 

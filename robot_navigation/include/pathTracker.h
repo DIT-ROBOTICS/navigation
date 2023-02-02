@@ -17,7 +17,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Bool.h>
-
+#include <ros/time.h>
 
 enum class Mode
 {
@@ -149,5 +149,12 @@ class pathTracker
 
     void diffController(RobotState local_goal, RobotState cur_pos);
     void omniController(RobotState local_goal, RobotState cur_pos);
+
+
+    // add by ben
+    // int t_;
+    ros::Time t_bef_;
+    ros::Time t_now_;
+    double dt_;
 
 };
