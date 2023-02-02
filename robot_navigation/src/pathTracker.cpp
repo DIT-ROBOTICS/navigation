@@ -1,5 +1,6 @@
 #include "pathTracker.h"
 #include <cmath>
+#include <ros/time.h>
 
 using namespace std;
 
@@ -31,6 +32,8 @@ pathTracker::pathTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local)
     params_srv_ = nh_local_.advertiseService("params", &pathTracker::initializeParams, this);
     initializeParams(empt.request, empt.response);
     initialize();
+    t_bef_ = ros::Time::now();
+    t_now_ = ros::Time::now();
 }
 
 pathTracker::~pathTracker()
@@ -153,6 +156,19 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 
 void pathTracker::timerCallback(const ros::TimerEvent& e)
 {
+    // ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+    // std_srvs::Empty srv;
+
+    // if(client2.call(srv))
+    // {
+    //     ROS_INFO("Cleared the map!!");
+    //     ros::Duration(0.5).sleep();
+    // }
+    // else
+    // {
+    //     ROS_INFO("Unable to clear the map!!");
+    // }
+
     switch (workingMode_)
     {
         case Mode::GLOBALPATH_RECEIVED: {
@@ -383,6 +399,7 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
     // add by ben
     ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
     std_srvs::Empty srv;
+    t_bef_ = ros::Time::now();
 
     goal_pose_.x_ = pose_msg->pose.position.x;
     goal_pose_.y_ = pose_msg->pose.position.y;
@@ -619,6 +636,9 @@ void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
     rot << cos(-cur_pos.theta_), -sin(-cur_pos.theta_), sin(-cur_pos.theta_), cos(-cur_pos.theta_);
     localgoal_bf = rot * goal_base_vec;
 
+    t_now_ = ros::Time::now();
+    dt_ = (t_now_ - t_now_).toSec();
+    ROS_INFO("dt: %f", dt_);
     if (xy_goal_reached(cur_pose_, goal_pose_))
     {
         velocity_state_.x_ = 0;
@@ -644,6 +664,7 @@ void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
         velocity_state_.theta_ = angular_velocity;
     }
     velocityPublish();
+    t_bef_ = t_now_;
 }
 
 double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, RobotState goal_pos, RobotState vel_state_,
@@ -659,7 +680,7 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
             // acceleration
             if (linear_acceleration_profile_ == "linear")
             {
-                double d_vel = acceleration / control_frequency_;
+                double d_vel = acceleration * dt_;
                 output_vel = last_vel + d_vel;
             }
             else if (linear_acceleration_profile_ == "smooth_step")
@@ -718,7 +739,7 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
             //     output_vel = -angular_max_vel_;
 
             // ================= old version =================
-            double d_vel = acceleration / control_frequency_;
+            double d_vel = acceleration * dt_;
             output_vel = vel_state_.theta_ + d_vel;
             double theta_err = (angleLimitChecking(goal_pos.theta_ - cur_pos.theta_));
 
@@ -739,7 +760,7 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
     {
         if (vel_type == Velocity::linear)
         {
-            double d_vel = linear_transition_acc_ / control_frequency_;
+            double d_vel = linear_transition_acc_ * dt_;
             RobotState _(0, 0, 0);
             double last_vel = vel_state_.distanceTo(_);
             output_vel = last_vel - d_vel;
@@ -749,7 +770,7 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
 
         if (vel_type == Velocity::angular)
         {
-            double d_vel = angular_transition_acc_ / control_frequency_;
+            double d_vel = angular_transition_acc_ * dt_;
             if (output_vel > 0)
             {
                 output_vel = vel_state_.theta_ - d_vel;
