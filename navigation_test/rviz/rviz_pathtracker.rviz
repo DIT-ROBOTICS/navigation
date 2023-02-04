@@ -6,9 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Path1
-        - /LaserScan1
-        - /PoseArray2
       Splitter Ratio: 0.5
     Tree Height: 549
   - Class: rviz/Selection
@@ -29,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -274,6 +271,40 @@ Visualization Manager:
       Topic: /move_base/TebLocalPlannerROS/teb_poses
       Unreliable: false
       Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base_footprint:
+          Value: true
+        base_link:
+          Value: true
+        imu:
+          Value: true
+        laser:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        map:
+          odom:
+            base_footprint:
+              base_link:
+                imu:
+                  {}
+                laser:
+                  {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -310,17 +341,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.1602494716644287
-        Y: -0.840618371963501
-        Z: -1.3741953372955322
+        X: 1.4600683450698853
+        Y: 0.8025359511375427
+        Z: -1.0292080640792847
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5397971272468567
+      Pitch: 1.1347966194152832
       Target Frame: <Fixed Frame>
-      Yaw: 1.5854401588439941
+      Yaw: 4.683618545532227
     Saved: ~
 Window Geometry:
   Displays:

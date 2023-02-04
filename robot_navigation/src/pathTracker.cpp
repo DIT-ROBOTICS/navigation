@@ -157,18 +157,18 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 void pathTracker::timerCallback(const ros::TimerEvent& e)
 {
 
-    ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
-    std_srvs::Empty srv;
+    // ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+    // std_srvs::Empty srv;
 
-    if(client2.call(srv))
-    {
-        ROS_INFO("Cleared the map!!");
-        ros::Duration(0.5).sleep();
-    }
-    else
-    {
-        ROS_INFO("Unable to clear the map!!");
-    }
+    // if(client2.call(srv))
+    // {
+    //     ROS_INFO("Cleared the map!!");
+    //     ros::Duration(0.5).sleep();
+    // }
+    // else
+    // {
+    //     ROS_INFO("Unable to clear the map!!");
+    // }
 
 
     switch (workingMode_)

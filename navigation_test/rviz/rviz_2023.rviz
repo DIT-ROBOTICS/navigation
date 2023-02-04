@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Grid1
+        - /Map3
       Splitter Ratio: 0.5
     Tree Height: 426
   - Class: rviz/Selection
@@ -123,7 +123,7 @@ Visualization Manager:
       Value: true
     - Alpha: 0.699999988079071
       Class: rviz/Map
-      Color Scheme: map
+      Color Scheme: costmap
       Draw Behind: false
       Enabled: true
       Name: Map
@@ -133,14 +133,14 @@ Visualization Manager:
       Value: true
     - Alpha: 0.699999988079071
       Class: rviz/Map
-      Color Scheme: map
+      Color Scheme: costmap
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: Map
       Topic: /move_base/GlobalPlanner/potential
       Unreliable: false
       Use Timestamp: false
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/Polygon
       Color: 25; 255; 0
@@ -261,7 +261,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.355637073516846
+      Distance: 3.407200336456299
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -269,17 +269,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.5423945188522339
-        Y: 1.3289531469345093
-        Z: 0.00557278748601675
+        X: 1.0935100317001343
+        Y: 1.2457841634750366
+        Z: -0.27004534006118774
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1497968435287476
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 6.205383777618408
+      Yaw: 4.755375862121582
     Saved: ~
 Window Geometry:
   Displays:
@@ -297,5 +297,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1386
-  X: 159
-  Y: 64
+  X: 240
+  Y: 243

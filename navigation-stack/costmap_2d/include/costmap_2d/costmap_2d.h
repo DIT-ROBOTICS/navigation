@@ -400,6 +400,8 @@ private:
       for (unsigned int i = 0; i < end; ++i)
       {
         at(offset);
+        at(offset+1);
+        at(offset-1);
         offset += offset_a;
         error_b += abs_db;
         if ((unsigned int)error_b >= abs_da)
