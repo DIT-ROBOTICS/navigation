@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Global_potential1
       Splitter Ratio: 0.5
     Tree Height: 549
   - Class: rviz/Selection
@@ -52,9 +53,9 @@ Visualization Manager:
       Plane Cell Count: 60
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.20000000298023224
+    - Alpha: 0.800000011920929
       Class: rviz/Map
-      Color Scheme: map
+      Color Scheme: costmap
       Draw Behind: false
       Enabled: true
       Name: Global_costmap
@@ -72,7 +73,7 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 0.5
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
@@ -333,7 +334,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.4252610206604
+      Distance: 4.1408233642578125
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -341,17 +342,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.4600683450698853
-        Y: 0.8025359511375427
-        Z: -1.0292080640792847
+        X: 1.5189858675003052
+        Y: 1.1023163795471191
+        Z: -0.9569284319877625
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1347966194152832
+      Pitch: 1.33479642868042
       Target Frame: <Fixed Frame>
-      Yaw: 4.683618545532227
+      Yaw: 4.6986188888549805
     Saved: ~
 Window Geometry:
   Displays:
