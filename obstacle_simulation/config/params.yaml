@@ -1,5 +1,6 @@
-update_frequency: 3
+update_frequency: 5
 obstacles:
-  - {from: camera, motion_type: static, position: "[[1, 0.5], [1.5, 0.7], [2.5,1.5]]", stdev: 0.01}
-  - {from: tracker, motion_type: reciprocation, position: "[[1, 0.5], [2.5, 2]]", stdev: 0.01}
-
+  - {type: sample_camera, motion_type: static, position: "[[1, 0.5], [1.5, 0.7], [2.5,1.5]]", stdev: 0.02}
+  # - {type: robot_camera, motion_type: reciprocation, position: "[[1, 0.5], [2.5, 2]]", stdev: 0.01}
+  - {type: robot_tracker, motion_type: reciprocation, position: "[[1, 0.5], [2.5, 2]]", stdev: 0.01}
+  # - {type: robot_lidar, motion_type: static, position: "[[1, 0.5], [1.5, 0.7], [2.5,1.5]]", stdev: 0.02}

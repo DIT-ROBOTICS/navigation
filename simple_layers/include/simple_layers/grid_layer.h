@@ -10,16 +10,24 @@
 
 namespace simple_layer_namespace
 {
+enum class Obstacle_type{
+  sample,
+  rival
+};
+
 class Obstacle
 {
 public:
   Obstacle();
-  Obstacle(double x, double y, std::string type, ros::Time t);
+  Obstacle(double x, double y, Obstacle_type obstacle_type, std::string source_type, ros::Time t);
   double get_x() const{
     return x_;
   }
   double get_y() const{
     return y_;
+  }
+  Obstacle_type get_obstacle_type() const{
+    return obstacle_type_;
   }
 
 private:
@@ -32,6 +40,7 @@ private:
   double yaw_;
 
   std::string source_type_;
+  Obstacle_type obstacle_type_;
   ros::Time stamp_;
 
 };
@@ -67,11 +76,16 @@ private:
   dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
 
   std::vector<Obstacle> obstacle_pos_;
-	unsigned int obstacle_num_;
   ros::Subscriber sub_;
   ros::NodeHandle g_nh_;
   double update_frequency_;
   std::vector<std::string> observation_sources_;
+  /** @brief tolerance that we think two obstacle are the same obstacle
+   *  there are two type of them: sample and rival (other team's robot)
+   */
+  double tolerance_sample_;
+  double tolerance_rival_;
+
 
   /**
    * @brief check whether the observation_source_type is used
@@ -79,6 +93,14 @@ private:
    */
   bool ifAddToLayer(std::string observation_source_type);
 
+  /**
+   * @brief check whether the obstacle exists
+   * @param obs the obstacle to be checked
+   * @return if exists return the index of the obstacle that same with the argument obstacle, if does not exist return empty vector
+   */
+  std::vector<int> ifExists(Obstacle obs);
+
+  Obstacle lowPassFilter(std::vector<Obstacle> obs, std::vector<int> idxs);
 };
 }
 #endif

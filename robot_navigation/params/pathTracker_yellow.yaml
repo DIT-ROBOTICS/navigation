@@ -1,6 +1,6 @@
 active: true
 robot_type: omni
-control_frequency: 70
+control_frequency: 10
 lookahead_distance: 0.1
 
 ### linear parameter

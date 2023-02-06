@@ -176,7 +176,7 @@ int main(int argc, char** argv){
         for (int32_t i = 0; i < my_list.size(); ++i)
         {
             Obstacle obs;
-            obs.from = static_cast<std::string>(my_list[i]["from"]);
+            obs.from = static_cast<std::string>(my_list[i]["type"]);
             ROS_INFO("Obstacle Simulation: Using Sources \"%s\"", obs.from.c_str());
 
             std::string type = static_cast<std::string>(my_list[i]["motion_type"]);
@@ -199,7 +199,7 @@ int main(int argc, char** argv){
     
     double obstacle_num = 0;
 
-    std::string frame = "camera";
+
     while(ros::ok())
     {
         // obstaclePub(obs_pub_PoseStamped, frame, obstacle_pos);

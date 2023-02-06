@@ -3,35 +3,36 @@
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "ros/time.h"
+#include "simple_layers/grid_layer.h"
 
 PLUGINLIB_EXPORT_CLASS(simple_layer_namespace::GridLayer, costmap_2d::Layer)
 
 using costmap_2d::LETHAL_OBSTACLE;
 using costmap_2d::NO_INFORMATION;
+using costmap_2d::FREE_SPACE;
 
 namespace simple_layer_namespace
 {
-Obstacle::Obstacle(double x, double y, std::string type, ros::Time t)
+Obstacle::Obstacle(double x, double y, Obstacle_type obstacle_type, std::string source_type, ros::Time t)
 {
   x_ = x;
   y_ = y;
-  source_type_ = type;
+  obstacle_type_ = obstacle_type;
+  source_type_ = source_type;
   stamp_ = t;
 
 }
 
-
 GridLayer::GridLayer() 
 {
 }
-
-
 
 void GridLayer::onInitialize()
 {
   ros::NodeHandle nh("~/" + name_);
   sub_ = g_nh_.subscribe("obstacle_position_array", 10, &GridLayer::obsCallback, this);
 
+  // read YAML parameter
   bool observation_source_camera;
   bool observation_source_tracker;
   bool observation_source_lidar;
@@ -53,10 +54,8 @@ void GridLayer::onInitialize()
   ROS_INFO("Grid_layer: obseration_sources: %s", s.c_str());
 
   nh.param("update_frequency", update_frequency_, 10.0);
-
-  obstacle_num_ = 0;
-
-
+  nh.param("tolerance/sample", tolerance_sample_, 0.1);
+  nh.param("tolerance/rival", tolerance_rival_, 0.1);
 
   current_ = true;
   default_value_ = NO_INFORMATION;
@@ -70,18 +69,42 @@ void GridLayer::onInitialize()
 
 void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
 {
-  if(!ifAddToLayer(poses.header.frame_id)) return;
+  // get the sersor name and obstacle type. format ex: sample_camera 
+  std::string temp = poses.header.frame_id;
+  int idx = temp.find("_");
+  std::string sensor_name;
+  std::string obs_type_temp;
+  if(idx!=std::string::npos){
+    obs_type_temp = temp.substr(0,idx);
+    sensor_name = temp.substr(idx+1);
+  }else{
+    ROS_WARN("Grid_layer: callback frame_id %s format is wrong", temp.c_str());
+    return;
+  }
+  Obstacle_type obstacle_type;
+  if(obs_type_temp == "sample")
+    obstacle_type = Obstacle_type::sample;
+  else if(obs_type_temp == "rival")
+    obstacle_type = Obstacle_type::rival;
 
-  obstacle_num_ = poses.poses.size();
-  ROS_INFO("GridLayer: Received %d Obstacles from Sources: %s", obstacle_num_, poses.header.frame_id.c_str());
+  if(!ifAddToLayer(sensor_name)) return;
+
+  unsigned int obstacle_num = poses.poses.size();
+  ROS_INFO("GridLayer: Received %d Obstacles from Sources: %s", obstacle_num, sensor_name.c_str());
   
-  for(int i=0; i<obstacle_num_; i++)
+  for(int i=0; i<obstacle_num; i++)
   {
-    Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, poses.header.frame_id ,poses.header.stamp);
-    obstacle_pos_.push_back(obs);
+    Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, obstacle_type, sensor_name, poses.header.stamp);
+    std::vector<int> idxs = ifExists(obs);
+    if(idxs.size() == 0)
+      obstacle_pos_.push_back(obs);
+    else{
+      for(int j=0;j<idxs.size();j++)
+        obstacle_pos_.erase(obstacle_pos_.begin() + idxs[j] - j);
+      obstacle_pos_.push_back(obs);
+    }
   }
   
-
 }
 
 void GridLayer::matchSize()
@@ -101,11 +124,12 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
 {
   if (!enabled_)
     return;
-  if (obstacle_num_ == 0)
+  if (obstacle_pos_.size() == 0)
     return;
 
-  // std::cout << obstacle_num_ << std::endl;
-  for(int i=0; i<obstacle_num_; i++){
+  resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
+
+  for(int i=0; i<obstacle_pos_.size(); i++){
     double mark_x = obstacle_pos_[i].get_x();
     double mark_y = obstacle_pos_[i].get_y();
     unsigned int mx;
@@ -113,7 +137,7 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
     if(worldToMap(mark_x, mark_y, mx, my)){
       setCost(mx, my, LETHAL_OBSTACLE);
     }
-    std::cout << mx << " " << my << std::endl;
+    // std::cout << mx << " " << my << std::endl;
     
     *min_x = std::min(*min_x, mark_x);
     *min_y = std::min(*min_y, mark_y);
@@ -139,6 +163,9 @@ void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
       master_grid.setCost(i, j, costmap_[index]); 
     }
   }
+
+  // clearDiffs(master_grid, master_grid_bef_);  
+  // master_grid_bef_ = master_grid;
 }
 
 
@@ -152,7 +179,32 @@ bool GridLayer::ifAddToLayer(std::string observation_source_type)
   return false;
 }
 
+std::vector<int> GridLayer::ifExists(Obstacle obs)
+{
+  std::vector<int> idxs;
+  for(int i=0; i<obstacle_pos_.size(); i++)
+  {
+    double dist = sqrt(pow(obs.get_x() - obstacle_pos_[i].get_x(), 2) + pow(obs.get_y() - obstacle_pos_[i].get_y(), 2));
+    switch(obs.get_obstacle_type()){
+      case Obstacle_type::sample:
+        if(dist < tolerance_sample_)
+          idxs.push_back(i);
+        break;
+
+      case Obstacle_type::rival:
+        if(dist < tolerance_rival_)
+          idxs.push_back(i);
+        break;
+    }
+  }
+
+  return idxs;
+}
+
+Obstacle GridLayer::lowPassFilter(std::vector<Obstacle> obs, std::vector<int> idxs)
+{
 
 
-
+  return Obstacle();
+}
 } // end namespace
