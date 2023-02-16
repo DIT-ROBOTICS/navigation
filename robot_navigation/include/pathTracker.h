@@ -63,11 +63,16 @@ class pathTracker
     // subscriber
     ros::Subscriber poseSub_;
     ros::Subscriber goalSub_;
+    ros::Subscriber obstacleSub_;
     ros::Subscriber actionSub_;
     // void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_msg);
     void poseCallback(const nav_msgs::Odometry::ConstPtr& pose_msg);
     void goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_msg);
+    void obstacleCallbak(const geometry_msgs::PoseArray::ConstPtr& poses_msg);
     // void actionCallback(const std_msgs::Bool::ConstPtr& action_msg);
+
+    geometry_msgs::PoseArray obstacle_pose_;
+    geometry_msgs::PoseArray rival_pose_;
 
     // Publisher
     ros::Publisher velPub_;
@@ -154,5 +159,12 @@ class pathTracker
     ros::Time t_bef_;
     ros::Time t_now_;
     double dt_;
-
+    
+    /**
+     *  @brief check if obstacle is on the current path 
+     *  @param path is the current path
+     *  accordint to the point line distance to calculate the distance between each obstacles with path
+     */
+    bool checkObstacle(std::vector<RobotState> path);
+    bool new_goal;
 };

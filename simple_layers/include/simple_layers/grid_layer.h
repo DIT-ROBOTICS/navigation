@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <costmap_2d/layer.h>
 #include <costmap_2d/layered_costmap.h>
+#include <costmap_2d/costmap_layer.h>
 #include <costmap_2d/GenericPluginConfig.h>
 #include <dynamic_reconfigure/server.h>
 #include "geometry_msgs/PoseArray.h"
@@ -44,8 +45,9 @@ private:
   ros::Time stamp_;
 
 };
-
-class GridLayer : public costmap_2d::Layer, public costmap_2d::Costmap2D
+//  public costmap_2d::CostmapLayer
+// public costmap_2d::Layer, public costmap_2d::Costmap2D
+class GridLayer : public costmap_2d::CostmapLayer
 {
 public:
   GridLayer();

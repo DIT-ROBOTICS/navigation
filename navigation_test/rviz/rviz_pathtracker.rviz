@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Global_costmap1
         - /Global_potential1
       Splitter Ratio: 0.5
     Tree Height: 549
@@ -273,22 +274,10 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_footprint:
-          Value: true
-        base_link:
-          Value: true
-        imu:
-          Value: true
-        laser:
-          Value: true
-        map:
-          Value: true
-        odom:
-          Value: true
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -296,16 +285,9 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          odom:
-            base_footprint:
-              base_link:
-                imu:
-                  {}
-                laser:
-                  {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -334,7 +316,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.1408233642578125
+      Distance: 3.52061128616333
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -342,17 +324,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.5189858675003052
-        Y: 1.1023163795471191
-        Z: -0.9569284319877625
+        X: 1.4049252271652222
+        Y: 1.1561262607574463
+        Z: -0.9456748962402344
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.33479642868042
+      Pitch: 1.3397964239120483
       Target Frame: <Fixed Frame>
-      Yaw: 4.6986188888549805
+      Yaw: 4.6886186599731445
     Saved: ~
 Window Geometry:
   Displays:
@@ -370,5 +352,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1267
-  X: 440
-  Y: 27
+  X: 86
+  Y: 83
