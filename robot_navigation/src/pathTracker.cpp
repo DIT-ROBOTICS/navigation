@@ -126,6 +126,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
             // poseSub_ = nh_.subscribe("/ekf_pose", 50, &pathTracker::poseCallback, this);
             poseSub_ = nh_.subscribe("/global_filter", 50, &pathTracker::poseCallback, this);
             goalSub_ = nh_.subscribe("/nav_goal", 50, &pathTracker::goalCallback, this);
+            obstacleSub_ = nh_.subscribe("/obstacle_position_array", 50, &pathTracker::obstacleCallbak, this);
             velPub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
             localgoalPub_ = nh_.advertise<geometry_msgs::PoseStamped>("/local_goal", 10);
             posearrayPub_ = nh_.advertise<geometry_msgs::PoseArray>("/orientation", 10);
@@ -314,6 +315,17 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     goal.pose.orientation.z = q.z();
     goal.pose.orientation.w = q.w();
 
+    // check if obstacles are on the path
+
+    // bool if_obstacle_on_path = true;
+    // if(global_path_.size()){
+    //     if_obstacle_on_path = checkObstacle(global_path_);
+    // }
+    // if(new_goal == false && if_obstacle_on_path == false){
+    //     return false;
+    // }
+
+
     ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetPlan>("/move_base/GlobalPlanner/make_plan");
     nav_msgs::GetPlan srv;
     srv.request.start = cur;
@@ -324,6 +336,7 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     if (client.call(srv))
     {
         // ******* add by Ben
+        new_goal = false;
         if(srv.response.plan.poses.empty()){
             ROS_WARN("Got empty plan");
             return false;
@@ -335,6 +348,7 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
         // ROS_INFO("1 - Path received from global planner !");
         nav_msgs::Path path_msg;
         path_msg.poses = srv.response.plan.poses;
+
         global_path_.clear();
 
         for (const auto& point : path_msg.poses)
@@ -442,6 +456,21 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
     if_localgoal_final_reached = false;
     if_globalpath_switched = false;
     switchMode(Mode::GLOBALPATH_RECEIVED);
+    new_goal = true;
+}
+
+void pathTracker::obstacleCallbak(const geometry_msgs::PoseArray::ConstPtr& poses_msg)
+{
+    obstacle_pose_.poses.clear();
+    obstacle_pose_.header = poses_msg->header;
+    for(int i=0;i<poses_msg->poses.size();i++)
+    {
+        geometry_msgs::Pose pose;
+        pose.position.x = poses_msg->poses[i].position.x;
+        pose.position.y = poses_msg->poses[i].position.y;
+        obstacle_pose_.poses.push_back(pose);
+    }
+    // std::cout << obstacle_pose_.poses.size() << std::endl;
 }
 
 RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState> path, double L_d)
@@ -641,7 +670,7 @@ void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
     t_now_ = ros::Time::now();
 
     dt_ = (t_now_ - t_bef_).toSec();
-    ROS_INFO("dt: %f", dt_);
+    // ROS_INFO("dt: %f", dt_);
 
     if (xy_goal_reached(cur_pose_, goal_pose_))
     {
@@ -832,6 +861,25 @@ void pathTracker::velocityPublish()
     vel_msg.angular.y = 0;
     vel_msg.angular.z = velocity_state_.theta_;
     velPub_.publish(vel_msg);
+}
+
+bool pathTracker::checkObstacle(std::vector<RobotState> path)
+{
+    double dist_thres = 0.1;
+    double d;
+    for(int i=0;i<obstacle_pose_.poses.size();i++)
+    {
+        for(int j=0;j<path.size();j++)
+        {
+            RobotState obs;
+            obs.x_ = obstacle_pose_.poses[i].position.x;
+            obs.y_ = obstacle_pose_.poses[i].position.y;
+            d = path[j].distanceTo(obs);
+            if(d < dist_thres)
+                return true;
+        }
+    }
+    return false;
 }
 
 int main(int argc, char** argv)

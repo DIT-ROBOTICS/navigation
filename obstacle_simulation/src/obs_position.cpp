@@ -87,10 +87,9 @@ void obstaclePub(ros::Publisher pub, std::vector<Obstacle> obstacles)
             case Motion_type::RECIPROCATION:
                 break;
         }
-
-
     }
 }
+
 
 /** @brief Parse a vector of vector of floats from a string.
  * @param input
@@ -162,6 +161,8 @@ int main(int argc, char** argv){
     ros::NodeHandle private_nh("~");
     ros::Publisher obs_pub_PoseStamped = nh.advertise<geometry_msgs::PoseStamped>("obstacle_position",1000);
     ros::Publisher obs_pub_PoseArray = nh.advertise<geometry_msgs::PoseArray>("obstacle_position_array",1000);
+    // ros::Publisher obs_pub_all_PoseArray = nh.advertise<geometry_msgs::PoseArray>("obstacle_all_position_array1",1000);
+
 
     // read the YAML file
     int update_frequency;
@@ -196,9 +197,8 @@ int main(int argc, char** argv){
 
         }
     }
-    
-    double obstacle_num = 0;
 
+    double obstacle_num = 0;
 
     while(ros::ok())
     {

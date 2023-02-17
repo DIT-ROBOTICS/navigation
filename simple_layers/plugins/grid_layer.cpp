@@ -150,24 +150,24 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
 void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i,
                                           int max_j)
 {
-  if (!enabled_)
-    return;
+  // if (!enabled_)
+  //   return;
 
-  for (int j = min_j; j < max_j; j++)
-  {
-    for (int i = min_i; i < max_i; i++)
-    {
-      int index = getIndex(i, j);
-      if (costmap_[index] == NO_INFORMATION)
-        continue;
-      master_grid.setCost(i, j, costmap_[index]); 
-    }
-  }
-
-  // clearDiffs(master_grid, master_grid_bef_);  
-  // master_grid_bef_ = master_grid;
+  // for (int j = min_j; j < max_j; j++)
+  // {
+  //   for (int i = min_i; i < max_i; i++)
+  //   {
+  //     int index = getIndex(i, j);
+  //     if (costmap_[index] == NO_INFORMATION)
+  //       continue;
+  //     master_grid.setCost(i, j, costmap_[index]); 
+  //   }
+  // }
+  
+  updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
+  // updateWithAddition(master_grid, min_i, min_j, max_i, max_j);
+  // updateWithMax(master_grid, min_i, min_j, max_i, max_j);
 }
-
 
 bool GridLayer::ifAddToLayer(std::string observation_source_type)
 {
