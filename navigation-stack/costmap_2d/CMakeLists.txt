@@ -36,16 +36,16 @@ add_definitions(${EIGEN3_DEFINITIONS})
 
 # messages
 add_message_files(
-    DIRECTORY msg
-    FILES
-    VoxelGrid.msg
+  DIRECTORY msg
+  FILES
+  VoxelGrid.msg
 )
 
 generate_messages(
-    DEPENDENCIES
-        std_msgs
-        geometry_msgs
-        map_msgs
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+  map_msgs
 )
 
 # dynamic reconfigure
