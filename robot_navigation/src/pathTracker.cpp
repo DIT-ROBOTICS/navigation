@@ -124,12 +124,13 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
         if (p_active_)
         {
             // poseSub_ = nh_.subscribe("/ekf_pose", 50, &pathTracker::poseCallback, this);
-            poseSub_ = nh_.subscribe("/global_filter", 50, &pathTracker::poseCallback, this);
-            goalSub_ = nh_.subscribe("/nav_goal", 50, &pathTracker::goalCallback, this);
-            obstacleSub_ = nh_.subscribe("/obstacle_position_array", 50, &pathTracker::obstacleCallbak, this);
-            velPub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 10);
-            localgoalPub_ = nh_.advertise<geometry_msgs::PoseStamped>("/local_goal", 10);
-            posearrayPub_ = nh_.advertise<geometry_msgs::PoseArray>("/orientation", 10);
+            poseSub_ = nh_.subscribe("global_filter", 50, &pathTracker::poseCallback, this);
+            goalSub_ = nh_.subscribe("nav_goal", 50, &pathTracker::goalCallback, this);
+            obstacleSub_ = nh_.subscribe("obstacle_position_array", 50, &pathTracker::obstacleCallbak, this);
+            velPub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+            localgoalPub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
+            posearrayPub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
+            goalreachedPub_ = nh_.advertise<std_msgs::Bool>("finishornot", 1);
         }
         else
         {
@@ -138,6 +139,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
             velPub_.shutdown();
             localgoalPub_.shutdown();
             posearrayPub_.shutdown();
+            goalreachedPub_.shutdown();
         }
     }
 
@@ -203,6 +205,9 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                 velocity_state_.y_ = 0;
                 velocity_state_.theta_ = 0;
                 velocityPublish();
+                std_msgs::Bool goalreached;
+                goalreached.data = true;
+                goalreachedPub_.publish(goalreached);
                 break;
             }
 
@@ -326,7 +331,7 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     // }
 
 
-    ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetPlan>("/move_base/GlobalPlanner/make_plan");
+    ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
     nav_msgs::GetPlan srv;
     srv.request.start = cur;
     srv.request.goal = goal;

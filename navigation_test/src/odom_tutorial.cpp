@@ -30,8 +30,8 @@ int main(int argc, char** argv){
 
   ros::NodeHandle nh;
   ros::Publisher odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
-  ros::Subscriber sub = nh.subscribe("/cmd_vel", 1000, vel_callback);
-  ros::Subscriber sub_initial_pose = nh.subscribe("/initialpose", 1000, initial_pose_callback);
+  ros::Subscriber sub = nh.subscribe("cmd_vel", 1000, vel_callback);
+  ros::Subscriber sub_initial_pose = nh.subscribe("initialpose", 1000, initial_pose_callback);
 
   tf::TransformBroadcaster odom_broadcaster;
 
