@@ -20,7 +20,6 @@ Obstacle::Obstacle(double x, double y, Obstacle_type obstacle_type, std::string 
   obstacle_type_ = obstacle_type;
   source_type_ = source_type;
   stamp_ = t;
-
 }
 
 GridLayer::GridLayer() 
@@ -60,8 +59,8 @@ void GridLayer::onInitialize()
   nh.getParam("filter/enabled", filter_enabled_);
   nh.getParam("filter/quiescence", filter_quiescence_);
   nh.getParam("filter/beta", filter_beta_);
-  nh.getParam("filter/fixed_point_remove_", fixed_point_remove_);
-  nh.getParam("filter/threshold_time_", threshold_time_);
+  nh.getParam("filter/fixed_point_remove", fixed_point_remove_);
+  nh.getParam("filter/threshold_time", threshold_time_);
   
   current_ = true;
   default_value_ = NO_INFORMATION;
@@ -100,17 +99,20 @@ void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
   
   for (int i = 0; i < obstacle_num; i++){
     Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, obstacle_type, sensor_name, poses.header.stamp);
-    
+      std::cout << "check123" << std::endl;
     if(filter_enabled_ && fixed_point_remove_){
+      std::cout << "check456" << std::endl;
       for (auto j = obstacle_pos_.begin(); j != obstacle_pos_.end(); ++j){
         double diff = ros::Time::now().toSec() - j->get_time().toSec();
         if( diff > threshold_time_) obstacle_pos_.erase(j);
       }
     }
+
     if(filter_enabled_ && filter_quiescence_){
       static std::vector<int> adjacent_obs_num;  
       adjacent_obs_num.clear();
       adjacent_obs_num = ifExists(obs);
+      std::cout << "check789" << std::endl;
     
       if (adjacent_obs_num.size() != 0){
         for (int j=0; j<adjacent_obs_num.size(); j++){
@@ -225,7 +227,7 @@ std::vector<int> GridLayer::ifExists(Obstacle obs)
       if(obs[idxs[i]].get_time()-obs_new.get_time() > obs[idxs[i+1]].get_time()-obs_new.get_time())  
         idx_latest = i+1;
     }
-    // std::cout << filter_beta_ << std::endl;
+    std::cout << "check" << std::endl;
     obs_new.set_x( filter_beta_*obs_new.get_x() + (1-filter_beta_)*obs[idx_latest].get_x());
     obs_new.set_y( filter_beta_*obs_new.get_y() + (1-filter_beta_)*obs[idx_latest].get_y());
     return obs_new;
