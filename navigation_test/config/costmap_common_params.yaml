@@ -40,6 +40,14 @@ simple_layer:
     sample: 0.1
     rival: 0.15
 
+filter:
+  enabled: true # if disabled, the obstacles' pos always refresh
+  # arguments below work IFF filter/enabled = true
+  quiescence: true
+  beta: 0.5 # the proprotion/dependence of new obstacle
+  fixed_point_remove: true
+  threshold_time: 1 # unit: seconds
+
 inflation_layer:
   enabled: true
   cost_scaling_factor: 3.0
