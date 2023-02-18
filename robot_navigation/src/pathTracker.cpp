@@ -130,6 +130,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
             velPub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
             localgoalPub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
             posearrayPub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
+            goalreachedPub_ = nh_.advertise<std_msgs::Bool>("finishornot", 1);
         }
         else
         {
@@ -138,6 +139,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
             velPub_.shutdown();
             localgoalPub_.shutdown();
             posearrayPub_.shutdown();
+            goalreachedPub_.shutdown();
         }
     }
 
@@ -203,6 +205,9 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                 velocity_state_.y_ = 0;
                 velocity_state_.theta_ = 0;
                 velocityPublish();
+                std_msgs::Bool goalreached;
+                goalreached.data = true;
+                goalreachedPub_.publish(goalreached);
                 break;
             }
 
