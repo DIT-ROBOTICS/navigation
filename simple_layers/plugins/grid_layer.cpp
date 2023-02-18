@@ -99,9 +99,7 @@ void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
   
   for (int i = 0; i < obstacle_num; i++){
     Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, obstacle_type, sensor_name, poses.header.stamp);
-      std::cout << "check123" << std::endl;
     if(filter_enabled_ && fixed_point_remove_){
-      std::cout << "check456" << std::endl;
       for (auto j = obstacle_pos_.begin(); j != obstacle_pos_.end(); ++j){
         double diff = ros::Time::now().toSec() - j->get_time().toSec();
         if( diff > threshold_time_) obstacle_pos_.erase(j);
@@ -112,7 +110,6 @@ void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
       static std::vector<int> adjacent_obs_num;  
       adjacent_obs_num.clear();
       adjacent_obs_num = ifExists(obs);
-      std::cout << "check789" << std::endl;
     
       if (adjacent_obs_num.size() != 0){
         for (int j=0; j<adjacent_obs_num.size(); j++){
