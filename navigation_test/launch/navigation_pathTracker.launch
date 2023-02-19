@@ -103,6 +103,7 @@
     <!-- Publish: /cmd_vel -->
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
         <remap from="cmd_vel" to ="vel_obseleted" />
+
         <!--when using path tracker needed to remap move_base's cmd_vel to other topic name-->
         <rosparam file="$(find navigation_test)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
         <rosparam file="$(find navigation_test)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
