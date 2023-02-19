@@ -21,11 +21,20 @@ class Obstacle
 public:
   Obstacle();
   Obstacle(double x, double y, Obstacle_type obstacle_type, std::string source_type, ros::Time t);
+  void set_x(double x){
+    this->x_ = x;
+  }
+  void set_y(double y){
+    this->y_ = y;
+  }
   double get_x() const{
     return x_;
   }
   double get_y() const{
     return y_;
+  }
+  ros::Time get_time() const{
+    return stamp_;
   }
   Obstacle_type get_obstacle_type() const{
     return obstacle_type_;
@@ -39,6 +48,8 @@ private:
   double vy_;
   double w;
   double yaw_;
+  
+  std::vector<double> obs_pos[20];
 
   std::string source_type_;
   Obstacle_type obstacle_type_;
@@ -88,6 +99,11 @@ private:
   double tolerance_sample_;
   double tolerance_rival_;
 
+  bool filter_enabled_;  // below features in effect iff filter_enabled = TRUE
+  bool filter_quiescence_;
+  double filter_beta_;
+  bool fixed_point_remove_;
+  double threshold_time_;
 
   /**
    * @brief check whether the observation_source_type is used
@@ -102,7 +118,7 @@ private:
    */
   std::vector<int> ifExists(Obstacle obs);
 
-  Obstacle lowPassFilter(std::vector<Obstacle> obs, std::vector<int> idxs);
+   Obstacle lowpassFilter(Obstacle obs_new, std::vector<Obstacle> obs, std::vector<int> idxs);
 };
 }
 #endif

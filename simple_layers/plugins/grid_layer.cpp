@@ -20,7 +20,6 @@ Obstacle::Obstacle(double x, double y, Obstacle_type obstacle_type, std::string 
   obstacle_type_ = obstacle_type;
   source_type_ = source_type;
   stamp_ = t;
-
 }
 
 GridLayer::GridLayer() 
@@ -57,6 +56,12 @@ void GridLayer::onInitialize()
   nh.param("tolerance/sample", tolerance_sample_, 0.1);
   nh.param("tolerance/rival", tolerance_rival_, 0.1);
 
+  nh.getParam("filter/enabled", filter_enabled_);
+  nh.getParam("filter/quiescence", filter_quiescence_);
+  nh.getParam("filter/beta", filter_beta_);
+  nh.getParam("filter/fixed_point_remove", fixed_point_remove_);
+  nh.getParam("filter/threshold_time", threshold_time_);
+  
   current_ = true;
   default_value_ = NO_INFORMATION;
   matchSize();
@@ -92,19 +97,29 @@ void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
   unsigned int obstacle_num = poses.poses.size();
   ROS_INFO("GridLayer: Received %d Obstacles from Sources: %s", obstacle_num, sensor_name.c_str());
   
-  for(int i=0; i<obstacle_num; i++)
-  {
+  for (int i = 0; i < obstacle_num; i++){
     Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, obstacle_type, sensor_name, poses.header.stamp);
-    std::vector<int> idxs = ifExists(obs);
-    if(idxs.size() == 0)
-      obstacle_pos_.push_back(obs);
-    else{
-      for(int j=0;j<idxs.size();j++)
-        obstacle_pos_.erase(obstacle_pos_.begin() + idxs[j] - j);
-      obstacle_pos_.push_back(obs);
+    if(filter_enabled_ && fixed_point_remove_){
+      for (auto j = obstacle_pos_.begin(); j != obstacle_pos_.end(); ++j){
+        double diff = ros::Time::now().toSec() - j->get_time().toSec();
+        if( diff > threshold_time_) obstacle_pos_.erase(j);
+      }
     }
+
+    if(filter_enabled_ && filter_quiescence_){
+      static std::vector<int> adjacent_obs_num;  
+      adjacent_obs_num.clear();
+      adjacent_obs_num = ifExists(obs);
+    
+      if (adjacent_obs_num.size() != 0){
+        for (int j=0; j<adjacent_obs_num.size(); j++){
+          obs = lowpassFilter(obs, obstacle_pos_, adjacent_obs_num);
+          obstacle_pos_.erase(obstacle_pos_.begin() + adjacent_obs_num[j] - j);
+        }
+      }
+    }
+    obstacle_pos_.push_back(obs);
   }
-  
 }
 
 void GridLayer::matchSize()
@@ -201,10 +216,17 @@ std::vector<int> GridLayer::ifExists(Obstacle obs)
   return idxs;
 }
 
-Obstacle GridLayer::lowPassFilter(std::vector<Obstacle> obs, std::vector<int> idxs)
-{
-
-
-  return Obstacle();
-}
+  Obstacle GridLayer::lowpassFilter(Obstacle obs_new, std::vector<Obstacle> obs, std::vector<int> idxs)
+  {
+    int idx_latest = idxs[0];
+    for(int i=0; i<idxs.size()-1; i++)
+    {
+      if(obs[idxs[i]].get_time()-obs_new.get_time() > obs[idxs[i+1]].get_time()-obs_new.get_time())  
+        idx_latest = i+1;
+    }
+    std::cout << "check" << std::endl;
+    obs_new.set_x( filter_beta_*obs_new.get_x() + (1-filter_beta_)*obs[idx_latest].get_x());
+    obs_new.set_y( filter_beta_*obs_new.get_y() + (1-filter_beta_)*obs[idx_latest].get_y());
+    return obs_new;
+  }
 } // end namespace
