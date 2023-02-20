@@ -152,6 +152,9 @@ include_directories(
 
 add_library(path_layer plugin/path_layer.cpp)
 
+add_executable(Rival_Sim_main src/Rival_Sim_main.cpp src/RobotClass.cpp)
+target_link_libraries(Rival_Sim_main ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
