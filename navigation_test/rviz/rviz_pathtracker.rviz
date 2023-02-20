@@ -4,7 +4,8 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /RivalPose1
+        - /Odometry1
+        - /Odometry1/Shape1
       Splitter Ratio: 0.5
     Tree Height: 566
   - Class: rviz/Selection
@@ -156,10 +157,10 @@ Visualization Manager:
         Axes Length: 1
         Axes Radius: 0.10000000149011612
         Color: 255; 25; 0
-        Head Length: 0.30000001192092896
-        Head Radius: 0.10000000149011612
-        Shaft Length: 1
-        Shaft Radius: 0.05000000074505806
+        Head Length: 0.20000000298023224
+        Head Radius: 0.05000000074505806
+        Shaft Length: 0.20000000298023224
+        Shaft Radius: 0.02500000037252903
         Value: Arrow
       Topic: /odom
       Unreliable: false
@@ -328,7 +329,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.9669578075408936
+      Distance: 4.169403553009033
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -336,9 +337,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.133461833000183
-        Y: 0.6579340100288391
-        Z: -0.9460469484329224
+        X: 1.5058165788650513
+        Y: 1.0120874643325806
+        Z: -0.9456945657730103
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -346,7 +347,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 4.7186150550842285
+      Yaw: 4.708614826202393
     Saved: ~
 Window Geometry:
   Displays:
@@ -365,4 +366,4 @@ Window Geometry:
     collapsed: true
   Width: 1528
   X: 72
-  Y: 0
+  Y: 27

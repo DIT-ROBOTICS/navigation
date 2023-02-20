@@ -41,12 +41,17 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     virtual void matchSize();
 
+    void RivalPath_CB(const geometry_msgs::PoseStamped& poses);
+
    private:
     void reconfigureCB(costmap_2d::GenericPluginConfig& config, uint32_t level);
     dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>* dsrv_;
 
-    ros::NodeHandle g_nh_;
-    ros::Subscriber sub_;
+    ros::NodeHandle Global_nh;
+    ros::Subscriber RivalPath_Sub;
+
+    bool isRivalPath = false;
+    geometry_msgs::PoseStamped RivalPath;
 
     double update_frequency_;
     std::vector<std::string> observation_sources_;

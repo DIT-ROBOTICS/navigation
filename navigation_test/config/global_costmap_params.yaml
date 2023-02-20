@@ -46,8 +46,8 @@ global_costmap:
       beta: 0.5 # the weight/dependence of new obstacles' pos
       fixed_point_remove: true
       threshold_time: 1 # unit: seconds
-
-  static_layer:
+  
+  path_layer:
     enabled: true
 
   inflation_layer:
