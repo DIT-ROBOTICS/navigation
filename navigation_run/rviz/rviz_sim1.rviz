@@ -3,7 +3,9 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /Odometry21/Shape1
+        - /Pose21
       Splitter Ratio: 0.5
     Tree Height: 520
   - Class: rviz/Selection
@@ -202,7 +204,7 @@ Visualization Manager:
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
-        Shaft Length: 1
+        Shaft Length: 0.20000000298023224
         Shaft Radius: 0.05000000074505806
         Value: Arrow
       Topic: /robot1/odom
@@ -237,7 +239,7 @@ Visualization Manager:
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
-        Shaft Length: 1
+        Shaft Length: 0.20000000298023224
         Shaft Radius: 0.05000000074505806
         Value: Arrow
       Topic: /robot2/odom
@@ -253,7 +255,7 @@ Visualization Manager:
       Head Radius: 0.10000000149011612
       Name: Pose
       Queue Size: 10
-      Shaft Length: 1
+      Shaft Length: 0.20000000298023224
       Shaft Radius: 0.05000000074505806
       Shape: Arrow
       Topic: /robot1/nav_goal
@@ -269,7 +271,7 @@ Visualization Manager:
       Head Radius: 0.10000000149011612
       Name: Pose2
       Queue Size: 10
-      Shaft Length: 1
+      Shaft Length: 0.20000000298023224
       Shaft Radius: 0.05000000074505806
       Shape: Arrow
       Topic: /robot2/nav_goal
@@ -296,6 +298,8 @@ Visualization Manager:
       Y std deviation: 0.5
     - Class: rviz/SetGoal
       Topic: /robot1/nav_goal
+    - Class: rviz/SetGoal
+      Topic: /robot2/nav_goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /robot1/clicked_point
@@ -321,7 +325,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.3847965002059937
       Target Frame: <Fixed Frame>
-      Yaw: 4.7085795402526855
+      Yaw: 4.703579425811768
     Saved: ~
 Window Geometry:
   Displays:
@@ -339,5 +343,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1267
-  X: 72
-  Y: 27
+  X: 549
+  Y: 180

@@ -73,12 +73,10 @@ void pathTracker::initialize()
     timer_.setPeriod(ros::Duration(1.0 / control_frequency_), false);
     timer_.start();
     // timer2_ = nh_.createTimer(ros::Duration(2), &pathTracker::timer2Callback, this, false, false);
-	// timer2_.setPeriod(ros::Duration(2), false);
-	// timer2_.start();
+    // timer2_.setPeriod(ros::Duration(2), false);
+    // timer2_.start();
     workingMode_ = Mode::IDLE;
     workingMode_past_ = Mode::IDLE;
-
-
 }
 
 bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
@@ -154,13 +152,12 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
         ROS_WARN_STREAM("[Path Tracker]: "
                         << "set param failed");
     }
-    cout << "param updated !" << endl;
+    // cout << "param updated !" << endl;
     return true;
 }
 
 void pathTracker::timerCallback(const ros::TimerEvent& e)
 {
-
     // ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
     // std_srvs::Empty srv;
 
@@ -173,7 +170,6 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
     // {
     //     ROS_INFO("Unable to clear the map!!");
     // }
-
 
     switch (workingMode_)
     {
@@ -225,7 +221,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
             // ROS_INFO("Working Mode : TRACKING");
             if (robot_type_ == "omni")
             {
-                //dynamic wei
+                // dynamic wei
                 plannerClient(cur_pose_, goal_pose_);
                 RobotState local_goal;
                 local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
@@ -262,7 +258,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 
             if (robot_type_ == "omni")
             {
-                //dynamic wei
+                // dynamic wei
                 plannerClient(cur_pose_, goal_pose_);
                 RobotState local_goal;
                 local_goal = rollingWindow(cur_pose_, global_path_past_, lookahead_d_);
@@ -280,12 +276,12 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 }
 void pathTracker::timer2Callback(const ros::TimerEvent& e2)
 {
-    //wei
-    // ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
-    // std_srvs::Empty srv;
-    // if (client2.call(srv)){
-    //     ROS_INFO("Cleared the map!!");
-    // }
+    // wei
+    //  ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+    //  std_srvs::Empty srv;
+    //  if (client2.call(srv)){
+    //      ROS_INFO("Cleared the map!!");
+    //  }
 }
 void pathTracker::switchMode(Mode next_mode)
 {
@@ -331,7 +327,6 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     //     return false;
     // }
 
-
     ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
     nav_msgs::GetPlan srv;
     srv.request.start = cur;
@@ -343,11 +338,14 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     {
         // ******* add by Ben
         new_goal = false;
-        if(srv.response.plan.poses.empty()){
+        if (srv.response.plan.poses.empty())
+        {
             ROS_WARN("Got empty plan");
             return false;
-        }else{
-            ROS_INFO("Path received from make_plan service");
+        }
+        else
+        {
+            // ROS_INFO("Path received from make_plan service");
         }
         // *******
 
@@ -371,7 +369,7 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
             global_path_.push_back(pose);
         }
         global_path_ = orientationFilter(global_path_);
-        
+
         // add by Ben
         return true;
         // ROS_INFO("2 - Path received from global planner !");
@@ -448,11 +446,12 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
         // {
         //     ROS_INFO("Unable to clear the map!!");
         // }
-        if(!plannerClient(cur_pose_, goal_pose_)){
+        if (!plannerClient(cur_pose_, goal_pose_))
+        {
             ROS_WARN("Goal might not be reached...");
             return;
         }
-        // 
+        //
 
         linear_brake_distance_ = linear_brake_distance_ratio_ * cur_pose_.distanceTo(goal_pose_);
         if (linear_brake_distance_ < linear_min_brake_distance_)
@@ -469,7 +468,7 @@ void pathTracker::obstacleCallbak(const geometry_msgs::PoseArray::ConstPtr& pose
 {
     obstacle_pose_.poses.clear();
     obstacle_pose_.header = poses_msg->header;
-    for(int i=0;i<poses_msg->poses.size();i++)
+    for (int i = 0; i < poses_msg->poses.size(); i++)
     {
         geometry_msgs::Pose pose;
         pose.position.x = poses_msg->poses[i].position.x;
@@ -727,7 +726,7 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
             }
 
             double xy_err = cur_pose_.distanceTo(goal_pose_);
-            ROS_INFO("err = %f\n", xy_err);
+            // ROS_INFO("err = %f\n", xy_err);
             // deceleration
             if (xy_err < linear_brake_distance_)
             {
@@ -873,15 +872,15 @@ bool pathTracker::checkObstacle(std::vector<RobotState> path)
 {
     double dist_thres = 0.1;
     double d;
-    for(int i=0;i<obstacle_pose_.poses.size();i++)
+    for (int i = 0; i < obstacle_pose_.poses.size(); i++)
     {
-        for(int j=0;j<path.size();j++)
+        for (int j = 0; j < path.size(); j++)
         {
             RobotState obs;
             obs.x_ = obstacle_pose_.poses[i].position.x;
             obs.y_ = obstacle_pose_.poses[i].position.y;
             d = path[j].distanceTo(obs);
-            if(d < dist_thres)
+            if (d < dist_thres)
                 return true;
         }
     }

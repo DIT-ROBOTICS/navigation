@@ -73,7 +73,7 @@
 
     <!-- Initial Pose and Goal Publisher -->
     <!-- Publish: /initialpose, /move_base_simple/goal -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim2.rviz"/>
+    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim2.rviz"/> -->
 
     <!-- Map File -->
     <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
