@@ -15,6 +15,7 @@
 // msgs
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Path.h"
 
 namespace path_layer_namespace {
 
@@ -41,7 +42,7 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     virtual void matchSize();
 
-    void RivalPath_CB(const geometry_msgs::PoseStamped& poses);
+    void RivalPath_CB(const nav_msgs::Path& Path);
 
    private:
     void reconfigureCB(costmap_2d::GenericPluginConfig& config, uint32_t level);
@@ -50,8 +51,13 @@ class PathLayer : public costmap_2d::CostmapLayer {
     ros::NodeHandle Global_nh;
     ros::Subscriber RivalPath_Sub;
 
+    ros::Time RivalPathLastTime;
+    double RivalPathTimeout;
+
+    int RivalPredictLength;
+
     bool isRivalPath = false;
-    geometry_msgs::PoseStamped RivalPath;
+    nav_msgs::Path RivalPath;
 
     double update_frequency_;
     std::vector<std::string> observation_sources_;

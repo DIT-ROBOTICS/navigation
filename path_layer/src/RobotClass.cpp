@@ -60,7 +60,7 @@ bool ROBOT_STATE::isReach(geometry_msgs::Pose pose) {
 }
 
 bool ROBOT_STATE::isReach(geometry_msgs::Point point) {
-    return (sqrt(pow(this->Position.position.x - point.x, 2) + pow(this->Position.position.y - point.y, 2)) < 0.02) ? true : false;
+    return (sqrt(pow(this->Position.position.x - point.x, 2) + pow(this->Position.position.y - point.y, 2)) < 0.04) ? true : false;
 }
 
 void ROBOT_STATE::SetRobotType(ROBOT_TYPE type) {

@@ -16,7 +16,8 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "Robot_Sim");
 
     ros::NodeHandle nh;
-    ros::Publisher RivalPose_Pub = nh.advertise<geometry_msgs::PoseStamped>("RivalPose", 100);
+    // ros::Publisher RivalPose_Pub = nh.advertise<geometry_msgs::PoseStamped>("RivalPose", 100);
+    ros::Publisher RivalPath_Pub = nh.advertise<nav_msgs::Path>("RivalPath", 100);
 
     Rival.SetRobotType(_ROBOT_CLASS_::ROBOT_TYPE::Rival);
     GoalPoint[0].x = 0.6;
@@ -24,7 +25,7 @@ int main(int argc, char** argv) {
     GoalPoint[1].x = 2.3;
     GoalPoint[1].y = 1.0;
 
-    ros::Rate LoopRate(10.0);
+    ros::Rate LoopRate(15.0);
     while (nh.ok()) {
         ros::spinOnce();
 
@@ -32,19 +33,39 @@ int main(int argc, char** argv) {
             GeneratePath();
         }
 
-        geometry_msgs::PoseStamped CurRivalPose;
+        // geometry_msgs::PoseStamped CurRivalPose;
+        nav_msgs::Path RivalPath_msgs;
 
-        // header
-        CurRivalPose.header.frame_id = "map";
-        CurRivalPose.header.stamp = ros::Time::now();
+        // // header
+        // CurRivalPose.header.frame_id = "map";
+        // CurRivalPose.header.stamp = ros::Time::now();
 
-        // Pose
-        CurRivalPose.pose.position.x = Rival.GetPosition().position.x;
-        CurRivalPose.pose.position.y = Rival.GetPosition().position.y;
-        CurRivalPose.pose.orientation.z = Rival.GetPosition().orientation.z;
-        CurRivalPose.pose.orientation.w = Rival.GetPosition().orientation.w;
+        // // Pose
+        // CurRivalPose.pose.position.x = Rival.GetPosition().position.x;
+        // CurRivalPose.pose.position.y = Rival.GetPosition().position.y;
+        // CurRivalPose.pose.orientation.z = Rival.GetPosition().orientation.z;
+        // CurRivalPose.pose.orientation.w = Rival.GetPosition().orientation.w;
 
-        RivalPose_Pub.publish(CurRivalPose);
+        // RivalPose_Pub.publish(CurRivalPose);
+
+        // Header
+        RivalPath_msgs.header.frame_id = "map";
+        RivalPath_msgs.header.stamp = ros::Time::now();
+
+        // Path
+        std::queue<geometry_msgs::Pose> Temp_Path(Rival.Path);
+        while (!Temp_Path.empty()) {
+            geometry_msgs::PoseStamped temp;
+
+            temp.pose = Temp_Path.front();
+            temp.header.frame_id = "map";
+            temp.header.stamp = ros::Time::now();
+            RivalPath_msgs.poses.push_back(temp);
+
+            Temp_Path.pop();
+        }
+
+        RivalPath_Pub.publish(RivalPath_msgs);
 
         LoopRate.sleep();
     }
@@ -60,7 +81,7 @@ void GeneratePath() {
         geometry_msgs::Pose temp;
         tf::Quaternion RivalYaw = tf::createQuaternionFromYaw(0);
 
-        for (double x = GoalPoint[0].x; x < GoalPoint[1].x; x += 0.02) {
+        for (double x = GoalPoint[0].x; x < GoalPoint[1].x; x += 0.03) {
             temp.position.x = x;
             temp.position.y = GoalPoint[0].y;
             temp.orientation.z = RivalYaw.getZ();
@@ -72,7 +93,7 @@ void GeneratePath() {
         geometry_msgs::Pose temp;
         tf::Quaternion RivalYaw = tf::createQuaternionFromYaw(M_PI);
 
-        for (double x = GoalPoint[1].x; x > GoalPoint[0].x; x -= 0.02) {
+        for (double x = GoalPoint[1].x; x > GoalPoint[0].x; x -= 0.03) {
             temp.position.x = x;
             temp.position.y = GoalPoint[1].y;
             temp.orientation.z = RivalYaw.getZ();
@@ -82,4 +103,6 @@ void GeneratePath() {
     }
 
     Rival.SetPath(GoalPath);
+
+    ros::Duration(2.0).sleep();
 }
