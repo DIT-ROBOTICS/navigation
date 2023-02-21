@@ -41,7 +41,7 @@
   </node>
 
   <!-- path_Tracker -->
-  <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
+  <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
       <remap from="global_filter" to="odom"/>
       <remap from="cmd_vel" to="raw_cmd_vel"/> <!-- for lpf to filter the velocity -->
       <rosparam file="$(find path_tracker)/params/pathTracker_test.yaml" command="load" /> 
