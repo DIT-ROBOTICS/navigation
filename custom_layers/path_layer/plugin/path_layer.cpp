@@ -17,15 +17,20 @@ PathLayer::PathLayer() {
 
 void PathLayer::onInitialize() {
     ros::NodeHandle nh("~/" + name_);
-    RivalPath_Sub = Global_nh.subscribe("RivalPath", 1000, &PathLayer::RivalPath_CB, this);
+
+    std::string t("temp");
 
     // read YAML parameter
     nh.param("update_frequency", update_frequency_, 10.0);
     nh.param("enabled", enabled_, true);
     nh.param("RivalPathTimeout", RivalPathTimeout, 1.0);
     nh.param("RivalPredictLength", RivalPredictLength, 1);
+    nh.param("Topic", RivalPath_CB_TopicName, t);
+
+    RivalPath_Sub = nh.subscribe(RivalPath_CB_TopicName, 1000, &PathLayer::RivalPath_CB, this);
 
     isRivalPath = false;
+    RivalPathLastTime = ros::Time::now();
 
     current_ = true;
     default_value_ = NO_INFORMATION;
@@ -53,10 +58,10 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     if (!enabled_ || !isRivalPath)
         return;
 
-    if (ros::Time::now().toSec() - RivalPathLastTime.toSec() > RivalPathTimeout) {
-        isRivalPath = false;
-        return;
-    }
+    // if (ros::Time::now().toSec() - RivalPathLastTime.toSec() > RivalPathTimeout) {
+    //     isRivalPath = false;
+    //     return;
+    // }
 
     resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
 
@@ -86,7 +91,7 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
 
     // Debug
     // printf("mx : %3d my : %3d\n", mx, my);
-    // printf("Time : %.2f\n", ros::Time::now().toSec());
+    // printf("%s Time : %.2f\n", RivalPath_CB_TopicName, ros::Time::now().toSec());
     // printf("min X : %.2f Y : %.2f\n", *min_x, *min_y);
     // printf("max X : %.2f Y : %.2f\n", *max_x, *max_y);
 }

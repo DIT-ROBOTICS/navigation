@@ -17,6 +17,9 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 
+// other
+#include <string>
+
 namespace path_layer_namespace {
 
 enum class Robot_type {
@@ -50,6 +53,8 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     ros::NodeHandle Global_nh;
     ros::Subscriber RivalPath_Sub;
+
+    std::string RivalPath_CB_TopicName;
 
     ros::Time RivalPathLastTime;
     double RivalPathTimeout;
