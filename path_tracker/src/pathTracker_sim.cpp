@@ -697,7 +697,7 @@ void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
     }
     else
     {
-        angular_velocity = velocityProfile(Velocity::angular, cur_pose_, local_goal, velocity_state_,
+        angular_velocity = velocityProfile(Velocity::angular, cur_pose_, goal_pose_, velocity_state_,
                                            rotate_direction_ * angular_acceleration_);
         velocity_state_.theta_ = angular_velocity;
     }
