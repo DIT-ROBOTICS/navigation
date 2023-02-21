@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(simple_layers)
+project(script_sim)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,11 +8,15 @@ project(simple_layers)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  costmap_2d
-  dynamic_reconfigure
-  roscpp
-  rospy
-  std_msgs
+    roscpp
+    rospy
+    std_msgs
+    geometry_msgs
+    nav_msgs
+    actionlib
+    actionlib_msgs
+    move_base_msgs
+    message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -64,15 +68,16 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate actions in the 'action' folder
 # add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
+#     DIRECTORY action
+#     FILES MoveBaseAction.action
 # )
 
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
-#   DEPENDENCIES
-#   std_msgs
+#     DEPENDENCIES
+#     # std_msgs
+#     # geometry_msgs
+#     actionlib_msgs
 # )
 
 ################################################
@@ -106,8 +111,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES simple_layers
-#  CATKIN_DEPENDS costmap_2d dynamic_reconfigure roscpp rospy std_msgs
+#  LIBRARIES script_sim
+    CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs actionlib_msgs
 #  DEPENDS system_lib
 )
 
@@ -117,18 +122,13 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-include
-  ${catkin_INCLUDE_DIRS}
-)
+
+include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/simple_layers.cpp
+#   src/${PROJECT_NAME}/script_sim.cpp
 # )
-add_library(simple_layer plugins/simple_layer.cpp)
-add_library(grid_layer plugins/grid_layer.cpp)
-
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -138,7 +138,7 @@ add_library(grid_layer plugins/grid_layer.cpp)
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/simple_layers_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/script_sim_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -149,17 +149,21 @@ add_library(grid_layer plugins/grid_layer.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(point_to_point src/point_to_point.cpp)
+target_link_libraries(point_to_point yaml-cpp ${catkin_LIBRARIES})
+add_dependencies(point_to_point ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
 
-# add by Ben
-# add_executable(addObstacle src/addObstacle.cpp)
-# add_dependencies(addObstacle ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(addObstacle ${catkin_LIBRARIES})
-
+add_executable(MoveBaseActionClient src/ActionClient.cpp)
+target_link_libraries(MoveBaseActionClient ${catkin_LIBRARIES})
+add_dependencies(
+    MoveBaseActionClient 
+    ${catkin_EXPORTED_TARGETS}
+)
 
 #############
 ## Install ##
@@ -208,7 +212,7 @@ add_library(grid_layer plugins/grid_layer.cpp)
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_simple_layers.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_script_sim.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
