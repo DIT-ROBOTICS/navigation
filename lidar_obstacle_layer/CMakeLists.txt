@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(simple_layers)
+project(lidar_obstacle_layer)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,11 +8,10 @@ project(simple_layers)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  costmap_2d
-  dynamic_reconfigure
   roscpp
   rospy
   std_msgs
+  obstacle_detector
 )
 
 ## System dependencies are found with CMake's conventions
@@ -106,8 +105,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES simple_layers
-#  CATKIN_DEPENDS costmap_2d dynamic_reconfigure roscpp rospy std_msgs
+#  LIBRARIES lidar_obstacle_layer
+#  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -124,11 +123,10 @@ include
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/simple_layers.cpp
+#   src/${PROJECT_NAME}/lidar_obstacle_layer.cpp
 # )
-add_library(simple_layer plugins/simple_layer.cpp)
-add_library(grid_layer plugins/grid_layer.cpp)
 
+add_library(lidar_obstacle_layer plugins/lidar_obstacle_layer.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -138,7 +136,7 @@ add_library(grid_layer plugins/grid_layer.cpp)
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/simple_layers_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/lidar_obstacle_layer_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,12 +152,6 @@ add_library(grid_layer plugins/grid_layer.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-
-# add by Ben
-# add_executable(addObstacle src/addObstacle.cpp)
-# add_dependencies(addObstacle ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(addObstacle ${catkin_LIBRARIES})
-
 
 #############
 ## Install ##
@@ -208,7 +200,7 @@ add_library(grid_layer plugins/grid_layer.cpp)
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_simple_layers.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_lidar_obstacle_layer.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
