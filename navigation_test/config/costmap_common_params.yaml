@@ -1,9 +1,0 @@
-obstacle_range: 3
-raytrace_range: 3
-footprint: [[0,0.15],[0.1299,0.075],[0.1299,-0.075],[0,-0.15],[-0.1299,-0.075],[-0.1299,0.075]]
-map_topic: map
-subscribe_to_updates: true
-global_frame: map
-robot_base_frame: base_link
-update_frequency: 10.0
-publish_frequency: 10.0
