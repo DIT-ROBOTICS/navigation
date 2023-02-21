@@ -151,7 +151,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
         ROS_WARN_STREAM("[Path Tracker]: "
                         << "set param failed");
     }
-    cout << "param updated !" << endl;
+    // cout << "param updated !" << endl;
     return true;
 }
 
