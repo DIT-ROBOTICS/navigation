@@ -5,15 +5,14 @@
 
 
 double car[3] = {0};
-double x = 0.3;
-double y = 0.3;
+double x = 0.5;
+double y = 0.5;
 double th = (double)3.1415926/2;
 
 void vel_callback(const geometry_msgs::Twist& data){
     car[0] = data.linear.x;
     car[1] = data.linear.y;
     car[2] = data.angular.z;
-    // ROS_INFO("received velocity from odometry");
 }
 
 void initial_pose_callback(const geometry_msgs::PoseWithCovarianceStamped& data){
@@ -31,8 +30,8 @@ int main(int argc, char** argv){
 
   ros::NodeHandle nh;
   ros::Publisher odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
-  ros::Subscriber sub = nh.subscribe("/Toposition", 1000, vel_callback);
-  ros::Subscriber sub_initial_pose = nh.subscribe("/initialpose", 1000, initial_pose_callback);
+  ros::Subscriber sub = nh.subscribe("cmd_vel", 1000, vel_callback);
+  ros::Subscriber sub_initial_pose = nh.subscribe("initialpose", 1000, initial_pose_callback);
 
   tf::TransformBroadcaster odom_broadcaster;
 
@@ -70,8 +69,8 @@ int main(int argc, char** argv){
     //first, we'll publish the transform over tf
     geometry_msgs::TransformStamped odom_trans;
     odom_trans.header.stamp = current_time;
-    odom_trans.header.frame_id = "odom";
-    odom_trans.child_frame_id = "base_footprint";
+    odom_trans.header.frame_id = "robot1/odom";
+    odom_trans.child_frame_id = "robot1/base_footprint";
 
     odom_trans.transform.translation.x = x;
     odom_trans.transform.translation.y = y;
@@ -84,7 +83,7 @@ int main(int argc, char** argv){
     //next, we'll publish the odometry message over ROS
     nav_msgs::Odometry odom;
     odom.header.stamp = current_time;
-    odom.header.frame_id = "odom";
+    odom.header.frame_id = "robot1/odom";
 
     //set the position
     odom.pose.pose.position.x = x;
@@ -93,7 +92,7 @@ int main(int argc, char** argv){
     odom.pose.pose.orientation = odom_quat;
 
     //set the velocity
-    odom.child_frame_id = "base_footprint";
+    odom.child_frame_id = "robot1/base_footprint";
     odom.twist.twist.linear.x = vx;
     odom.twist.twist.linear.y = vy;
     odom.twist.twist.angular.z = vth;

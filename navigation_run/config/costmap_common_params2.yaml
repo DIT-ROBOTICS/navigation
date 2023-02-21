@@ -6,8 +6,8 @@
   footprint: [[0,0.15],[0.1299,0.075],[0.1299,-0.075],[0,-0.15],[-0.1299,-0.075],[-0.1299,0.075]]
 
   #tf
-  global_frame: map
-  robot_base_frame: base_footprint
+  global_frame: robot2/map
+  robot_base_frame: robot2/base_footprint
 
   #map info
   map_topic: map

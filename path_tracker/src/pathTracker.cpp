@@ -89,6 +89,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 
     get_param_ok = nh_local_.param<bool>("active", p_active_, true);
     get_param_ok = nh_local_.param<string>("robot_type", robot_type_, "omni");
+    get_param_ok = nh_local_.param<string>("frame", frame_, "map");
     get_param_ok = nh_local_.param<double>("control_frequency", control_frequency_, 50);
     get_param_ok = nh_local_.param<double>("lookahead_distance", lookahead_d_, 0.2);
 
@@ -295,7 +296,7 @@ void pathTracker::switchMode(Mode next_mode)
 bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
 {
     geometry_msgs::PoseStamped cur;
-    cur.header.frame_id = "map";
+    cur.header.frame_id = frame_;
     cur.pose.position.x = cur_pos.x_;
     cur.pose.position.y = cur_pos.y_;
     cur.pose.position.z = 0;
@@ -308,7 +309,7 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     cur.pose.orientation.w = q.w();
 
     geometry_msgs::PoseStamped goal;
-    goal.header.frame_id = "map";
+    goal.header.frame_id = frame_;
     goal.pose.position.x = goal_pos.x_;
     goal.pose.position.y = goal_pos.y_;
     goal.pose.position.z = 0;
@@ -559,7 +560,7 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
 
     // for rviz visualization
     geometry_msgs::PoseStamped pos_msg;
-    pos_msg.header.frame_id = "map";
+    pos_msg.header.frame_id = frame_;
     pos_msg.header.stamp = ros::Time::now();
     pos_msg.pose.position.x = local_goal.x_;
     pos_msg.pose.position.y = local_goal.y_;
@@ -612,7 +613,7 @@ std::vector<RobotState> pathTracker::orientationFilter(std::vector<RobotState> o
 
     // Rviz visualize processed path
     geometry_msgs::PoseArray arr_msg;
-    arr_msg.header.frame_id = "map";
+    arr_msg.header.frame_id = frame_;
     arr_msg.header.stamp = ros::Time::now();
     std::vector<geometry_msgs::Pose> poses;
 

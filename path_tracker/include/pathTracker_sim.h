@@ -110,6 +110,7 @@ class pathTracker
 
     // controller parameter
     std::string robot_type_;
+    std::string frame_;
     bool p_active_;
     double control_frequency_;
     double lookahead_d_;
