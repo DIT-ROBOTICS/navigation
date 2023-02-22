@@ -1,7 +1,7 @@
 active: true
 robot_type: omni
 frame: robot2/map
-control_frequency: 10
+control_frequency: 70
 lookahead_distance: 0.1
 
 ### linear parameter
@@ -9,8 +9,8 @@ lookahead_distance: 0.1
 # acceleration
 # linear_max_velocity: 0.7 #0.4
 # linear_acceleration: 0.5 #0.2
-linear_max_velocity: 0.3 #0.4
-linear_acceleration: 0.15 #0.2
+linear_max_velocity: 0.4 #0.4
+linear_acceleration: 0.2 #0.2
 linear_acceleration_profile: linear
 
 # transition

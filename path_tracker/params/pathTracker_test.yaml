@@ -1,7 +1,7 @@
 active: true
 robot_type: omni
 frame: map
-control_frequency: 10
+control_frequency: 70
 lookahead_distance: 0.1
 
 ### linear parameter
