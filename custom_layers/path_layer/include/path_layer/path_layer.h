@@ -45,27 +45,27 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     virtual void matchSize();
 
-    void RivalPath_CB(const nav_msgs::Path& Path);
+    void RobotPath_CB(const nav_msgs::Path& Path);
 
    private:
     void reconfigureCB(costmap_2d::GenericPluginConfig& config, uint32_t level);
     dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>* dsrv_;
 
     ros::NodeHandle Global_nh;
-    ros::Subscriber RivalPath_Sub;
-
-    std::string RivalPath_CB_TopicName;
-
-    ros::Time RivalPathLastTime;
-    double RivalPathTimeout;
-
-    int RivalPredictLength;
-
-    bool isRivalPath = false;
-    nav_msgs::Path RivalPath;
-
     double update_frequency_;
-    std::vector<std::string> observation_sources_;
+
+    // ------------------------- RobotPath -------------------------
+    // Sub
+    ros::Subscriber RobotPath_Sub;
+    nav_msgs::Path RobotPath;
+
+    // Time
+    ros::Time RobotPathLastTime;
+    double RobotPathTimeout;
+    bool isRobotPath = false;
+
+    // Param
+    int RobotPredictLength;
 };
 
 }  // namespace path_layer_namespace

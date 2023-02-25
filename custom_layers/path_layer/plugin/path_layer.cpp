@@ -18,19 +18,19 @@ PathLayer::PathLayer() {
 void PathLayer::onInitialize() {
     ros::NodeHandle nh("~/" + name_);
 
-    std::string t("temp");
+    std::string RobotPath_CB_TopicName;
 
     // read YAML parameter
     nh.param("update_frequency", update_frequency_, 10.0);
     nh.param("enabled", enabled_, true);
-    nh.param("RivalPathTimeout", RivalPathTimeout, 1.0);
-    nh.param("RivalPredictLength", RivalPredictLength, 1);
-    nh.param("Topic", RivalPath_CB_TopicName, t);
+    nh.param("RobotPathTimeout", RobotPathTimeout, 1.0);
+    nh.param("RobotPredictLength", RobotPredictLength, 1);
+    nh.param<std::string>("Topic", RobotPath_CB_TopicName, "/move_base/GlobalPlanner/plan");
 
-    RivalPath_Sub = nh.subscribe(RivalPath_CB_TopicName, 1000, &PathLayer::RivalPath_CB, this);
+    RobotPath_Sub = nh.subscribe(RobotPath_CB_TopicName, 1000, &PathLayer::RobotPath_CB, this);
 
-    isRivalPath = false;
-    RivalPathLastTime = ros::Time::now();
+    isRobotPath = false;
+    RobotPathLastTime = ros::Time::now();
 
     current_ = true;
     default_value_ = NO_INFORMATION;
@@ -55,23 +55,24 @@ void PathLayer::reconfigureCB(costmap_2d::GenericPluginConfig& config, uint32_t 
 
 void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
                              double* min_x, double* min_y, double* max_x, double* max_y) {
-    if (!enabled_ || !isRivalPath)
+    if (!enabled_ || !isRobotPath)
         return;
 
-    // if (ros::Time::now().toSec() - RivalPathLastTime.toSec() > RivalPathTimeout) {
-    //     isRivalPath = false;
+    /* Uncomment the code below to enable RobotPath's Timeout. */
+    // if (ros::Time::now().toSec() - RobotPathLastTime.toSec() > RobotPathTimeout) {
+    //     isRobotPath = false;
     //     return;
     // }
 
     resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
 
-    for (int i = 0; i < RivalPredictLength; i++) {
-        if (RivalPath.poses.size() <= i) {
+    for (int i = 0; i < RobotPredictLength; i++) {
+        if (RobotPath.poses.size() <= i) {
             break;
         }
 
-        double mark_x = RivalPath.poses[i].pose.position.x;
-        double mark_y = RivalPath.poses[i].pose.position.y;
+        double mark_x = RobotPath.poses[i].pose.position.x;
+        double mark_y = RobotPath.poses[i].pose.position.y;
         unsigned int mx;
         unsigned int my;
 
@@ -84,20 +85,20 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         }
     }
 
-    *min_x -= 3;
-    *min_y -= 3;
-    *max_x += 3;
-    *max_y += 3;
+    *min_x -= 2;
+    *min_y -= 2;
+    *max_x += 2;
+    *max_y += 2;
 
     // Debug
     // printf("mx : %3d my : %3d\n", mx, my);
-    // printf("%s Time : %.2f\n", RivalPath_CB_TopicName, ros::Time::now().toSec());
+    // printf("Time : %.2f\n", ros::Time::now().toSec());
     // printf("min X : %.2f Y : %.2f\n", *min_x, *min_y);
     // printf("max X : %.2f Y : %.2f\n", *max_x, *max_y);
 }
 
 void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j) {
-    if (!enabled_ || !isRivalPath)
+    if (!enabled_ || !isRobotPath)
         return;
 
     boost::unique_lock<mutex_t> lock(*(getMutex()));
@@ -106,16 +107,12 @@ void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
 
     // Load the costmap_ to master_grid
     // updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
-
-    // printf("Time : %lf\n", ros::Time::now().toSec());
-    // printf("min X : %d Y : %d\n", min_i, min_j);
-    // printf("max X : %d Y : %d\n", max_i, max_j);
 }
 
-void PathLayer::RivalPath_CB(const nav_msgs::Path& Path) {
-    this->RivalPath = Path;
-    isRivalPath = true;
-    RivalPathLastTime = ros::Time::now();
+void PathLayer::RobotPath_CB(const nav_msgs::Path& Path) {
+    this->RobotPath = Path;
+    isRobotPath = true;
+    RobotPathLastTime = ros::Time::now();
 }
 
 }  // namespace path_layer_namespace

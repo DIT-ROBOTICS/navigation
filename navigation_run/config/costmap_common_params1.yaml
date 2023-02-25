@@ -58,8 +58,8 @@
   path_layer:
     enabled: true
     Topic: /robot2/move_base/GlobalPlanner/plan
-    RivalPathTimeout: 0.5
-    RivalPredictLength: 100
+    RobotPathTimeout: 0.5
+    RobotPredictLength: 100
 
   inflation_layer:
     enabled: true
