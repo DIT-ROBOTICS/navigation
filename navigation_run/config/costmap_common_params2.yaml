@@ -58,9 +58,18 @@
 
   path_layer:
     enabled: true
-    Topic: /robot1/move_base/GlobalPlanner/plan
+
+    # Topic
+    RobotPath_TopicName: /robot1/move_base/GlobalPlanner/plan
+    RivalOdom1_TopicName: /RivalOdom_1
+    RivalOdom2_TopicName: /RivalOdom_2
+
+    # Timeout
     RobotPathTimeout: 0.5
-    RobotPredictLength: 1
+
+    # Predict Length
+    RobotPath_PredictLength: 1
+    RivalOdom_PredictLength: 100
 
   inflation_layer:
     enabled: true

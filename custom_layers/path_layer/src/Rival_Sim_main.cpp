@@ -5,6 +5,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Twist.h>
+#include <nav_msgs/Odometry.h>
 
 // other
 #include <cmath>
@@ -35,7 +36,9 @@ int main(int argc, char** argv) {
         return EXIT_SUCCESS;
     }
 
-    ros::Publisher RivalPoseArray_Pub = nh.advertise<geometry_msgs::PoseArray>("RivalPoseArray", 100);
+    ros::Publisher RivalOdom_Pub[2];
+    RivalOdom_Pub[0] = nh.advertise<nav_msgs::Odometry>("/RivalOdom_1", 100);
+    RivalOdom_Pub[1] = nh.advertise<nav_msgs::Odometry>("/RivalOdom_2", 100);
     ros::Subscriber RivalPose_Sub = nh.subscribe("/RivalVel", 1000, RivalVel_CB);
 
     Rival[0].Position.position.x = 1.5;
@@ -60,19 +63,30 @@ int main(int argc, char** argv) {
         CurrentTime = ros::Time::now();
         double dt = (CurrentTime - LastTime).toSec();
 
-        if (!Rival[1].GoToNextPoint()) {
-            GeneratePath();
+        // -------------------------- Rival[1] Odom --------------------------
+        if (RivalNum == 2) {
+            if (!Rival[1].GoToNextPoint()) {
+                GeneratePath();
+            }
+            nav_msgs::Odometry RivalOdom_msg;
+
+            // Header
+            RivalOdom_msg.header.frame_id = "robot1/map";
+            RivalOdom_msg.header.stamp = ros::Time::now();
+
+            // Position & Twist
+            RivalOdom_msg.twist.twist = Rival[1].Velocity;
+            RivalOdom_msg.pose.pose.position.x = Rival[1].Position.position.x;
+            RivalOdom_msg.pose.pose.position.y = Rival[1].Position.position.y;
+            RivalOdom_msg.pose.pose.orientation.z = Rival[1].GetPosition().orientation.z;
+            RivalOdom_msg.pose.pose.orientation.w = Rival[1].GetPosition().orientation.w;
+
+            // Pub
+            RivalOdom_Pub[1].publish(RivalOdom_msg);
         }
+        // -------------------------- Rival[1] Odom --------------------------
 
-        geometry_msgs::PoseArray RivalPoseArray_msg;
-
-        // header
-        RivalPoseArray_msg.header.frame_id = "robot1/map";
-        RivalPoseArray_msg.header.stamp = ros::Time::now();
-
-        // Rival[0] Pose
-        geometry_msgs::Pose Rival0_Pose;
-
+        // -------------------------- Rival[0] Odom --------------------------
         // NOTE: Use X as Y below.
         Rival[0].Position.position.x += -Rival[0].Velocity.linear.y * dt;
         Rival[0].Position.position.y += Rival[0].Velocity.linear.x * dt;
@@ -92,25 +106,24 @@ int main(int argc, char** argv) {
             Rival[0].Position.orientation.w = temp.getW();
         }
 
-        Rival0_Pose.position.x = Rival[0].GetPosition().position.x;
-        Rival0_Pose.position.y = Rival[0].GetPosition().position.y;
-        Rival0_Pose.orientation.z = Rival[0].GetPosition().orientation.z;
-        Rival0_Pose.orientation.w = Rival[0].GetPosition().orientation.w;
+        nav_msgs::Odometry RivalOdom_msg;
 
-        // Rival[1] Pose
-        geometry_msgs::Pose Rival1_Pose;
-        Rival1_Pose.position.x = Rival[1].GetPosition().position.x;
-        Rival1_Pose.position.y = Rival[1].GetPosition().position.y;
-        Rival1_Pose.orientation.z = Rival[1].GetPosition().orientation.z;
-        Rival1_Pose.orientation.w = Rival[1].GetPosition().orientation.w;
+        // Header
+        RivalOdom_msg.header.frame_id = "robot1/map";
+        RivalOdom_msg.header.stamp = ros::Time::now();
 
-        // Generate Msg
-        RivalPoseArray_msg.poses.push_back(Rival0_Pose);
-        if (RivalNum == 2) {
-            RivalPoseArray_msg.poses.push_back(Rival1_Pose);
-        }
+        // Pose & Twist
+        RivalOdom_msg.twist.twist.linear.x = -Rival[0].Velocity.linear.y;
+        RivalOdom_msg.twist.twist.linear.y = Rival[0].Velocity.linear.x;
+        RivalOdom_msg.pose.pose.position.x = Rival[0].GetPosition().position.x;
+        RivalOdom_msg.pose.pose.position.y = Rival[0].GetPosition().position.y;
+        RivalOdom_msg.pose.pose.orientation.z = Rival[0].GetPosition().orientation.z;
+        RivalOdom_msg.pose.pose.orientation.w = Rival[0].GetPosition().orientation.w;
 
-        RivalPoseArray_Pub.publish(RivalPoseArray_msg);
+        // Pub
+        RivalOdom_Pub[0].publish(RivalOdom_msg);
+
+        // -------------------------- Rival[0] Odom --------------------------
 
         LastTime = CurrentTime;
         LoopRate.sleep();
@@ -134,6 +147,7 @@ void GeneratePath() {
             temp.orientation.w = RivalYaw.getW();
             GoalPath.push(temp);
         }
+        Rival[1].Velocity.linear.x = 0.3;
     } else {
         // Goto GoalPoint[0]
         geometry_msgs::Pose temp;
@@ -146,10 +160,12 @@ void GeneratePath() {
             temp.orientation.w = RivalYaw.getW();
             GoalPath.push(temp);
         }
+        Rival[1].Velocity.linear.x = -0.3;
     }
 
-    Rival[1].SetPath(GoalPath);
+    Rival[1].Velocity.linear.y = Rival[1].Velocity.linear.z = Rival[1].Velocity.angular.x = Rival[1].Velocity.angular.y = Rival[1].Velocity.angular.z = 0.0;
 
+    Rival[1].SetPath(GoalPath);
     // ros::Duration(2.0).sleep();
 }
 

@@ -15,6 +15,7 @@
 // msgs
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Odometry.h"
 #include "nav_msgs/Path.h"
 
 // other
@@ -46,6 +47,8 @@ class PathLayer : public costmap_2d::CostmapLayer {
     virtual void matchSize();
 
     void RobotPath_CB(const nav_msgs::Path& Path);
+    void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
+    void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
 
    private:
     void reconfigureCB(costmap_2d::GenericPluginConfig& config, uint32_t level);
@@ -66,6 +69,16 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     // Param
     int RobotPredictLength;
+
+    // ------------------------- RivalOdom -------------------------
+    // Sub
+    ros::Subscriber RivalOdom_Sub[2];
+    nav_msgs::Odometry RivalOdom[2];
+
+    bool isRivalOdom[2];
+
+    // Param
+    int RivalOdomPredictLength;
 };
 
 }  // namespace path_layer_namespace
