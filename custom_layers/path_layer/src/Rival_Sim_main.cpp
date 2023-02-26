@@ -1,72 +1,118 @@
 // ros
 #include <ros/ros.h>
 #include <tf/transform_datatypes.h>
+// msgs
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/Twist.h>
 
 // other
+#include <cmath>
+
 #include "path_layer/RobotClass.h"
 
 using namespace _ROBOT_CLASS_;
 
-static ROBOT_STATE Rival;
+static int RivalNum = 0;
 static geometry_msgs::Point GoalPoint[2];
+static ROBOT_STATE Rival[2];
+static int UpdateFrequency;
 
 void GeneratePath();
+void RivalVel_CB(const geometry_msgs::Twist& msg);
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "Robot_Sim");
 
-    ros::NodeHandle nh;
-    // ros::Publisher RivalPose_Pub = nh.advertise<geometry_msgs::PoseStamped>("RivalPose", 100);
-    ros::Publisher RivalPath_Pub = nh.advertise<nav_msgs::Path>("RivalPath", 100);
+    ros::NodeHandle nh("~");
 
-    Rival.SetRobotType(_ROBOT_CLASS_::ROBOT_TYPE::Rival);
+    // Param
+    nh.getParam("RivalNum", RivalNum);
+    nh.param("UpdateFrequency", UpdateFrequency, 15);
+
+    if (RivalNum == 0) {
+        ROS_WARN("RivalNum is 0, turning off simulation ...");
+        return EXIT_SUCCESS;
+    }
+
+    ros::Publisher RivalPoseArray_Pub = nh.advertise<geometry_msgs::PoseArray>("RivalPoseArray", 100);
+    ros::Subscriber RivalPose_Sub = nh.subscribe("/RivalVel", 1000, RivalVel_CB);
+
+    Rival[0].Position.position.x = 1.5;
+    Rival[0].Position.position.y = 1.2;
+    Rival[0].Position.orientation.z = 0.0;
+    Rival[0].Position.orientation.w = 0.0;
+    Rival[0].SetRobotType(_ROBOT_CLASS_::ROBOT_TYPE::Rival);
+    Rival[1].SetRobotType(_ROBOT_CLASS_::ROBOT_TYPE::Rival);
+
     GoalPoint[0].x = 0.6;
     GoalPoint[0].y = 1.0;
     GoalPoint[1].x = 2.3;
     GoalPoint[1].y = 1.0;
 
-    ros::Rate LoopRate(15.0);
+    ros::Time CurrentTime = ros::Time::now();
+    ros::Time LastTime = CurrentTime;
+
+    ros::Rate LoopRate(UpdateFrequency);
     while (nh.ok()) {
         ros::spinOnce();
 
-        if (!Rival.GoToNextPoint()) {
+        CurrentTime = ros::Time::now();
+        double dt = (CurrentTime - LastTime).toSec();
+
+        if (!Rival[1].GoToNextPoint()) {
             GeneratePath();
         }
 
-        // geometry_msgs::PoseStamped CurRivalPose;
-        nav_msgs::Path RivalPath_msgs;
+        geometry_msgs::PoseArray RivalPoseArray_msg;
 
-        // // header
-        // CurRivalPose.header.frame_id = "map";
-        // CurRivalPose.header.stamp = ros::Time::now();
+        // header
+        RivalPoseArray_msg.header.frame_id = "robot1/map";
+        RivalPoseArray_msg.header.stamp = ros::Time::now();
 
-        // // Pose
-        // CurRivalPose.pose.position.x = Rival.GetPosition().position.x;
-        // CurRivalPose.pose.position.y = Rival.GetPosition().position.y;
-        // CurRivalPose.pose.orientation.z = Rival.GetPosition().orientation.z;
-        // CurRivalPose.pose.orientation.w = Rival.GetPosition().orientation.w;
+        // Rival[0] Pose
+        geometry_msgs::Pose Rival0_Pose;
 
-        // RivalPose_Pub.publish(CurRivalPose);
+        // NOTE: Use X as Y below.
+        Rival[0].Position.position.x += -Rival[0].Velocity.linear.y * dt;
+        Rival[0].Position.position.y += Rival[0].Velocity.linear.x * dt;
 
-        // Header
-        RivalPath_msgs.header.frame_id = "map";
-        RivalPath_msgs.header.stamp = ros::Time::now();
-
-        // Path
-        std::queue<geometry_msgs::Pose> Temp_Path(Rival.Path);
-        while (!Temp_Path.empty()) {
-            geometry_msgs::PoseStamped temp;
-
-            temp.pose = Temp_Path.front();
-            temp.header.frame_id = "map";
-            temp.header.stamp = ros::Time::now();
-            RivalPath_msgs.poses.push_back(temp);
-
-            Temp_Path.pop();
+        if (Rival[0].Velocity.linear.x != 0.0 || Rival[0].Velocity.linear.y != 0.0) {
+            double Yaw;
+            if (Rival[0].Velocity.linear.y == 0.0) {
+                Yaw = (Rival[0].Velocity.linear.x >= 0) ? M_PI / 2.0 : M_PI * 1.5;
+            } else {
+                Yaw = atan(Rival[0].Velocity.linear.x / -Rival[0].Velocity.linear.y);
+                if (-Rival[0].Velocity.linear.y <= 0) {
+                    Yaw += M_PI;
+                }
+            }
+            tf::Quaternion temp = tf::createQuaternionFromYaw(Yaw);
+            Rival[0].Position.orientation.z = temp.getZ();
+            Rival[0].Position.orientation.w = temp.getW();
         }
 
-        RivalPath_Pub.publish(RivalPath_msgs);
+        Rival0_Pose.position.x = Rival[0].GetPosition().position.x;
+        Rival0_Pose.position.y = Rival[0].GetPosition().position.y;
+        Rival0_Pose.orientation.z = Rival[0].GetPosition().orientation.z;
+        Rival0_Pose.orientation.w = Rival[0].GetPosition().orientation.w;
 
+        // Rival[1] Pose
+        geometry_msgs::Pose Rival1_Pose;
+        Rival1_Pose.position.x = Rival[1].GetPosition().position.x;
+        Rival1_Pose.position.y = Rival[1].GetPosition().position.y;
+        Rival1_Pose.orientation.z = Rival[1].GetPosition().orientation.z;
+        Rival1_Pose.orientation.w = Rival[1].GetPosition().orientation.w;
+
+        // Generate Msg
+        RivalPoseArray_msg.poses.push_back(Rival0_Pose);
+        if (RivalNum == 2) {
+            RivalPoseArray_msg.poses.push_back(Rival1_Pose);
+        }
+
+        RivalPoseArray_Pub.publish(RivalPoseArray_msg);
+
+        LastTime = CurrentTime;
         LoopRate.sleep();
     }
 
@@ -76,7 +122,7 @@ int main(int argc, char** argv) {
 void GeneratePath() {
     std::queue<geometry_msgs::Pose> GoalPath;
 
-    if (Rival.isReach(GoalPoint[0])) {
+    if (Rival[1].isReach(GoalPoint[0])) {
         // Goto GoalPoint[1]
         geometry_msgs::Pose temp;
         tf::Quaternion RivalYaw = tf::createQuaternionFromYaw(0);
@@ -102,7 +148,11 @@ void GeneratePath() {
         }
     }
 
-    Rival.SetPath(GoalPath);
+    Rival[1].SetPath(GoalPath);
 
-    ros::Duration(2.0).sleep();
+    // ros::Duration(2.0).sleep();
+}
+
+void RivalVel_CB(const geometry_msgs::Twist& msg) {
+    Rival[0].Velocity = msg;
 }
