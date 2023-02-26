@@ -63,8 +63,9 @@
     RivalOdom1_TopicName: /RivalOdom_1
     RivalOdom2_TopicName: /RivalOdom_2
     
-    # Timeout
-    RobotPathTimeout: 0.5
+    # Timeout -1 -> Disable Timeout 
+    RobotPath_Timeout: -1
+    RivalOdom_Timeout: 0.5
     
     # Predict Length
     RobotPath_PredictLength: 100 # Unit: none

@@ -75,6 +75,9 @@ class PathLayer : public costmap_2d::CostmapLayer {
     ros::Subscriber RivalOdom_Sub[2];
     nav_msgs::Odometry RivalOdom[2];
 
+    // Time
+    ros::Time RivalOdomLastTime[2];
+    double RivalOdomTimeout;
     bool isRivalOdom[2];
 
     // Param
