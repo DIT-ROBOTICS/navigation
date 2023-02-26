@@ -67,8 +67,8 @@
     RobotPathTimeout: 0.5
     
     # Predict Length
-    RobotPath_PredictLength: 100
-    RivalOdom_PredictLength: 100
+    RobotPath_PredictLength: 100 # Unit: none
+    RivalOdom_PredictLength: 500 # Unit: ms
 
   inflation_layer:
     enabled: true

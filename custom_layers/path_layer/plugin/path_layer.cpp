@@ -64,14 +64,14 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     if (!enabled_ || !(isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
         return;
 
+    resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
+
     if (isRobotPath) {
         /* Uncomment the code below to enable RobotPath's Timeout. */
         // if (ros::Time::now().toSec() - RobotPathLastTime.toSec() > RobotPathTimeout) {
         //     isRobotPath = false;
         //     return;
         // }
-
-        resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
 
         for (int i = 0; i < RobotPredictLength; i++) {
             if (RobotPath.poses.size() <= i) {
@@ -93,26 +93,42 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         }
     }
     if (isRivalOdom[0]) {
-        // resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
-
-        // for (int i = 0; i < RivalVel.poses.size(); i++) {
-        //     double mark_x = RivalVel.poses[i].position.x;
-        //     double mark_y = RivalVel.poses[i].position.y;
-        //     unsigned int mx;
-        //     unsigned int my;
-
-        //     for (int Len = 0; Len < RivalVelPredictLength; Len++) {
-        //         if (worldToMap(mark_x, mark_y, mx, my)) {
-        //             *min_x = std::min(*min_x, mark_x);
-        //             *min_y = std::min(*min_y, mark_y);
-        //             *max_x = std::max(*max_x, mark_x);
-        //             *max_y = std::max(*max_y, mark_y);
-        //             setCost(mx, my, LETHAL_OBSTACLE);
-        //         } else {
-        //             break;
-        //         }
-        //     }
-        // }
+        double mark_x = RivalOdom[0].pose.pose.position.x;
+        double mark_y = RivalOdom[0].pose.pose.position.y;
+        unsigned int mx;
+        unsigned int my;
+        for (int i = 0; i < RivalOdomPredictLength; i++) {
+            if (worldToMap(mark_x, mark_y, mx, my)) {
+                *min_x = std::min(*min_x, mark_x);
+                *min_y = std::min(*min_y, mark_y);
+                *max_x = std::max(*max_x, mark_x);
+                *max_y = std::max(*max_y, mark_y);
+                setCost(mx, my, LETHAL_OBSTACLE);
+            } else {
+                break;
+            }
+            mark_x += RivalOdom[0].twist.twist.linear.x / 1000.0;
+            mark_y += RivalOdom[0].twist.twist.linear.y / 1000.0;
+        }
+    }
+    if (isRivalOdom[1]) {
+        double mark_x = RivalOdom[1].pose.pose.position.x;
+        double mark_y = RivalOdom[1].pose.pose.position.y;
+        unsigned int mx;
+        unsigned int my;
+        for (int i = 0; i < RivalOdomPredictLength; i++) {
+            if (worldToMap(mark_x, mark_y, mx, my)) {
+                *min_x = std::min(*min_x, mark_x);
+                *min_y = std::min(*min_y, mark_y);
+                *max_x = std::max(*max_x, mark_x);
+                *max_y = std::max(*max_y, mark_y);
+                setCost(mx, my, LETHAL_OBSTACLE);
+            } else {
+                break;
+            }
+            mark_x += RivalOdom[1].twist.twist.linear.x / 1000.0;
+            mark_y += RivalOdom[1].twist.twist.linear.y / 1000.0;
+        }
     }
 
     *min_x -= 2;
@@ -128,7 +144,7 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
 }
 
 void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j) {
-    if (!enabled_ || !isRobotPath)
+    if (!enabled_ || !(isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
         return;
 
     boost::unique_lock<mutex_t> lock(*(getMutex()));
