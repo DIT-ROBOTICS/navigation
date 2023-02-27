@@ -1,6 +1,0 @@
-<launch>
-  <!-- obstale-simulation -->
-  <node name="vel_pub" pkg="vel_pub" type="vel_pub" output="screen">
-      <rosparam file="$(find vel_pub)/config/params.yaml" command="load"/> 
-  </node>
-</launch>

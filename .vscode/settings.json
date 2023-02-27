@@ -1,10 +1,6 @@
 {
-    "python.autoComplete.extraPaths": [
-        "/home/wei/navi_ws/devel/lib/python3/dist-packages",
-        "/home/wei/catkin_ws/devel/lib/python3/dist-packages",
-        "/opt/ros/noetic/lib/python3/dist-packages"
-    ],
-    "files.associations": {
-        "cstdlib": "cpp"
-    }
+  "files.associations": {
+    "cmath": "cpp",
+    "complex": "cpp"
+  }
 }
