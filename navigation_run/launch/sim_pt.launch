@@ -30,6 +30,7 @@
   <!-- Publish: /cmd_vel -->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <remap from="cmd_vel" to ="vel_obseleted" /> <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+    <remap from="nav_goal" to="nav_goal_obseleted" />
     <rosparam file="$(find navigation_run)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find navigation_run)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />

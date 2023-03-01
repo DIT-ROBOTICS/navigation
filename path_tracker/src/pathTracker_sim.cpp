@@ -68,7 +68,6 @@ void pathTracker::initialize()
 {
     if_localgoal_final_reached = false;
     if_globalpath_switched = false;
-
     timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &pathTracker::timerCallback, this, false, false);
     timer_.setPeriod(ros::Duration(1.0 / control_frequency_), false);
     timer_.start();
@@ -90,7 +89,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     get_param_ok = nh_local_.param<string>("frame", frame_, "map");
     get_param_ok = nh_local_.param<double>("control_frequency", control_frequency_, 50);
     get_param_ok = nh_local_.param<double>("lookahead_distance", lookahead_d_, 0.2);
-
+    get_param_ok = nh_local_.param<double>("waiting_timeout", waiting_timeout_, 3);
     // linear parameter
     // acceleration
     get_param_ok = nh_local_.param<double>("linear_max_velocity", linear_max_vel_, 0.5);
@@ -213,12 +212,12 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                 if (if_globalpath_switched == false)
                 {
                     if_localgoal_final_reached = false;
-                    plannerClient(cur_pose_, goal_pose_);
+                    // plannerClient(cur_pose_, goal_pose_);
                     linear_brake_distance_ = linear_brake_distance_ratio_ * cur_pose_.distanceTo(goal_pose_);
                     if_globalpath_switched = true;
                 }
             }
-            // ROS_INFO("Working Mode : TRACKING");
+            ROS_INFO("Working Mode : TRACKING");
             if (robot_type_ == "omni")
             {
                 // dynamic wei
@@ -237,7 +236,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
         break;
 
         case Mode::IDLE: {
-            // ROS_INFO("Working Mode : IDLE");
+            ROS_INFO("Working Mode : IDLE");
             velocity_state_.x_ = 0;
             velocity_state_.y_ = 0;
             velocity_state_.theta_ = 0;
@@ -246,7 +245,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
         break;
 
         case Mode::TRANSITION: {
-            // ROS_INFO("Working Mode : TRANSITION");
+            ROS_INFO("Working Mode : TRANSITION");
             double linear_vel = sqrt(pow(velocity_state_.x_, 2) + pow(velocity_state_.y_, 2));
             double angular_vel = velocity_state_.theta_;
 
@@ -702,6 +701,7 @@ void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
         velocity_state_.theta_ = angular_velocity;
     }
     velocityPublish();
+
     t_bef_ = t_now_;
 }
 

@@ -23,16 +23,17 @@
   # ... my own plugins   
     # - {name: simple_layer, type: "simple_layer_namespace::GridLayer"}
     # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}  
-    - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
-    - {name: path_layer, type: "path_layer_namespace::PathLayer"}       
+    # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
+    # - {name: path_layer, type: "path_layer_namespace::PathLayer"}       
   # ... final layer
-    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     
 
   static_layer:
     enabled: true
     map_topic: map
     subscribe_to_updates: false
+    trinary_costmap: false
 
   # obstacle_layer:
   #   enabled: true
@@ -58,7 +59,7 @@
 
   path_layer:
     enabled: true
-    Topic: /robot2/move_base/GlobalPlanner/plan
+    RobotPath_TopicName: /none
     RivalPathTimeout: 0.5
     RivalPredictLength: 100
 

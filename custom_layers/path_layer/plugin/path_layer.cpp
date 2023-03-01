@@ -30,7 +30,6 @@ void PathLayer::onInitialize() {
     nh.param("RivalOdom_PredictLength", RivalOdomPredictLength, 1);
     nh.param<std::string>("RobotPath_TopicName", RobotPath_CB_TopicName, "/move_base/GlobalPlanner/plan");
     nh.param<std::string>("RivalOdom1_TopicName", RivalOdom_CB_TopicName[0], "/RivalOdom_1");
-    nh.param<std::string>("RivalOdom2_TopicName", RivalOdom_CB_TopicName[1], "/RivalOdom_2");
 
     RobotPath_Sub = nh.subscribe(RobotPath_CB_TopicName, 1000, &PathLayer::RobotPath_CB, this);
     RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_CB, this);
