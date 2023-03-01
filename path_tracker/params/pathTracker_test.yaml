@@ -1,7 +1,7 @@
 active: true
 robot_type: omni
 frame: map
-control_frequency: 70
+control_frequency: 30
 lookahead_distance: 0.1
 
 ### linear parameter
@@ -21,7 +21,7 @@ linear_transition_acceleration: 0.6
 linear_kp: 0.73
 #linear_kp: 0.6
 linear_brake_distance_ratio: 0.35
-linear_min_brake_distance: 0.33
+linear_min_brake_distance: 0.5 #0.33
 # linear_deceleration_profile: p_control
 linear_deceleration_profile: linear
 

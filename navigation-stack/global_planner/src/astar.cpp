@@ -60,7 +60,7 @@ bool AStarExpansion::calculatePotentials(unsigned char* costs, double start_x, d
         Index top = queue_[0];
         std::pop_heap(queue_.begin(), queue_.end(), greater1());
         queue_.pop_back();
-
+        // ROS_INFO("top: %f new_top: %f, %f", top.cost, queue_[0].cost, queue_[1].cost);
         int i = top.i;
         if (i == goal_i)
             return true;
@@ -89,8 +89,9 @@ void AStarExpansion::add(unsigned char* costs, float* potential, float prev_pote
 
     potential[next_i] = p_calc_->calculatePotential(potential, costs[next_i] + neutral_cost_, next_i, prev_potential);
     int x = next_i % nx_, y = next_i / nx_;
-    float distance = abs(end_x - x) + abs(end_y - y);
-
+    // float distance = abs(end_x - x) + abs(end_y - y);
+    float distance = sqrt(pow(fabs(end_x - x), 2) + pow(fabs(end_y - y), 2));
+    // ROS_INFO("neutral_cost: %d; costs: %f; dist*neut: %f", neutral_cost_, potential[next_i], distance * neutral_cost_);
     queue_.push_back(Index(next_i, potential[next_i] + distance * neutral_cost_));
     std::push_heap(queue_.begin(), queue_.end(), greater1());
 }
