@@ -92,6 +92,11 @@ private:
   ros::Subscriber sub_;
   ros::NodeHandle g_nh_;
   double update_frequency_;
+
+  double inflation_radius_;
+  double inscribed_radius_;
+  double cost_factor_;
+
   std::vector<std::string> observation_sources_;
   /** @brief tolerance that we think two obstacle are the same obstacle
    *  there are two type of them: sample and rival (other team's robot)
@@ -118,7 +123,9 @@ private:
    */
   std::vector<int> ifExists(Obstacle obs);
 
-   Obstacle lowpassFilter(Obstacle obs_new, std::vector<Obstacle> obs, std::vector<int> idxs);
+  Obstacle lowpassFilter(Obstacle obs_new, std::vector<Obstacle> obs, std::vector<int> idxs);
+  void inflate(double x, double y);
+  double** min_dist_check;
 };
 }
 #endif

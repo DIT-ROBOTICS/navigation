@@ -217,7 +217,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                     if_globalpath_switched = true;
                 }
             }
-            ROS_INFO("Working Mode : TRACKING");
+            // ROS_INFO("Working Mode : TRACKING");
             if (robot_type_ == "omni")
             {
                 // dynamic wei
@@ -236,7 +236,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
         break;
 
         case Mode::IDLE: {
-            ROS_INFO("Working Mode : IDLE");
+            // ROS_INFO("Working Mode : IDLE");
             velocity_state_.x_ = 0;
             velocity_state_.y_ = 0;
             velocity_state_.theta_ = 0;
@@ -245,7 +245,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
         break;
 
         case Mode::TRANSITION: {
-            ROS_INFO("Working Mode : TRANSITION");
+            // ROS_INFO("Working Mode : TRANSITION");
             double linear_vel = sqrt(pow(velocity_state_.x_, 2) + pow(velocity_state_.y_, 2));
             double angular_vel = velocity_state_.theta_;
 
