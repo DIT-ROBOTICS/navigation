@@ -224,7 +224,7 @@ std::vector<int> GridLayer::ifExists(Obstacle obs)
       if(obs[idxs[i]].get_time()-obs_new.get_time() > obs[idxs[i+1]].get_time()-obs_new.get_time())  
         idx_latest = i+1;
     }
-    std::cout << "check" << std::endl;
+    // std::cout << "check" << std::endl;
     obs_new.set_x( filter_beta_*obs_new.get_x() + (1-filter_beta_)*obs[idx_latest].get_x());
     obs_new.set_y( filter_beta_*obs_new.get_y() + (1-filter_beta_)*obs[idx_latest].get_y());
     return obs_new;
