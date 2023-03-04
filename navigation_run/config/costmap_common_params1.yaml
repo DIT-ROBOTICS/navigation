@@ -70,6 +70,10 @@
 
   path_layer:
     enabled: true
+    enabled_Inflation: true
+
+    # Inflation Robot (Should be same as Robot's Radius)
+    Inflation_Radius: 0.1 # Unit: m
 
     # Topic 
     RobotPath_TopicName: /robot2/move_base/GlobalPlanner/plan

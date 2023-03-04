@@ -19,6 +19,7 @@
 #include "nav_msgs/Path.h"
 
 // other
+#include <cmath>
 #include <string>
 
 namespace path_layer_namespace {
@@ -56,6 +57,11 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     ros::NodeHandle Global_nh;
     double update_frequency_;
+
+    // ------------------------- Inflation -------------------------
+    bool enabled_Inflation;
+    double Inflation_Radius;
+    void ExpandPoint(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y);
 
     // ------------------------- RobotPath -------------------------
     // Sub

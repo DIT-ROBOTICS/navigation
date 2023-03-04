@@ -24,6 +24,8 @@ void PathLayer::onInitialize() {
     // read YAML parameter
     nh.param("update_frequency", update_frequency_, 10.0);
     nh.param("enabled", enabled_, true);
+    nh.param("enabled_Inflation", enabled_Inflation, true);
+    nh.param("Inflation_Radius", Inflation_Radius, 0.1);
     nh.param("RobotPath_Timeout", RobotPathTimeout, 1.0);
     nh.param("RivalOdom_Timeout", RivalOdomTimeout, 1.0);
     nh.param("RobotPath_PredictLength", RobotPredictLength, 1);
@@ -81,6 +83,12 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         return;
 
     if (isRobotPath) {
+        // Inflation itself
+        if (enabled_Inflation && RobotPath.poses.size() >= 1) {
+            ExpandPoint(RobotPath.poses[0].pose.position.x, RobotPath.poses[0].pose.position.y, Inflation_Radius, min_x, min_y, max_x, max_y);
+        }
+
+        // Path
         for (int i = 0; i < RobotPredictLength; i++) {
             if (RobotPath.poses.size() <= i)
                 break;
@@ -155,6 +163,23 @@ void PathLayer::RivalOdom2_CB(const nav_msgs::Odometry& Odom) {
     isRivalOdom[1] = true;
     RivalOdom[1] = Odom;
     RivalOdomLastTime[1] = ros::Time::now();
+}
+
+void PathLayer::ExpandPoint(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y) {
+    for (int angle = 0; angle <= 360; angle++) {
+        double Rad = angle * M_PI / 180;
+        double mark_x = x + Radius * cos(Rad);
+        double mark_y = y + Radius * sin(Rad);
+        unsigned int mx;
+        unsigned int my;
+        if (worldToMap(mark_x, mark_y, mx, my)) {
+            *min_x = std::min(*min_x, mark_x);
+            *min_y = std::min(*min_y, mark_y);
+            *max_x = std::max(*max_x, mark_x);
+            *max_y = std::max(*max_y, mark_y);
+            setCost(mx, my, LETHAL_OBSTACLE);
+        }
+    }
 }
 
 }  // namespace path_layer_namespace
