@@ -168,6 +168,7 @@ class GlobalPlanner : public nav_core::BaseGlobalPlanner {
         /**
          * @brief Store a copy of the current costmap in \a costmap.  Called by makePlan.
          */
+        costmap_2d::Costmap2DROS* costmap2dros_;
         costmap_2d::Costmap2D* costmap_;
         std::string frame_id_;
         ros::Publisher plan_pub_;

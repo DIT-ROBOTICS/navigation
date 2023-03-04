@@ -113,7 +113,7 @@ void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
   if(!ifAddToLayer(sensor_name)) return;
 
   unsigned int obstacle_num = poses.poses.size();
-  ROS_INFO("GridLayer: Received %d Obstacles from Sources: %s", obstacle_num, sensor_name.c_str());
+  // ROS_INFO("GridLayer: Received %d Obstacles from Sources: %s", obstacle_num, sensor_name.c_str());
   
   for (int i = 0; i < obstacle_num; i++){
     Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, obstacle_type, sensor_name, poses.header.stamp);

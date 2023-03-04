@@ -13,7 +13,7 @@
   #map info
   map_topic: map
   subscribe_to_updates: true
-  update_frequency: 10.0  #frequency to update costmap
+  update_frequency: 40.0  #frequency to update costmap
   publish_frequency: 3.0 #frequency to publish the new costmap to Rviz
 
 
@@ -55,8 +55,8 @@
       lidar: false
     update_frequency: 7.0
     inflation_radius: 0.25
-    inscribed_radius: 0.15
-    cost_factor: 3.0
+    inscribed_radius: 0.06
+    cost_factor: 13.0
     tolerance: 
       sample: 0.09
       rival: 0.15
