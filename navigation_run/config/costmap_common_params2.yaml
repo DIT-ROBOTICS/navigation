@@ -33,17 +33,18 @@
     enabled: true
     map_topic: map
     subscribe_to_updates: false
+    trinary_costmap: false
 
   # obstacle_layer:
   #   enabled: true
   #   observation_sources: laser_scan_sensor
   #   laser_scan_sensor: {sensor_frame: laser_frame, data_type: LaserScan, topic: scan, marking: true, clearing: true}
 
-  lidar_obstacle_layer:
-    enabled: true
-    obstacle_topic: obstacles_to_map #test
-    obstacle_radius: 0.15
-    expand_division: 30 #total points of the expanded profile
+  # lidar_obstacle_layer:
+  #   enabled: true
+  #   obstacle_topic: obstacles_to_map #test
+  #   obstacle_radius: 0.15
+  #   expand_division: 30 #total points of the expanded profile
 
   simple_layer:
     enabled: true
@@ -81,5 +82,5 @@
 
   inflation_layer:
     enabled: true
-    cost_scaling_factor: 5
-    inflation_radius: 0.2
+    cost_scaling_factor: 3
+    inflation_radius: 0.3

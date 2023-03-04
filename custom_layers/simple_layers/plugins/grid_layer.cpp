@@ -4,12 +4,14 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "ros/time.h"
 #include "simple_layers/grid_layer.h"
+#include <cmath>
 
 PLUGINLIB_EXPORT_CLASS(simple_layer_namespace::GridLayer, costmap_2d::Layer)
 
 using costmap_2d::LETHAL_OBSTACLE;
 using costmap_2d::NO_INFORMATION;
 using costmap_2d::FREE_SPACE;
+using costmap_2d::INSCRIBED_INFLATED_OBSTACLE;
 
 namespace simple_layer_namespace
 {
@@ -53,6 +55,11 @@ void GridLayer::onInitialize()
   ROS_INFO("Grid_layer: obseration_sources: %s", s.c_str());
 
   nh.param("update_frequency", update_frequency_, 10.0);
+
+  nh.param("inflation_radius", inflation_radius_, 0.25);
+  nh.param("inscribed_radius", inscribed_radius_, 0.15);
+  nh.param("cost_factor", cost_factor_, 3.0);
+
   nh.param("tolerance/sample", tolerance_sample_, 0.1);
   nh.param("tolerance/rival", tolerance_rival_, 0.1);
 
@@ -61,10 +68,21 @@ void GridLayer::onInitialize()
   nh.getParam("filter/beta", filter_beta_);
   nh.getParam("filter/fixed_point_remove", fixed_point_remove_);
   nh.getParam("filter/threshold_time", threshold_time_);
-  
+
   current_ = true;
   default_value_ = NO_INFORMATION;
   matchSize();
+
+  // dynamically declare array
+  int ny = getSizeInCellsY();
+  int nx = getSizeInCellsX();
+  min_dist_check = new double* [nx];
+  for(int i=0; i<nx; i++) min_dist_check[i] = new double[ny];
+
+  // initialize 
+  for(int i = 0; i < nx; i++){
+    for(int j = 0; j < ny; j++) min_dist_check[i][j] = DBL_MAX;
+  }
 
   dsrv_ = new dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>(nh);
   dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>::CallbackType cb = boost::bind(
@@ -74,7 +92,7 @@ void GridLayer::onInitialize()
 
 void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
 {
-  // get the sersor name and obstacle type. format ex: sample_camera 
+  // get the sensor name and obstacle type. format ex: sample_camera 
   std::string temp = poses.header.frame_id;
   int idx = temp.find("_");
   std::string sensor_name;
@@ -144,22 +162,33 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
 
   resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
 
-  for(int i=0; i<obstacle_pos_.size(); i++){
-    double mark_x = obstacle_pos_[i].get_x();
-    double mark_y = obstacle_pos_[i].get_y();
-    unsigned int mx;
-    unsigned int my;
-    if(worldToMap(mark_x, mark_y, mx, my)){
-      setCost(mx, my, LETHAL_OBSTACLE);
+  // clear check dist array with MAX value but ignore -1(254)
+  int ny = getSizeInCellsY();
+  int nx = getSizeInCellsX();
+
+  for(int i = 0; i < nx; i++){
+    for(int j = 0; j < ny; j++){
+      min_dist_check[i][j] = (min_dist_check[i][j] == -1) ? -1 : DBL_MAX;
     }
-    // std::cout << mx << " " << my << std::endl;
-    
-    *min_x = std::min(*min_x, mark_x);
-    *min_y = std::min(*min_y, mark_y);
-    *max_x = std::max(*max_x, mark_x);
-    *max_y = std::max(*max_y, mark_y);
   }
 
+  for(int i = 0; i<obstacle_pos_.size(); i++){
+    double mark_x = obstacle_pos_[i].get_x();
+    double mark_y = obstacle_pos_[i].get_y();
+    inflate(mark_x, mark_y); // Inflate a radius!
+    
+    // Surround the most outside boundaries and do the local update!
+    // min_x, y
+    *min_x = std::min(*min_x, mark_x - inflation_radius_);
+    *min_x = std::max(*min_x, 0.0);
+    *min_y = std::min(*min_y, mark_y - inflation_radius_);
+    *min_y = std::max(*min_y, 0.0);
+    //max_x, y
+    *max_x = std::max(*max_x, mark_x + inflation_radius_);
+    *max_x = std::min(*max_x, getSizeInMetersX());
+    *max_y = std::max(*max_y, mark_y + inflation_radius_);
+    *max_y = std::min(*max_y, getSizeInMetersY());
+  }
 }
 
 void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i,
@@ -178,6 +207,21 @@ void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
   //     master_grid.setCost(i, j, costmap_[index]); 
   //   }
   // }
+
+  // Get static map's info of LETHAL_OBSTACLE and marked -1
+  int ny = getSizeInCellsY();
+  int nx = getSizeInCellsX();
+
+  unsigned char* master_array = master_grid.getCharMap();
+  for(int i = 0; i < nx; i++){
+    for(int j = 0; j < ny; j++){
+      int idx = getIndex(i, j);
+      if(master_array[idx] == LETHAL_OBSTACLE){
+        min_dist_check[i][j] = -1;
+        // ROS_INFO("LETHAL");
+      }
+    }
+  } 
   
   updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
   // updateWithAddition(master_grid, min_i, min_j, max_i, max_j);
@@ -216,17 +260,91 @@ std::vector<int> GridLayer::ifExists(Obstacle obs)
   return idxs;
 }
 
-  Obstacle GridLayer::lowpassFilter(Obstacle obs_new, std::vector<Obstacle> obs, std::vector<int> idxs)
+Obstacle GridLayer::lowpassFilter(Obstacle obs_new, std::vector<Obstacle> obs, std::vector<int> idxs)
+{
+  int idx_latest = idxs[0];
+  for(int i=0; i<idxs.size()-1; i++)
   {
-    int idx_latest = idxs[0];
-    for(int i=0; i<idxs.size()-1; i++)
-    {
-      if(obs[idxs[i]].get_time()-obs_new.get_time() > obs[idxs[i+1]].get_time()-obs_new.get_time())  
-        idx_latest = i+1;
-    }
-    // std::cout << "check" << std::endl;
-    obs_new.set_x( filter_beta_*obs_new.get_x() + (1-filter_beta_)*obs[idx_latest].get_x());
-    obs_new.set_y( filter_beta_*obs_new.get_y() + (1-filter_beta_)*obs[idx_latest].get_y());
-    return obs_new;
+    if(obs[idxs[i]].get_time()-obs_new.get_time() > obs[idxs[i+1]].get_time()-obs_new.get_time())  
+      idx_latest = i+1;
   }
+  // std::cout << "check" << std::endl;
+  obs_new.set_x( filter_beta_*obs_new.get_x() + (1-filter_beta_)*obs[idx_latest].get_x());
+  obs_new.set_y( filter_beta_*obs_new.get_y() + (1-filter_beta_)*obs[idx_latest].get_y());
+  return obs_new;
+}
+
+void GridLayer::inflate(double x, double y)
+{
+  // Change inflation radius unit into pixel(resolution = 0.01 m/pxl)
+  int inflation_pixel = 100 * inflation_radius_;
+  double d = 0;
+  double distance_now = 0;
+  unsigned int mx;
+  unsigned int my;
+  // Get mark_x, mark_y in pxl
+  worldToMap(x, y, mx, my);
+  int inf_cost = 253;
+  // Set the transversing origin on the top-left corner!
+  int i_start = mx - inflation_pixel;
+  int j_start = my - inflation_pixel;
+  int i_end = mx+inflation_pixel + 1;
+  int j_end = my+inflation_pixel + 1;
+
+  // transverse x
+  for (int i = i_start; i < i_end; i++){
+    // transverse y
+    for (int j = j_start; j < j_end; j++){
+      // check if the pxl coord is in the map
+      if(i >= 0 && j >= 0 && i < getSizeInCellsX() && j < getSizeInCellsY()){
+        // leave LETHAL_OBSTACLE cell unaffected
+        if(min_dist_check[i][j] == -1){
+          continue;
+        }
+        // set cost regarding the sensor info
+        else{
+          // calculate the pixel-to-center distance(in pxl = 1cm)
+          distance_now = getResolution() * sqrt(pow((int)mx - i, 2) + pow((int)my - j, 2));
+          // keep the highest cost in a cell and neglect the same cost(dist)
+          if(distance_now < min_dist_check[i][j]){
+            min_dist_check[i][j] = distance_now;
+            d = min_dist_check[i][j];
+          }
+          else{
+            continue;
+          }
+          // case 1: In between the inflation and inscribed radius
+          if(inscribed_radius_ <= d && d <= inflation_radius_){
+            inf_cost = round(252 * exp(-cost_factor_ * (d - inscribed_radius_)));
+            unsigned char INFLATED_COST = inf_cost;
+            setCost(i, j, INFLATED_COST);
+          }
+          // case 2: Inside the inscribed radius, center included
+          else if(0 < d && d < inscribed_radius_){
+            setCost(i, j, INSCRIBED_INFLATED_OBSTACLE); // <-> LETHAL_OBSTACLE
+          }
+          // case 3: center point is LETHAL
+          else if(d == 0){
+            setCost(i, j, LETHAL_OBSTACLE);
+          }
+          // case 4: Outside inflation but in the outscribed square
+          else if(inflation_radius_ <= d && d <= sqrt(2) * inflation_radius_){
+            setCost(i, j, FREE_SPACE);
+          }
+          // case 4: Error
+          else{
+            ROS_INFO("GridLayer: Inflating Error!");
+            // ROS_INFO("%d %d %d %d", i, j, mx, my);
+            ROS_INFO("%lf", d);
+          }
+        }
+      }
+      // Outside the map!
+      else{
+        continue;
+      }
+    }
+  }
+}
+
 } // end namespace

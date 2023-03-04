@@ -27,7 +27,7 @@
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
     # - {name: path_layer, type: "path_layer_namespace::PathLayer"}       
   # ... final layer
-    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     
 
   static_layer:
@@ -41,11 +41,11 @@
   #   observation_sources: laser_scan_sensor
   #   laser_scan_sensor: {sensor_frame: laser_frame, data_type: LaserScan, topic: scan, marking: true, clearing: true}
 
-  lidar_obstacle_layer:
-    enabled: true
-    obstacle_topic: obstacles_to_map #test
-    obstacle_radius: 0.15
-    expand_division: 30 #total points of the expanded profile
+  # lidar_obstacle_layer:
+  #   enabled: true
+  #   obstacle_topic: obstacles_to_map #test
+  #   obstacle_radius: 0.15
+  #   expand_division: 30 #total points of the expanded profile
 
   simple_layer:
     enabled: true
@@ -53,26 +53,28 @@
       camera: true
       tracker: false
       lidar: false
-    update_frequency: 1.0
+    update_frequency: 7.0
+    inflation_radius: 0.25
+    inscribed_radius: 0.15
+    cost_factor: 3.0
     tolerance: 
-      sample: 0.07
+      sample: 0.09
       rival: 0.15
     filter:
-      enabled: true  # if disabled, the obstacles' pos always refresh
+      enabled: true # if disabled, the obstacles' pos always refresh
       # arguments below work IFF filter/enabled = true
       quiescence: true
       beta: 0.2 # the weight/dependence of new obstacles' pos
       fixed_point_remove: true
       threshold_time: 1 # unit: seconds
 
+  # path_layer:
+  #   enabled: true
+  #   RobotPath_TopicName: /none
+  #   RivalPathTimeout: 0.5
+  #   RivalPredictLength: 100
 
-  path_layer:
-    enabled: true
-    RobotPath_TopicName: /none
-    RivalPathTimeout: 0.5
-    RivalPredictLength: 100
-
-  inflation_layer:
-    enabled: true
-    cost_scaling_factor: 3.0
-    inflation_radius: 0.2
+  # inflation_layer:
+  #   enabled: true
+  #   cost_scaling_factor: 3.0
+  #   inflation_radius: 0.2
