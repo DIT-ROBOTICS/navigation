@@ -459,7 +459,7 @@ void Costmap2DROS::stop() {
 
 void Costmap2DROS::pause() {
     stop_updates_ = true;
-    initialized_ = false;
+    // initialized_ = false;
 }
 
 void Costmap2DROS::resume() {

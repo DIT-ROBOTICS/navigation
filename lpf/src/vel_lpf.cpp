@@ -35,9 +35,9 @@ int main(int argc, char** argv){
   vy[0] = 0;
   vth[0] = 0;
 
-  beta[0] = 0.4;
-  beta[1] = 0.6;
-  beta[2] = 0.5;
+  beta[0] = 0.2;
+  beta[1] = 0.2;
+  beta[2] = 0.2;
 
   while(ros::ok()){
     ros::spinOnce();
