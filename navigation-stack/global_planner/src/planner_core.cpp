@@ -90,7 +90,7 @@ GlobalPlanner::~GlobalPlanner() {
 }
 
 void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros) {
-    initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
+    initialize(name, costmap_ros->getCostmapBuffer(), costmap_ros->getGlobalFrameID());
     costmap2dros_ = costmap_ros;
 }
 
@@ -279,7 +279,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
 
     // stop the costmap update
     double begin = ros::Time::now().toSec();
-    costmap2dros_-> pause();
+    // costmap2dros_-> pause();
 
     //clear the starting cell within the costmap because we know it can't be an obstacle
     // clearRobotCell(start, start_x_i, start_y_i);
@@ -320,7 +320,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     orientation_filter_->processPath(start, plan);
 
     // resume the costmap update
-    costmap2dros_-> resume();
+    // costmap2dros_-> resume();
 
     //publish the plan for visualization purposes
     publishPlan(plan);

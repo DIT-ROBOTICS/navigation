@@ -13,8 +13,8 @@
   #map info
   map_topic: map
   subscribe_to_updates: true
-  update_frequency: 40.0  #frequency to update costmap
-  publish_frequency: 3.0 #frequency to publish the new costmap to Rviz
+  update_frequency: 100.0  #frequency to update costmap
+  publish_frequency: 100.0 #frequency to publish the new costmap to Rviz
 
 
   plugins:
@@ -27,7 +27,7 @@
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
     # - {name: path_layer, type: "path_layer_namespace::PathLayer"}       
   # ... final layer
-    # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     
 
   static_layer:
@@ -74,7 +74,7 @@
   #   RivalPathTimeout: 0.5
   #   RivalPredictLength: 100
 
-  # inflation_layer:
-  #   enabled: true
-  #   cost_scaling_factor: 3.0
-  #   inflation_radius: 0.2
+  inflation_layer:
+    enabled: true
+    cost_scaling_factor: 3.0
+    inflation_radius: 0.2

@@ -94,6 +94,12 @@ public:
     return &costmap_;
   }
 
+  // add by ben
+  Costmap2D* getCostmapBuffer()
+  {
+    return &costmap_buffer_;
+  }
+
   bool isRolling()
   {
     return rolling_window_;
@@ -156,6 +162,7 @@ public:
 
 private:
   Costmap2D costmap_;
+  Costmap2D costmap_buffer_;
   std::string global_frame_;
 
   bool rolling_window_;  /// < @brief Whether or not the costmap should roll with the robot

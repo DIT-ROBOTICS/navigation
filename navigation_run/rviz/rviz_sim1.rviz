@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Robot1_footprint1
         - /Robot1_odom1/Shape1
         - /Robot2_odom1/Shape1
         - /Rival1_Odom1/Shape1
@@ -81,6 +82,26 @@ Visualization Manager:
       Enabled: true
       Name: Robot2_costmap
       Topic: /robot2/move_base/global_costmap/costmap
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: costmap
+      Draw Behind: false
+      Enabled: true
+      Name: robot1_potential
+      Topic: /robot1/move_base/GlobalPlanner/potential
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: costmap
+      Draw Behind: false
+      Enabled: true
+      Name: robot2_potential
+      Topic: /robot2/move_base/GlobalPlanner/potential
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -349,6 +370,15 @@ Visualization Manager:
       Topic: /RivalOdom_2
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 25; 255; 0
+      Enabled: true
+      Name: Polygon
+      Queue Size: 10
+      Topic: /robot1/move_base/global_costmap/footprint
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -395,9 +425,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.5647963285446167
       Target Frame: <Fixed Frame>
-      Yaw: 4.718579292297363
+      Yaw: 4.6835784912109375
     Saved: ~
 Window Geometry:
   Displays:
@@ -415,5 +445,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1386
-  X: 683
-  Y: 242
+  X: 534
+  Y: 131

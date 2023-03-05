@@ -151,6 +151,14 @@ public:
     {
       return layered_costmap_->getCostmap();
     }
+    
+  // add by ben
+  /** @brief Return a pointer to the costmap_buffer_ */
+  Costmap2D* getCostmapBuffer() const
+    {
+      return layered_costmap_->getCostmapBuffer();
+    }
+
 
   /**
    * @brief  Returns the global frame of the costmap

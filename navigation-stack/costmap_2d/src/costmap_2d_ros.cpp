@@ -373,8 +373,10 @@ void Costmap2DROS::mapUpdateLoop(double frequency) {
         double start_t, end_t, t_diff;
         gettimeofday(&start, NULL);
 #endif
-
+        // double start = ros::Time::now().toSec();
         updateMap();
+        // double dt = ros::Time::now().toSec() - start;
+        // ROS_INFO("name: %s, dt=%lf", name_.c_str(), dt);
 
 #ifdef HAVE_SYS_TIME_H
         gettimeofday(&end, NULL);
@@ -395,6 +397,10 @@ void Costmap2DROS::mapUpdateLoop(double frequency) {
                 last_publish_ = now;
             }
         }
+        // static int x;
+        // while(dt<0.00001 && ++x > 30 ){
+        // }
+        // ROS_INFO("%d", x);
         r.sleep();
         // make sure to sleep for the remainder of our cycle time
         if (r.cycleTime() > ros::Duration(1 / frequency))
@@ -459,7 +465,7 @@ void Costmap2DROS::stop() {
 
 void Costmap2DROS::pause() {
     stop_updates_ = true;
-    // initialized_ = false;
+    initialized_ = false;
 }
 
 void Costmap2DROS::resume() {
