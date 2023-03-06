@@ -42,8 +42,6 @@ void PathLayer::onInitialize() {
     // Init variable
     isRobotPath = isRivalOdom[0] = isRivalOdom[1] = false;
     RobotPathLastTime = ros::Time::now();
-    MaxDistance = 6.22258 / CostScalingFactor + InscribedRadius;  // 6.22258 = -ln(0.5/252.0)
-    MaxDistance = (double)(((int)(MaxDistance / resolution_) + resolution_ * 3) * resolution_);
 
     current_ = true;
     default_value_ = NO_INFORMATION;
@@ -89,8 +87,10 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     if (!(isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
         return;
 
+    boost::unique_lock<mutex_t> lock(*(getMutex()));
+
     if (isRobotPath) {
-        // Inflation itself
+        // Inflation
         if (enabled_Inflation && RobotPath.poses.size() >= 1) {
             // ExpandPointWithCircle(RobotPath.poses[0].pose.position.x, RobotPath.poses[0].pose.position.y, InscribedRadius, min_x, min_y, max_x, max_y);
             InflatePoint(RobotPath.poses[0].pose.position.x, RobotPath.poses[0].pose.position.y, min_x, min_y, max_x, max_y);
@@ -114,8 +114,6 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
             }
         }
     }
-
-    // std::cout << "Enable_Inflation: " << enabled_Inflation << std::endl;
 
     for (int Idx = 0; Idx < 2; Idx++) {
         if (isRivalOdom[Idx]) {
@@ -151,10 +149,11 @@ void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
 
     boost::unique_lock<mutex_t> lock(*(getMutex()));
     // updateWithAddition(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
-    updateWithOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
+    // updateWithOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
+    // updateWithMax(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
+    // updateWithTrueOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
 
-    // Load the costmap_ to master_grid
-    // updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
+    updateWithMax(master_grid, min_i, min_j, max_i, max_j);
 }
 
 void PathLayer::RobotPath_CB(const nav_msgs::Path& Path) {
@@ -193,6 +192,9 @@ void PathLayer::ExpandPointWithCircle(double x, double y, double Radius, double*
 }
 
 void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y) {
+    MaxDistance = 6.22258 / CostScalingFactor + InscribedRadius;  // 6.22258 = -ln(0.5/252.0)
+    MaxDistance = (double)(((int)(MaxDistance / resolution_) + resolution_) * resolution_);
+
     double MaxX = x + MaxDistance;
     double MinX = x - MaxDistance;
     double MaxY;
@@ -200,8 +202,8 @@ void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, d
 
     double mark_x = 0.0;
     double mark_y = 0.0;
-    unsigned int mx = 0;
-    unsigned int my = 0;
+    unsigned int mx;
+    unsigned int my;
 
     double cost;
     double Distance;
@@ -211,7 +213,7 @@ void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, d
         MaxY = y + sqrt(pow(MaxDistance, 2) - pow(fabs(currentPointX - x), 2));
         MinY = 2 * y - MaxY;
 
-        for (int currentPointY = MinY; currentPointY <= MaxY; currentPointY += resolution_) {
+        for (double currentPointY = MinY; currentPointY <= MaxY; currentPointY += resolution_) {
             mark_y = currentPointY;
             if (worldToMap(mark_x, mark_y, mx, my)) {
                 *min_x = std::min(*min_x, mark_x);
@@ -222,11 +224,10 @@ void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, d
                 cost = round(252 * exp(-CostScalingFactor * (Distance - InscribedRadius)));
                 cost = std::min(cost, 254.0);
                 cost = std::max(cost, 0.0);
-                setCost(mx, my, cost);
+                setCost(mx, my, (unsigned char)cost);
             }
         }
     }
-    std::cout << "X: " << x << " Y: " << y << std::endl;
 }
 
 }  // namespace path_layer_namespace

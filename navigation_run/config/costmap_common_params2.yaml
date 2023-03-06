@@ -73,7 +73,7 @@
     
     # Inflation
     enabled_Inflation: true
-    CostScalingFactor: 10
+    CostScalingFactor: 20
     InscribedRadius: 0.1 # Unit: m
 
     # Topic
