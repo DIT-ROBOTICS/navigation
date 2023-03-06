@@ -19,6 +19,7 @@
 #include "nav_msgs/Path.h"
 
 // other
+#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -59,9 +60,15 @@ class PathLayer : public costmap_2d::CostmapLayer {
     double update_frequency_;
 
     // ------------------------- Inflation -------------------------
+    // Param
     bool enabled_Inflation;
-    double Inflation_Radius;
-    void ExpandPoint(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y);
+    double CostScalingFactor;
+    double InscribedRadius;
+    double MaxDistance;
+
+    // Function
+    void ExpandPointWithCircle(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y);
+    void InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y);
 
     // ------------------------- RobotPath -------------------------
     // Sub
