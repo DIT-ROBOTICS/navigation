@@ -64,7 +64,8 @@ class PathLayer : public costmap_2d::CostmapLayer {
     bool enabled_Inflation;
     double CostScalingFactor;
     double InscribedRadius;
-    double MaxDistance;
+    double InflationRadius;
+    // double MaxDistance;
 
     // Function
     void ExpandPointWithCircle(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y);
