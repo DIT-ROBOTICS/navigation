@@ -12,19 +12,18 @@
   #map info
   map_topic: map
   subscribe_to_updates: true
-  update_frequency: 10.0  #frequency to update costmap
-  publish_frequency: 5.0 #frequency to publish the new costmap to Rviz
+  update_frequency: 20.0  #frequency to update costmap
+  publish_frequency: 10.0 #frequency to publish the new costmap to Rviz
 
   plugins:
   # ... first layer  
     - {name: static_layer, type: "costmap_2d::StaticLayer"}
-    - {name: path_layer, type: "path_layer_namespace::PathLayer"}   
     # - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"} 
   # ... my own plugins   
     - {name: simple_layer, type: "simple_layer_namespace::GridLayer"}   
     # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}  
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
-    
+    - {name: path_layer, type: "path_layer_namespace::PathLayer"}
   # ... final layer
     - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     
@@ -53,7 +52,7 @@
       tracker: false
       lidar: false
 
-    update_frequency: 1.0
+    update_frequency: 5.0
     inflation_radius: 0.25
     inscribed_radius: 0.06
     tolerance: 

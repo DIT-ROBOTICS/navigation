@@ -13,8 +13,8 @@
   #map info
   map_topic: map
   subscribe_to_updates: true
-  update_frequency: 10.0  #frequency to update costmap
-  publish_frequency: 5.0 #frequency to publish the new costmap to Rviz
+  update_frequency: 20.0  #frequency to update costmap
+  publish_frequency: 10.0 #frequency to publish the new costmap to Rviz
 
   plugins:
   # ... first layer  
@@ -33,7 +33,7 @@
     enabled: true
     map_topic: map
     subscribe_to_updates: false
-    trinary_costmap: false
+    # trinary_costmap: false
 
   # obstacle_layer:
   #   enabled: true
@@ -53,7 +53,7 @@
       tracker: false
       lidar: false
 
-    update_frequency: 1.0
+    update_frequency: 5.0
     inflation_radius: 0.25
     inscribed_radius: 0.06
     tolerance: 
