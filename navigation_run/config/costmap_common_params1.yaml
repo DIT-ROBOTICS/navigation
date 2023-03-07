@@ -23,7 +23,7 @@
     # - {name: simple_layer, type: "simple_layer_namespace::GridLayer"}   
     # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}  
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
-    
+    - {name: path_layer, type: "path_layer_namespace::PathLayer"}   
   # ... final layer
     # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     

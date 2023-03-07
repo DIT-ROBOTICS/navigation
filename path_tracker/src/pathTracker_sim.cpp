@@ -221,8 +221,20 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
             if (robot_type_ == "omni")
             {
                 // dynamic wei
-                plannerClient(cur_pose_, goal_pose_);
                 RobotState local_goal;
+                if(!plannerClient(cur_pose_, goal_pose_))
+                {
+                    local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
+                    goal_pose_.x_ = local_goal.x_;
+                    goal_pose_.y_ = local_goal.y_;
+                    goal_pose_.theta_ = local_goal.theta_;
+
+                    global_path_past_ = global_path_;
+                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_, local_goal.y_);
+                    switchMode(Mode::TRACKING);
+                    if_globalpath_switched = false;
+                    return;
+                }
                 local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
                 omniController(local_goal, cur_pose_);
             }
@@ -339,7 +351,7 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
         new_goal = false;
         if (srv.response.plan.poses.empty())
         {
-            ROS_WARN("Got empty plan");
+            ROS_WARN("pathTracker: Got empty plan");
             return false;
         }
         else
@@ -447,7 +459,7 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
         // }
         if (!plannerClient(cur_pose_, goal_pose_))
         {
-            ROS_WARN("Goal might not be reached...");
+            // ROS_WARN("Goal might not be reached...");
             return;
         }
         //
@@ -490,6 +502,7 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
     bool if_b_asigned = false;
     double r = L_d;
 
+    // ROS_INFO("%ld", path.size());
     for (int i = 0; i < path.size(); i++)
     {
         if (i == 1)
