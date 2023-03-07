@@ -25,7 +25,8 @@ void PathLayer::onInitialize() {
     nh.param("update_frequency", update_frequency_, 10.0);
     nh.param("enabled", enabled_, true);
     nh.param("enabled_Inflation", enabled_Inflation, true);
-    nh.param("Inflation_Radius", Inflation_Radius, 0.1);
+    nh.param("CostScalingFactor", CostScalingFactor, 10.0);
+    nh.param("InscribedRadius", InscribedRadius, 0.1);
     nh.param("RobotPath_Timeout", RobotPathTimeout, 1.0);
     nh.param("RivalOdom_Timeout", RivalOdomTimeout, 1.0);
     nh.param("RobotPath_PredictLength", RobotPredictLength, 1);
@@ -33,15 +34,19 @@ void PathLayer::onInitialize() {
     nh.param<std::string>("RobotPath_TopicName", RobotPath_CB_TopicName, "/move_base/GlobalPlanner/plan");
     nh.param<std::string>("RivalOdom1_TopicName", RivalOdom_CB_TopicName[0], "/RivalOdom_1");
 
+    // Subscriber
     RobotPath_Sub = nh.subscribe(RobotPath_CB_TopicName, 1000, &PathLayer::RobotPath_CB, this);
     RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_CB, this);
     RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_CB, this);
 
+    // Init variable
     isRobotPath = isRivalOdom[0] = isRivalOdom[1] = false;
     RobotPathLastTime = ros::Time::now();
 
     current_ = true;
     default_value_ = NO_INFORMATION;
+
+    // Resize map
     matchSize();
 
     // Register layer
@@ -82,10 +87,13 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     if (!(isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
         return;
 
+    boost::unique_lock<mutex_t> lock(*(getMutex()));
+
     if (isRobotPath) {
-        // Inflation itself
+        // Inflation
         if (enabled_Inflation && RobotPath.poses.size() >= 1) {
-            ExpandPoint(RobotPath.poses[0].pose.position.x, RobotPath.poses[0].pose.position.y, Inflation_Radius, min_x, min_y, max_x, max_y);
+            // ExpandPointWithCircle(RobotPath.poses[0].pose.position.x, RobotPath.poses[0].pose.position.y, InscribedRadius, min_x, min_y, max_x, max_y);
+            InflatePoint(RobotPath.poses[0].pose.position.x, RobotPath.poses[0].pose.position.y, min_x, min_y, max_x, max_y);
         }
 
         // Path
@@ -141,10 +149,11 @@ void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
 
     boost::unique_lock<mutex_t> lock(*(getMutex()));
     // updateWithAddition(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
-    updateWithOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
+    // updateWithOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
+    // updateWithMax(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
+    // updateWithTrueOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
 
-    // Load the costmap_ to master_grid
-    // updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
+    updateWithMax(master_grid, min_i, min_j, max_i, max_j);
 }
 
 void PathLayer::RobotPath_CB(const nav_msgs::Path& Path) {
@@ -165,7 +174,7 @@ void PathLayer::RivalOdom2_CB(const nav_msgs::Odometry& Odom) {
     RivalOdomLastTime[1] = ros::Time::now();
 }
 
-void PathLayer::ExpandPoint(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y) {
+void PathLayer::ExpandPointWithCircle(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y) {
     for (int angle = 0; angle <= 360; angle++) {
         double Rad = angle * M_PI / 180;
         double mark_x = x + Radius * cos(Rad);
@@ -178,6 +187,45 @@ void PathLayer::ExpandPoint(double x, double y, double Radius, double* min_x, do
             *max_x = std::max(*max_x, mark_x);
             *max_y = std::max(*max_y, mark_y);
             setCost(mx, my, LETHAL_OBSTACLE);
+        }
+    }
+}
+
+void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y) {
+    MaxDistance = 6.22258 / CostScalingFactor + InscribedRadius;  // 6.22258 = -ln(0.5/252.0)
+    MaxDistance = (double)(((int)(MaxDistance / resolution_) + resolution_) * resolution_);
+
+    double MaxX = x + MaxDistance;
+    double MinX = x - MaxDistance;
+    double MaxY;
+    double MinY;
+
+    double mark_x = 0.0;
+    double mark_y = 0.0;
+    unsigned int mx;
+    unsigned int my;
+
+    double cost;
+    double Distance;
+
+    for (double currentPointX = MinX; currentPointX <= MaxX; currentPointX += resolution_) {
+        mark_x = currentPointX;
+        MaxY = y + sqrt(pow(MaxDistance, 2) - pow(fabs(currentPointX - x), 2));
+        MinY = 2 * y - MaxY;
+
+        for (double currentPointY = MinY; currentPointY <= MaxY; currentPointY += resolution_) {
+            mark_y = currentPointY;
+            if (worldToMap(mark_x, mark_y, mx, my)) {
+                *min_x = std::min(*min_x, mark_x);
+                *min_y = std::min(*min_y, mark_y);
+                *max_x = std::max(*max_x, mark_x);
+                *max_y = std::max(*max_y, mark_y);
+                Distance = sqrt(pow(fabs(x - currentPointX), 2) + pow(fabs(y - currentPointY), 2));
+                cost = round(252 * exp(-CostScalingFactor * (Distance - InscribedRadius)));
+                cost = std::min(cost, 254.0);
+                cost = std::max(cost, 0.0);
+                setCost(mx, my, (unsigned char)cost);
+            }
         }
     }
 }
