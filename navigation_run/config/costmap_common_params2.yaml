@@ -21,12 +21,12 @@
     - {name: static_layer, type: "costmap_2d::StaticLayer"}
     # - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"} 
   # ... my own plugins   
-    # - {name: simple_layer, type: "simple_layer_namespace::GridLayer"}   
+    - {name: simple_layer, type: "simple_layer_namespace::GridLayer"}   
     # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}  
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
     - {name: path_layer, type: "path_layer_namespace::PathLayer"}
   # ... final layer
-    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+    # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     
 
   static_layer:
@@ -73,7 +73,7 @@
     
     # Inflation
     enabled_Inflation: true
-    CostScalingFactor: 20
+    CostScalingFactor: 30
     InscribedRadius: 0.1 # Unit: m
 
     # Topic
