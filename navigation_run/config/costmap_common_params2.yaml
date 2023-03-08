@@ -72,6 +72,7 @@
 
   path_layer:
     enabled: true
+    RobotType: 2
     
     # Inflation
     enabled_Inflation: true
@@ -81,11 +82,13 @@
 
 
     # Topic
+    RobotOdom_TopicName: /robot1/odom
     RobotPath_TopicName: /robot1/move_base/GlobalPlanner/plan
     RivalOdom1_TopicName: /RivalOdom_1
     RivalOdom2_TopicName: /RivalOdom_2
 
     # Timeout -1 -> Disable Timeout 
+    RobotOdom_Timeout: -1
     RobotPath_Timeout: -1
     RivalOdom_Timeout: 0.5
 
