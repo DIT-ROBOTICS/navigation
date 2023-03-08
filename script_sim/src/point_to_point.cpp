@@ -10,9 +10,7 @@ using namespace std;
 double check = 1;
 
 void Check(const std_msgs::Bool::ConstPtr& msg) {
-    if (msg->data == 1) {
-        check = 1;
-    }
+    if(msg->data == 1) check = 1;
 }
 
 int main(int argc, char** argv) {

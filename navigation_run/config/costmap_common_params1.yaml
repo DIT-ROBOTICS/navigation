@@ -4,7 +4,7 @@
 
   #hexagonal footprint
   # footprint: [[0,0.15],[0.1299,0.075],[0.1299,-0.075],[0,-0.15],[-0.1299,-0.075],[-0.1299,0.075]]
-  robot_radius: 0.1
+  robot_radius: 0.15
   #tf
   global_frame: robot1/map
   robot_base_frame: robot1/base_footprint
@@ -22,7 +22,7 @@
     # - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"} 
   # ... my own plugins   
     - {name: simple_layer, type: "simple_layer_namespace::GridLayer"}   
-    # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}     
+    # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}  
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
     - {name: path_layer, type: "path_layer_namespace::PathLayer"}
   # ... final layer
@@ -33,7 +33,7 @@
     enabled: true
     map_topic: map
     subscribe_to_updates: false
-    # trinary_costmap: false
+    trinary_costmap: false
 
   # obstacle_layer:
   #   enabled: true
@@ -52,7 +52,6 @@
       camera: true
       tracker: false
       lidar: false
-                // setCost(mx, my, cost);
 
     update_frequency: 5.0
     inflation_radius: 0.25
@@ -75,8 +74,8 @@
     # Inflation
     enabled_Inflation: true
     CostScalingFactor: 2
-    InscribedRadius: 0.1 # Unit: m
-    InflationRadius: 0.3 # Unit: m (MaxDistance)
+    InscribedRadius: 0.15 # Unit: m
+    InflationRadius: 0.25 # Unit: m (MaxDistance)
 
     # Topic 
     RobotPath_TopicName: /robot2/move_base/GlobalPlanner/plan
