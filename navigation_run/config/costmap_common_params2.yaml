@@ -54,7 +54,7 @@
       tracker: false
       lidar: false
 
-    update_frequency: 1.0
+    update_frequency: 5.0
     inflation_radius: 0.25
     inscribed_radius: 0.06
     cost_factor: 13.0

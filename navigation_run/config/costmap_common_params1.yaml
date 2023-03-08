@@ -4,7 +4,7 @@
 
   #hexagonal footprint
   # footprint: [[0,0.15],[0.1299,0.075],[0.1299,-0.075],[0,-0.15],[-0.1299,-0.075],[-0.1299,0.075]]
-  robot_radius: 0.15
+  robot_radius: 0.155
   #tf
   global_frame: robot1/map
   robot_base_frame: robot1/base_footprint
@@ -22,7 +22,6 @@
   # ... my own plugins   
     - {name: simple_layer, type: "simple_layer_namespace::GridLayer"}   
     # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}  
-    - {name: path_layer, type: "path_layer_namespace::PathLayer"}   
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
   # ... final layer
     # # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
@@ -51,9 +50,8 @@
       camera: true
       tracker: false
       lidar: false
-                // setCost(mx, my, cost);
 
-    update_frequency: 1.0
+    update_frequency: 5.0
     inflation_radius: 0.25
     inscribed_radius: 0.06
     cost_factor: 13.0
