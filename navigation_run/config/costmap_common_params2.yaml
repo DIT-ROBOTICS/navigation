@@ -89,8 +89,8 @@
 
     # Timeout -1 -> Disable Timeout 
     RobotOdom_Timeout: -1
-    RobotPath_Timeout: -1
-    RivalOdom_Timeout: 0.5
+    RobotPath_Timeout: 1.0
+    RivalOdom_Timeout: 1.0
 
     # Predict Length
     RobotPath_PredictLength: 1   # Unit: none

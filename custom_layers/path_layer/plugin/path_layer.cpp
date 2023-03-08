@@ -99,8 +99,8 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         InflatePoint(RobotOdom.pose.pose.position.x, RobotOdom.pose.pose.position.y, min_x, min_y, max_x, max_y);
     }
 
+    // Inflation Robot Path
     if (isRobotPath) {
-        // Path
         for (int i = 0; i < RobotPredictLength; i++) {
             if (RobotPath.poses.size() <= i)
                 break;
@@ -115,6 +115,8 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         }
     }
 
+    // Add Rival Path to costmap.
+    // TODO : Inflate the point.
     for (int Idx = 0; Idx < 2; Idx++) {
         if (isRivalOdom[Idx]) {
             double mark_x = RivalOdom[Idx].pose.pose.position.x;
@@ -149,12 +151,10 @@ void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
     if (!enabled_ || !(isRobotOdom || isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
         return;
 
+    // Get the costmap lock.
     boost::unique_lock<mutex_t> lock(*(getMutex()));
-    // updateWithAddition(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
-    // updateWithOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
-    // updateWithMax(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
-    // updateWithTrueOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
 
+    // updateWithMax(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
     updateWithMax(master_grid, min_i, min_j, max_i, max_j);
 }
 
