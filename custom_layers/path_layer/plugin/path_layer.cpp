@@ -18,31 +18,36 @@ PathLayer::PathLayer() {
 void PathLayer::onInitialize() {
     ros::NodeHandle nh("~/" + name_);
 
+    std::string RobotOdom_CB_TopicName;
     std::string RobotPath_CB_TopicName;
     std::string RivalOdom_CB_TopicName[2];
 
     // read YAML parameter
     nh.param("update_frequency", update_frequency_, 10.0);
     nh.param("enabled", enabled_, true);
+    nh.param("RobotType", RobotType, 1);
+    nh.param("RivalOdom_Timeout", RivalOdomTimeout, 1.0);
     nh.param("CostScalingFactor", CostScalingFactor, 10.0);
     nh.param("InscribedRadius", InscribedRadius, 0.1);
     nh.param("InflationRadius", InflationRadius, 0.3);
     nh.param("RobotPath_Timeout", RobotPathTimeout, 1.0);
+    nh.param("RobotOdom_Timeout", RobotOdomTimeout, 1.0);
     nh.param("RivalOdom_Timeout", RivalOdomTimeout, 1.0);
     nh.param("RobotPath_PredictLength", RobotPredictLength, 1);
     nh.param("RivalOdom_PredictLength", RivalOdomPredictLength, 1);
+    nh.param<std::string>("RobotOdom_TopicName", RobotOdom_CB_TopicName, "/robot1/odom");
     nh.param<std::string>("RobotPath_TopicName", RobotPath_CB_TopicName, "/move_base/GlobalPlanner/plan");
     nh.param<std::string>("RivalOdom1_TopicName", RivalOdom_CB_TopicName[0], "/RivalOdom_1");
 
     // Subscriber
     RobotPath_Sub = nh.subscribe(RobotPath_CB_TopicName, 1000, &PathLayer::RobotPath_CB, this);
+    RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_CB, this);
     RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_CB, this);
     RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_CB, this);
 
     // Init variable
-    isRobotPath = isRivalOdom[0] = isRivalOdom[1] = false;
+    isRobotPath = isRobotOdom = isRivalOdom[0] = isRivalOdom[1] = false;
     RobotPathLastTime = ros::Time::now();
-    RobotLocationX = RobotLocationY = 0.0;
 
     current_ = true;
     default_value_ = NO_INFORMATION;
@@ -79,30 +84,24 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     double CurrentTime = ros::Time::now().toSec();
     if (RobotPathTimeout != -1 && CurrentTime - RobotPathLastTime.toSec() > RobotPathTimeout)
         isRobotPath = false;
+    if (RobotOdomTimeout != -1 && CurrentTime - RobotOdomLastTime.toSec() > RobotOdomTimeout)
+        isRobotOdom = false;
     for (int i = 0; i < 2; i++) {
         if (RivalOdomTimeout != -1 && CurrentTime - RivalOdomLastTime[i].toSec() > RivalOdomTimeout)
             isRivalOdom[i] = false;
     }
 
-    // Check whether there has been some change.
-    if (!(isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
-        return;
-
+    // Get the Costmap lock. (Optional)
     boost::unique_lock<mutex_t> lock(*(getMutex()));
 
-    if (RobotPath.poses.size() >= 1) {
-        RobotLocationX = RobotPath.poses[0].pose.position.x;
-        RobotLocationY = RobotPath.poses[0].pose.position.y;
-    }
-
-    // Inflation Robot
-    if (RobotLocationX != 0 && RobotLocationY != 0) {
-        InflatePoint(RobotLocationX, RobotLocationY, min_x, min_y, max_x, max_y);
+    // Inflation Robot Odom
+    if (isRobotOdom) {
+        InflatePoint(RobotOdom.pose.pose.position.x, RobotOdom.pose.pose.position.y, min_x, min_y, max_x, max_y);
     }
 
     if (isRobotPath) {
         // Path
-        for (int i = 1; i < RobotPredictLength; i++) {
+        for (int i = 0; i < RobotPredictLength; i++) {
             if (RobotPath.poses.size() <= i)
                 break;
 
@@ -138,14 +137,16 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         }
     }
 
-    *min_x -= 2;
-    *min_y -= 2;
-    *max_x += 2;
-    *max_y += 2;
+    if (isRobotPath || isRobotOdom || isRivalOdom[0] || isRivalOdom[1]) {
+        *min_x -= 2;
+        *min_y -= 2;
+        *max_x += 2;
+        *max_y += 2;
+    }
 }
 
 void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j) {
-    if (!enabled_ || !(isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
+    if (!enabled_ || !(isRobotOdom || isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
         return;
 
     boost::unique_lock<mutex_t> lock(*(getMutex()));
@@ -155,24 +156,6 @@ void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
     // updateWithTrueOverwrite(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
 
     updateWithMax(master_grid, min_i, min_j, max_i, max_j);
-}
-
-void PathLayer::RobotPath_CB(const nav_msgs::Path& Path) {
-    this->RobotPath = Path;
-    isRobotPath = true;
-    RobotPathLastTime = ros::Time::now();
-}
-
-void PathLayer::RivalOdom1_CB(const nav_msgs::Odometry& Odom) {
-    isRivalOdom[0] = true;
-    RivalOdom[0] = Odom;
-    RivalOdomLastTime[0] = ros::Time::now();
-}
-
-void PathLayer::RivalOdom2_CB(const nav_msgs::Odometry& Odom) {
-    isRivalOdom[1] = true;
-    RivalOdom[1] = Odom;
-    RivalOdomLastTime[1] = ros::Time::now();
 }
 
 void PathLayer::ExpandPointWithCircle(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y) {
@@ -236,6 +219,30 @@ void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, d
             }
         }
     }
+}
+
+void PathLayer::RobotPath_CB(const nav_msgs::Path& Path) {
+    this->RobotPath = Path;
+    isRobotPath = true;
+    RobotPathLastTime = ros::Time::now();
+}
+
+void PathLayer::RobotOdom_CB(const nav_msgs::Odometry& Odom) {
+    this->RobotOdom = Odom;
+    isRobotOdom = true;
+    RobotOdomLastTime = ros::Time::now();
+}
+
+void PathLayer::RivalOdom1_CB(const nav_msgs::Odometry& Odom) {
+    RivalOdom[0] = Odom;
+    isRivalOdom[0] = true;
+    RivalOdomLastTime[0] = ros::Time::now();
+}
+
+void PathLayer::RivalOdom2_CB(const nav_msgs::Odometry& Odom) {
+    RivalOdom[1] = Odom;
+    isRivalOdom[1] = true;
+    RivalOdomLastTime[1] = ros::Time::now();
 }
 
 }  // namespace path_layer_namespace

@@ -48,16 +48,14 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     virtual void matchSize();
 
-    void RobotPath_CB(const nav_msgs::Path& Path);
-    void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
-    void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
-
    private:
     void reconfigureCB(costmap_2d::GenericPluginConfig& config, uint32_t level);
     dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>* dsrv_;
 
     ros::NodeHandle Global_nh;
     double update_frequency_;
+
+    int RobotType;
 
     // ------------------------- Inflation -------------------------
     // Param
@@ -73,22 +71,31 @@ class PathLayer : public costmap_2d::CostmapLayer {
     // ------------------------- RobotPath -------------------------
     // Sub
     ros::Subscriber RobotPath_Sub;
+    ros::Subscriber RobotOdom_Sub;
+    nav_msgs::Odometry RobotOdom;
     nav_msgs::Path RobotPath;
+
+    void RobotPath_CB(const nav_msgs::Path& Path);
+    void RobotOdom_CB(const nav_msgs::Odometry& Odom);
 
     // Time
     ros::Time RobotPathLastTime;
+    ros::Time RobotOdomLastTime;
     double RobotPathTimeout;
-    bool isRobotPath = false;
+    double RobotOdomTimeout;
+    bool isRobotPath;
+    bool isRobotOdom;
 
     // Param
     int RobotPredictLength;
-    double RobotLocationX;  // In order to inflation robot when not received plan.
-    double RobotLocationY;
 
     // ------------------------- RivalOdom -------------------------
     // Sub
     ros::Subscriber RivalOdom_Sub[2];
     nav_msgs::Odometry RivalOdom[2];
+
+    void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
+    void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
 
     // Time
     ros::Time RivalOdomLastTime[2];

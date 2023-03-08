@@ -72,6 +72,7 @@
 
   path_layer:
     enabled: true
+    RobotType: 1
 
     # Inflation
     CostScalingFactor: 2
@@ -79,11 +80,13 @@
     InflationRadius: 0.3 # Unit: m (MaxDistance)
 
     # Topic 
+    RobotOdom_TopicName: /robot2/odom
     RobotPath_TopicName: /robot2/move_base/GlobalPlanner/plan
     RivalOdom1_TopicName: /RivalOdom_1
     RivalOdom2_TopicName: /RivalOdom_2
     
     # Timeout -1 -> Disable Timeout 
+    RobotOdom_Timeout: -1
     RobotPath_Timeout: -1
     RivalOdom_Timeout: 0.5
     
