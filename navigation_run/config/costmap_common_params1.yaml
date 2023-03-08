@@ -24,7 +24,6 @@
     # - {name: simple_layer, type: "simple_layer_namespace::SimpleLayer"}  
     - {name: path_layer, type: "path_layer_namespace::PathLayer"}   
     # - {name: lidar_obstacle_layer, type: "lidar_obstacle_layer_namespace::LidarObstacleLayer"} 
-    - {name: path_layer, type: "path_layer_namespace::PathLayer"}   
   # ... final layer
     # # - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
     
@@ -75,9 +74,9 @@
 
     # Inflation
     enabled_Inflation: true
-    CostScalingFactor: 2
-    InscribedRadius: 0.1 # Unit: m
-    InflationRadius: 0.3 # Unit: m (MaxDistance)
+    CostScalingFactor: 10
+    InscribedRadius: 0.15 # Unit: m
+    InflationRadius: 0.35 # Unit: m (MaxDistance)
 
     # Topic 
     RobotPath_TopicName: /robot2/move_base/GlobalPlanner/plan

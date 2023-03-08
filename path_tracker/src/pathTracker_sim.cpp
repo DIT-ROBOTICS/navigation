@@ -68,6 +68,7 @@ void pathTracker::initialize()
 {
     if_localgoal_final_reached = false;
     if_globalpath_switched = false;
+    if_goal_is_blocked_ = false;
     timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &pathTracker::timerCallback, this, false, false);
     timer_.setPeriod(ros::Duration(1.0 / control_frequency_), false);
     timer_.start();
@@ -157,19 +158,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 
 void pathTracker::timerCallback(const ros::TimerEvent& e)
 {
-    // ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
-    // std_srvs::Empty srv;
-
-    // if(client2.call(srv))
-    // {
-    //     ROS_INFO("Cleared the map!!");
-    //     ros::Duration(0.5).sleep();
-    // }
-    // else
-    // {
-    //     ROS_INFO("Unable to clear the map!!");
-    // }
-
+    // ROS_INFO("%d", workingMode_);
     switch (workingMode_)
     {
         case Mode::GLOBALPATH_RECEIVED: {
@@ -193,7 +182,8 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
         break;
 
         case Mode::TRACKING: {
-            if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_))
+            // goal reached
+            if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_) && !if_goal_is_blocked_)
             {
                 ROS_INFO("Working Mode : GOAL REACHED !");
                 switchMode(Mode::IDLE);
@@ -201,6 +191,9 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                 velocity_state_.y_ = 0;
                 velocity_state_.theta_ = 0;
                 velocityPublish();
+
+                if_goal_is_blocked_ = false;
+                // publish /finishornot
                 std_msgs::Bool goalreached;
                 goalreached.data = true;
                 goalreachedPub_.publish(goalreached);
@@ -231,8 +224,14 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 
                     global_path_past_ = global_path_;
                     // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_, local_goal.y_);
-                    switchMode(Mode::TRACKING);
+                    // switchMode(Mode::TRACKING);
                     if_globalpath_switched = false;
+                    if_goal_is_blocked_ = true;
+                    // publish /finishornot
+                    std_msgs::Bool goalreached;
+                    goalreached.data = false;
+                    goalreachedPub_.publish(goalreached);
+                    if_goal_is_blocked_ = false;
                     return;
                 }
                 local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
@@ -269,9 +268,29 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 
             if (robot_type_ == "omni")
             {
-                // dynamic wei
-                plannerClient(cur_pose_, goal_pose_);
+
                 RobotState local_goal;
+                // if the new goal has no path to reach, just change the goal to the local_goal which belong to past_path  
+                if(!plannerClient(cur_pose_, goal_pose_))
+                {
+                    local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
+                    goal_pose_.x_ = local_goal.x_;
+                    goal_pose_.y_ = local_goal.y_;
+                    goal_pose_.theta_ = local_goal.theta_;
+
+                    global_path_past_ = global_path_;
+                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_, local_goal.y_);
+                    switchMode(Mode::TRACKING);
+                    if_globalpath_switched = false;
+                    if_goal_is_blocked_ = true;
+
+                    // publish /finishornot
+                    std_msgs::Bool goalreached;
+                    goalreached.data = false;
+                    goalreachedPub_.publish(goalreached);
+                    if_goal_is_blocked_ = false;
+                    return;
+                }
                 local_goal = rollingWindow(cur_pose_, global_path_past_, lookahead_d_);
                 omniController(local_goal, cur_pose_);
             }
@@ -447,22 +466,17 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
     global_path_past_ = global_path_;
     if (workingMode_ == Mode::IDLE)
     {
-        // add by wei
-        // if(client2.call(srv))
-        // {
-        //     ROS_INFO("Cleared the map!!");
-        //     ros::Duration(0.5).sleep();
-        // }
-        // else
-        // {
-        //     ROS_INFO("Unable to clear the map!!");
-        // }
         if (!plannerClient(cur_pose_, goal_pose_))
         {
-            // ROS_WARN("Goal might not be reached...");
+            if_goal_is_blocked_ = true;
+            // publish /finishornot
+            std_msgs::Bool goalreached;
+            goalreached.data = false;
+            goalreachedPub_.publish(goalreached);
+            
             return;
         }
-        //
+        if_goal_is_blocked_ = false;
 
         linear_brake_distance_ = linear_brake_distance_ratio_ * cur_pose_.distanceTo(goal_pose_);
         if (linear_brake_distance_ < linear_min_brake_distance_)

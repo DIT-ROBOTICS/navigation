@@ -169,4 +169,5 @@ class pathTracker
      */
     bool checkObstacle(std::vector<RobotState> path);
     bool new_goal;
+    bool if_goal_is_blocked_;
 };

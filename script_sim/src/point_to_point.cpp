@@ -10,9 +10,12 @@ using namespace std;
 double check = 1;
 
 void Check(const std_msgs::Bool::ConstPtr& msg) {
-    if (msg->data == 1) {
-        check = 1;
+    check = 1;
+    if(!msg->data)
+    {
+        ROS_INFO("script_sim: cannot arrive the goal, next point!");
     }
+    
 }
 
 int main(int argc, char** argv) {
