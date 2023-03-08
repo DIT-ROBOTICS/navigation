@@ -24,7 +24,6 @@ void PathLayer::onInitialize() {
     // read YAML parameter
     nh.param("update_frequency", update_frequency_, 10.0);
     nh.param("enabled", enabled_, true);
-    nh.param("enabled_Inflation", enabled_Inflation, true);
     nh.param("CostScalingFactor", CostScalingFactor, 10.0);
     nh.param("InscribedRadius", InscribedRadius, 0.1);
     nh.param("InflationRadius", InflationRadius, 0.3);
@@ -43,6 +42,7 @@ void PathLayer::onInitialize() {
     // Init variable
     isRobotPath = isRivalOdom[0] = isRivalOdom[1] = false;
     RobotPathLastTime = ros::Time::now();
+    RobotLocationX = RobotLocationY = 0.0;
 
     current_ = true;
     default_value_ = NO_INFORMATION;
@@ -90,12 +90,17 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
 
     boost::unique_lock<mutex_t> lock(*(getMutex()));
 
-    if (isRobotPath) {
-        // Inflation
-        if (enabled_Inflation && RobotPath.poses.size() >= 1) {
-            InflatePoint(RobotPath.poses[0].pose.position.x, RobotPath.poses[0].pose.position.y, min_x, min_y, max_x, max_y);
-        }
+    if (RobotPath.poses.size() >= 1) {
+        RobotLocationX = RobotPath.poses[0].pose.position.x;
+        RobotLocationY = RobotPath.poses[0].pose.position.y;
+    }
 
+    // Inflation Robot
+    if (RobotLocationX != 0 && RobotLocationY != 0) {
+        InflatePoint(RobotLocationX, RobotLocationY, min_x, min_y, max_x, max_y);
+    }
+
+    if (isRobotPath) {
         // Path
         for (int i = 1; i < RobotPredictLength; i++) {
             if (RobotPath.poses.size() <= i)
