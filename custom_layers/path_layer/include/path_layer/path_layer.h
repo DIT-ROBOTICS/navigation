@@ -61,7 +61,6 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     // ------------------------- Inflation -------------------------
     // Param
-    bool enabled_Inflation;
     double CostScalingFactor;
     double InscribedRadius;
     double InflationRadius;
@@ -83,6 +82,8 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     // Param
     int RobotPredictLength;
+    double RobotLocationX;  // In order to inflation robot when not received plan.
+    double RobotLocationY;
 
     // ------------------------- RivalOdom -------------------------
     // Sub

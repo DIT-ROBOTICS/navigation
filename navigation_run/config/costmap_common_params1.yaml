@@ -74,7 +74,6 @@
     enabled: true
 
     # Inflation
-    enabled_Inflation: true
     CostScalingFactor: 2
     InscribedRadius: 0.1 # Unit: m
     InflationRadius: 0.3 # Unit: m (MaxDistance)
