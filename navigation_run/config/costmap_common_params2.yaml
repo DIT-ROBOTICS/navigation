@@ -73,8 +73,9 @@
     
     # Inflation
     enabled_Inflation: true
-    CostScalingFactor: 30
+    CostScalingFactor: 2
     InscribedRadius: 0.1 # Unit: m
+    InflationRadius: 0.3 # Unit: m (MaxDistance)
 
     # Topic
     RobotPath_TopicName: /robot1/move_base/GlobalPlanner/plan
