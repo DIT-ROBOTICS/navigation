@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   obstacle_detector
+  costmap_2d
 )
 
 ## System dependencies are found with CMake's conventions
