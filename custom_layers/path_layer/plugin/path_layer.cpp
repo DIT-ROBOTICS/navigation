@@ -144,6 +144,13 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
             }
         }
     }
+
+    if (isRobotPath || isRobotOdom || isRivalOdom[0] || isRivalOdom[1]) {
+        *min_x -= 0.5;
+        *min_y -= 0.5;
+        *max_x += 0.5;
+        *max_y += 0.5;
+    }
 }
 
 void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j) {
