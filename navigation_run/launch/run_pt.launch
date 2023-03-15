@@ -1,6 +1,6 @@
 <launch>
   <!-- Map File -->
-  <arg name="map_file" default="$(find path_tracker)/maps/2023_map/basic_map.yaml"/>
+  <arg name="map_file" default="$(find map_server)mytest/basic_map.yaml"/>
 	
   <!-- Map Server -->
   <!-- Publish: /map, /map_metadata -->
@@ -27,7 +27,6 @@
 
   <!-- path_Tracker -->
   <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
-      <remap from="global_filter" to="odom"/>
       <remap from="cmd_vel" to="raw_cmd_vel"/> <!-- for lpf to filter the velocity -->
       <rosparam file="$(find path_tracker)/params/pathTracker_test.yaml" command="load" /> 
   </node>
