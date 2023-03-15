@@ -22,22 +22,33 @@ void PathLayer::onInitialize() {
     std::string RobotPath_CB_TopicName;
     std::string RivalOdom_CB_TopicName[2];
 
-    // read YAML parameter
-    nh.param("update_frequency", update_frequency_, 10.0);
+    // ---------------- Read YAML parameter ----------------
     nh.param("enabled", enabled_, true);
     nh.param("RobotType", RobotType, 1);
-    nh.param("RivalOdom_Timeout", RivalOdomTimeout, 1.0);
-    nh.param("CostScalingFactor", CostScalingFactor, 10.0);
-    nh.param("InscribedRadius", InscribedRadius, 0.1);
-    nh.param("InflationRadius", InflationRadius, 0.3);
-    nh.param("RobotPath_Timeout", RobotPathTimeout, 1.0);
-    nh.param("RobotOdom_Timeout", RobotOdomTimeout, 1.0);
-    nh.param("RivalOdom_Timeout", RivalOdomTimeout, 1.0);
-    nh.param("RobotPath_PredictLength", RobotPredictLength, 1);
-    nh.param("RivalOdom_PredictLength", RivalOdomPredictLength, 1);
-    nh.param<std::string>("RobotOdom_TopicName", RobotOdom_CB_TopicName, "/robot1/odom");
-    nh.param<std::string>("RobotPath_TopicName", RobotPath_CB_TopicName, "/move_base/GlobalPlanner/plan");
-    nh.param<std::string>("RivalOdom1_TopicName", RivalOdom_CB_TopicName[0], "/RivalOdom_1");
+
+    // Inflation
+    nh.param("Inflation/Robot/CostScalingFactor", RobotCostScalingFactor, 10.0);
+    nh.param("Inflation/Robot/InscribedRadius", RobotInscribedRadius, 0.1);
+    nh.param("Inflation/Robot/InflationRadius", RobotInflationRadius, 0.3);
+    nh.param("Inflation/Rival/CostScalingFactor", RivalCostScalingFactor, 10.0);
+    nh.param("Inflation/Rival/InscribedRadius", RivalInscribedRadius, 0.1);
+    nh.param("Inflation/Rival/InflationRadius", RivalInflationRadius, 0.3);
+
+    // Topic
+    nh.param<std::string>("Topic/Robot/Odom", RobotOdom_CB_TopicName, "/robot1/odom");
+    nh.param<std::string>("Topic/Robot/Path", RobotPath_CB_TopicName, "/move_base/GlobalPlanner/plan");
+    nh.param<std::string>("Topic/Rival/Odom1", RivalOdom_CB_TopicName[0], "/RivalOdom_1");
+    nh.param<std::string>("Topic/Rival/Odom2", RivalOdom_CB_TopicName[1], "/RivalOdom_2");
+
+    // Timeout
+    nh.param("Timeout/Robot/Odom", RobotOdomTimeout, 1.0);
+    nh.param("Timeout/Robot/Path", RobotPathTimeout, 1.0);
+    nh.param("Timeout/Rival/Odom", RivalOdomTimeout, 1.0);
+
+    // PredictLength
+    nh.param("PredictLength/Robot/Path", RobotPredictLength, 1);
+    nh.param("PredictLength/Rival/Odom", RivalOdomPredictLength, 1);
+    // ---------------- Read YAML parameter ----------------
 
     // Subscriber
     RobotPath_Sub = nh.subscribe(RobotPath_CB_TopicName, 1000, &PathLayer::RobotPath_CB, this);
@@ -96,7 +107,7 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
 
     // Inflation Robot Odom
     if (isRobotOdom) {
-        InflatePoint(RobotOdom.pose.pose.position.x, RobotOdom.pose.pose.position.y, min_x, min_y, max_x, max_y);
+        InflatePoint(RobotOdom.pose.pose.position.x, RobotOdom.pose.pose.position.y, min_x, min_y, max_x, max_y, 1);
     }
 
     // Inflation Robot Path
@@ -110,13 +121,12 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
             unsigned int mx;
             unsigned int my;
             if (worldToMap(mark_x, mark_y, mx, my)) {
-                InflatePoint(mark_x, mark_y, min_x, min_y, max_x, max_y);
+                InflatePoint(mark_x, mark_y, min_x, min_y, max_x, max_y, 1);
             }
         }
     }
 
     // Add Rival Path to costmap.
-    // TODO : Inflate the point.
     for (int Idx = 0; Idx < 2; Idx++) {
         if (isRivalOdom[Idx]) {
             double mark_x = RivalOdom[Idx].pose.pose.position.x;
@@ -125,25 +135,14 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
             unsigned int my;
             for (int i = 0; i < RivalOdomPredictLength; i++) {
                 if (worldToMap(mark_x, mark_y, mx, my)) {
-                    *min_x = std::min(*min_x, mark_x);
-                    *min_y = std::min(*min_y, mark_y);
-                    *max_x = std::max(*max_x, mark_x);
-                    *max_y = std::max(*max_y, mark_y);
-                    setCost(mx, my, LETHAL_OBSTACLE);
+                    InflatePoint(mark_x, mark_y, min_x, min_y, max_x, max_y, -1);
                 } else {
                     break;
                 }
-                mark_x += RivalOdom[Idx].twist.twist.linear.x / 1000.0;
-                mark_y += RivalOdom[Idx].twist.twist.linear.y / 1000.0;
+                mark_x += RivalOdom[Idx].twist.twist.linear.x / 10.0;
+                mark_y += RivalOdom[Idx].twist.twist.linear.y / 10.0;
             }
         }
-    }
-
-    if (isRobotPath || isRobotOdom || isRivalOdom[0] || isRivalOdom[1]) {
-        *min_x -= 2;
-        *min_y -= 2;
-        *max_x += 2;
-        *max_y += 2;
     }
 }
 
@@ -175,9 +174,15 @@ void PathLayer::ExpandPointWithCircle(double x, double y, double Radius, double*
     }
 }
 
-void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y) {
+// type 1 -> Robot
+//      2 -> Rival
+void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y, int type) {
     // MaxDistance = 6.22258 / CostScalingFactor + InscribedRadius;  // 6.22258 = -ln(0.5/252.0)
     // MaxDistance = (double)(((int)(MaxDistance / resolution_) + resolution_) * resolution_);
+
+    double InflationRadius = type == 1 ? RobotInflationRadius : RivalInflationRadius;
+    double CostScalingFactor = type == 1 ? RobotCostScalingFactor : RivalCostScalingFactor;
+    double InscribedRadius = type == 1 ? RobotInscribedRadius : RivalInscribedRadius;
 
     double MaxX = x + InflationRadius;
     double MinX = x - InflationRadius;
