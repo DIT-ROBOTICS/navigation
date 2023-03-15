@@ -3,7 +3,7 @@
     <group ns="robot1">
 
         <!-- Map File -->
-        <arg name="map_file" default="$(find path_tracker)/maps/2023_map/basic_map.yaml"/>
+        <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
         
         <!-- Map Server -->
         <!-- Publish: /map, /map_metadata -->
