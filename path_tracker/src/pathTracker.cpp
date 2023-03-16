@@ -122,7 +122,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     {
         if (p_active_)
         {
-            poseSub_ = nh_.subscribe("/ekf_pose", 50, &pathTracker::poseCallback, this);
+            poseSub_ = nh_.subscribe("ekf_pose", 50, &pathTracker::poseCallback, this);
             // poseSub_ = nh_.subscribe("global_filter", 50, &pathTracker::poseCallback, this);
             goalSub_ = nh_.subscribe("nav_goal", 50, &pathTracker::goalCallback, this);
             obstacleSub_ = nh_.subscribe("obstacle_position_array", 50, &pathTracker::obstacleCallbak, this);
