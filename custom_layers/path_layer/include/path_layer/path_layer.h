@@ -53,20 +53,25 @@ class PathLayer : public costmap_2d::CostmapLayer {
     dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>* dsrv_;
 
     ros::NodeHandle Global_nh;
-    double update_frequency_;
 
     int RobotType;
 
     // ------------------------- Inflation -------------------------
-    // Param
-    double CostScalingFactor;
-    double InscribedRadius;
-    double InflationRadius;
+    // Robot Param
+    double RobotCostScalingFactor;
+    double RobotInscribedRadius;
+    double RobotInflationRadius;
+
+    // Rival Param
+    double RivalCostScalingFactor;
+    double RivalInscribedRadius;
+    double RivalInflationRadius;
+
     // double MaxDistance;
 
     // Function
     void ExpandPointWithCircle(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y);
-    void InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y);
+    void InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y, int type);
 
     // ------------------------- RobotPath -------------------------
     // Sub

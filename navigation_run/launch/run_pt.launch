@@ -1,6 +1,6 @@
 <launch>
   <!-- Map File -->
-  <arg name="map_file" default="$(find path_tracker)/maps/2023_map/basic_map.yaml"/>
+  <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
 	
   <!-- Map Server -->
   <!-- Publish: /map, /map_metadata -->
@@ -8,7 +8,7 @@
 	
   <!-- Initial Pose and Goal Publisher -->
   <!-- Publish: /initialpose, /move_base_simple/goal -->
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim.rviz"/>
+  <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim.rviz"/> -->
   
   <!-- Move Base Node -->
   <!-- Subscribe: /move_base_simple/goal -->
@@ -27,7 +27,6 @@
 
   <!-- path_Tracker -->
   <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
-      <remap from="global_filter" to="odom"/>
       <remap from="cmd_vel" to="raw_cmd_vel"/> <!-- for lpf to filter the velocity -->
       <rosparam file="$(find path_tracker)/params/pathTracker_test.yaml" command="load" /> 
   </node>
