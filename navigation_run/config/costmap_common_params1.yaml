@@ -65,7 +65,7 @@
       # arguments below work IFF filter/enabled = true
       quiescence: true
       beta: 0.2 # the weight/dependence of new obstacles' pos
-      fixed_point_remove: true
+      fixed_point_remove: false
       threshold_time: 1 # unit: seconds
 
   path_layer:

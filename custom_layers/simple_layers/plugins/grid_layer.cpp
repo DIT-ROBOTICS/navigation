@@ -114,15 +114,19 @@ void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
 
   unsigned int obstacle_num = poses.poses.size();
   // ROS_INFO("GridLayer: Received %d Obstacles from Sources: %s", obstacle_num, sensor_name.c_str());
-  
-  for (int i = 0; i < obstacle_num; i++){
-    Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, obstacle_type, sensor_name, poses.header.stamp);
-    if(filter_enabled_ && fixed_point_remove_){
-      for (auto j = obstacle_pos_.begin(); j != obstacle_pos_.end(); ++j){
-        double diff = ros::Time::now().toSec() - j->get_time().toSec();
-        if( diff > threshold_time_) obstacle_pos_.erase(j);
+
+  if(filter_enabled_ && fixed_point_remove_){
+    for (auto j = obstacle_pos_.begin(); j != obstacle_pos_.end(); ++j){
+      double diff = ros::Time::now().toSec() - j->get_time().toSec();
+      if( diff > threshold_time_){ 
+        obstacle_pos_.erase(j);
+        // ROS_INFO("erase");
       }
     }
+  }
+
+  for (int i = 0; i < obstacle_num; i++){
+    Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, obstacle_type, sensor_name, poses.header.stamp);
 
     if(filter_enabled_ && filter_quiescence_){
       static std::vector<int> adjacent_obs_num;  
@@ -138,6 +142,7 @@ void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
     }
     obstacle_pos_.push_back(obs);
   }
+  // ROS_INFO("size %d", obstacle_pos_.size());
 }
 
 void GridLayer::matchSize()
@@ -179,16 +184,23 @@ void GridLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, d
     
     // Surround the most outside boundaries and do the local update!
     // min_x, y
-    *min_x = std::min(*min_x, mark_x - inflation_radius_);
-    *min_x = std::max(*min_x, 0.0);
-    *min_y = std::min(*min_y, mark_y - inflation_radius_);
-    *min_y = std::max(*min_y, 0.0);
+    // *min_x = std::min(*min_x, mark_x - inflation_radius_);
+    // *min_x = std::max(*min_x, 0.0);
+    // *min_y = std::min(*min_y, mark_y - inflation_radius_);
+    // *min_y = std::max(*min_y, 0.0);
     //max_x, y
-    *max_x = std::max(*max_x, mark_x + inflation_radius_);
-    *max_x = std::min(*max_x, getSizeInMetersX());
-    *max_y = std::max(*max_y, mark_y + inflation_radius_);
-    *max_y = std::min(*max_y, getSizeInMetersY());
+    // *max_x = std::max(*max_x, mark_x + inflation_radius_);
+    // *max_x = std::min(*max_x, getSizeInMetersX());
+    // *max_y = std::max(*max_y, mark_y + inflation_radius_);
+    // *max_y = std::min(*max_y, getSizeInMetersY());
+
+    // ROS_INFO("i: %d, x:%f, y:%f", i,  mark_x, mark_y);
   }
+  *min_x = 0;
+  *min_y = 0;
+  *max_x = getSizeInMetersX();
+  *max_y = getSizeInMetersY();
+  // ROS_INFO("finished");
 }
 
 void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i,
@@ -207,7 +219,7 @@ void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
   //     master_grid.setCost(i, j, costmap_[index]); 
   //   }
   // }
-
+  boost::unique_lock<mutex_t> lock(*(getMutex()));
   // Get static map's info of LETHAL_OBSTACLE and marked -1
   int ny = getSizeInCellsY();
   int nx = getSizeInCellsX();
