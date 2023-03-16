@@ -1,4 +1,4 @@
-6  #rangle settings
+  #rangle settings
   obstacle_range: 3 #lidar range
   raytrace_range: 3 #clear the overlapped obstacles on the path, only for the obstacle layer
 

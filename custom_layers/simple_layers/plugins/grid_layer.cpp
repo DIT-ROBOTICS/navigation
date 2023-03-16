@@ -235,9 +235,9 @@ void GridLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
     }
   } 
   
-  updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
+  // updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
   // updateWithAddition(master_grid, min_i, min_j, max_i, max_j);
-  // updateWithMax(master_grid, min_i, min_j, max_i, max_j);
+  updateWithMax(master_grid, min_i, min_j, max_i, max_j);
 }
 
 bool GridLayer::ifAddToLayer(std::string observation_source_type)
