@@ -32,7 +32,7 @@
   </node>
 
 
-  <include file="$(find eurobot_localization)/launch/eurobot_localization.launch">
+  <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
   <!-- low pass filter on pt's cmd_vel -->
   <node pkg="lpf" type="vel_lpf" name="vel_lpf">
   </node>

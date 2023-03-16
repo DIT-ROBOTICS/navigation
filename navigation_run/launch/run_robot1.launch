@@ -34,7 +34,7 @@
         <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch"> -->
         <!-- </include> -->
 
-        <include file="$(find eurobot_localization)/launch/eurobot_localization.launch">
+        <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
         <!-- low pass filter on cmd_vel -->
         <node pkg="lpf" type="vel_lpf" name="vel_lpf">
         </node>
