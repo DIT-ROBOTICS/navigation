@@ -1,15 +1,23 @@
 <launch>
 
-    <arg name="Timeout" default="10.0" />
+    <!-- Parameter -->
+    <arg name="timeout" default="10.0" />
+    <arg name="update_frequency" default="5.0" />
+    <arg name="default_active" default="true"/>
+    <arg name="use_dynamic_reconfigure" default="true" />
 
-    <node pkg="navigation_main" name="navigation_main_1" type="navigation_main">
-        <param name="Timeout" type="double" value="$(arg Timeout)" />
-        <param name="RobotOdom_TopicName" type="string" value="/robot1/odom" />
-    </node>
+    <!--  Node  -->
+    <node pkg="navigation_main" name="navigation_main_1" type="navigation_main_node" output="screen">
 
-    <node pkg="navigation_main" name="navigation_main_2" type="navigation_main">
-        <param name="Timeout" type="double" value="$(arg Timeout)" />
-        <param name="RobotOdom_TopicName" type="string" value="/robot2/odom" />
+        <param name="active" type="boolean" value="$(arg default_active)" />
+        <param name="timeout" type="double" value="$(arg timeout)" />
+        <param name="update_frequency" type="double" value="$(arg update_frequency)" />
+        <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
+
+        <param name="update_params" value="false" />
+        <param name="robot_odom_topic" type="string" value="/robot1/odom" />
+        <param name="robot_mission_state_topic" type="string" value="/robot1/mission_state" />
+
     </node>
 
 </launch>
