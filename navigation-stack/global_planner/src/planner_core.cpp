@@ -90,7 +90,7 @@ GlobalPlanner::~GlobalPlanner() {
 }
 
 void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros) {
-    initialize(name, costmap_ros->getCostmapBuffer(), costmap_ros->getGlobalFrameID());
+    initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
     costmap2dros_ = costmap_ros;
 }
 
@@ -218,7 +218,13 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
 
 bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
                            double tolerance, std::vector<geometry_msgs::PoseStamped>& plan) {
-    boost::mutex::scoped_lock lock(mutex_);
+    
+    double t_now = ros::Time::now().toSec();
+    boost::unique_lock<costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
+    // boost::mutex::scoped_lock lock(mutex_);
+    double dt = ros::Time::now().toSec() - t_now;
+    // ROS_INFO("dt=%f", dt);
+
     if (!initialized_) {
         ROS_ERROR(
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");

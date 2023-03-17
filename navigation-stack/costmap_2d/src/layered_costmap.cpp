@@ -159,10 +159,6 @@ void LayeredCostmap::updateMap(double robot_x, double robot_y, double robot_yaw)
   by0_ = y0;
   byn_ = yn;
 
-  // add by ben
-  costmap_buffer_ = costmap_;
-  // above add by ben
-
   initialized_ = true;
 }
 
