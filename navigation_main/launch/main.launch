@@ -1,0 +1,15 @@
+<launch>
+
+    <arg name="Timeout" default="10.0" />
+
+    <node pkg="navigation_main" name="navigation_main_1" type="navigation_main">
+        <param name="Timeout" type="double" value="$(arg Timeout)" />
+        <param name="RobotOdom_TopicName" type="string" value="/robot1/odom" />
+    </node>
+
+    <node pkg="navigation_main" name="navigation_main_2" type="navigation_main">
+        <param name="Timeout" type="double" value="$(arg Timeout)" />
+        <param name="RobotOdom_TopicName" type="string" value="/robot2/odom" />
+    </node>
+
+</launch>
