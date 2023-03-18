@@ -27,14 +27,21 @@
 
   <!-- path_Tracker -->
   <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
-      <remap from="cmd_vel" to="raw_cmd_vel"/> <!-- for lpf to filter the velocity -->
+      <!-- <remap from="cmd_vel" to="raw_cmd_vel"/> for lpf to filter the velocity -->
       <rosparam file="$(find path_tracker)/params/pathTracker_test.yaml" command="load" /> 
   </node>
 
-
-  <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
   <!-- low pass filter on pt's cmd_vel -->
-  <node pkg="lpf" type="vel_lpf" name="vel_lpf">
-  </node>
+  <!-- <node pkg="lpf" type="vel_lpf" name="vel_lpf">
+  </node> -->
+
+  <!-- localization -->
+  <include file="$(find eurobot_localization)/launch/odometry/odometry_setup.launch" />
+  <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
   
+  <!-- docking_tracker -->
+  <node name="docking_tracker" pkg="path_tracker" type="dockTracker" output="screen">
+    <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" /> 
+  </node>
+
 </launch>
