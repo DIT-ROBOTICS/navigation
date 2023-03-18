@@ -218,4 +218,8 @@ add_executable(pathTracker_sim src/pathTracker_sim.cpp)
 add_dependencies(pathTracker_sim ${catkin_EXPORTED_TARGETS})
 target_link_libraries(pathTracker_sim ${catkin_LIBRARIES})
 
+add_executable(dockTracker src/dockTracker.cpp)
+add_dependencies(dockTracker ${catkin_EXPORTED_TARGETS})
+target_link_libraries(dockTracker ${catkin_LIBRARIES})
+
 #set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
