@@ -4,6 +4,7 @@
 #include <cmath>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Transform.h>
@@ -27,9 +28,8 @@ private:
     ros::Subscriber goal_sub_;
     ros::Subscriber pose_sub_;
     void goalCB(const geometry_msgs::PoseStamped& data);
-    // void poseCB(const nav_msgs::Odometry& data);
-    void poseCB(const geometry_msgs::PoseWithCovarianceStamped& data);
-
+    void poseCB(const nav_msgs::Odometry& data);
+    
     // Publisher
     ros::Publisher pub_;
     void velocityPUB();

@@ -1,4 +1,4 @@
-#include "dockTracker.h"
+#include "dockTracker_sim.h"
 
 DockTracker::DockTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local)
 {
@@ -48,8 +48,7 @@ bool DockTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
         if (p_active_)
         {
             goal_sub_ = nh_.subscribe("dock_goal", 50, &DockTracker::goalCB, this);
-            // pose_sub_ = nh_.subscribe("odom", 50, &DockTracker::poseCB, this);
-            pose_sub_ = nh_.subscribe("ekf_pose", 50, &DockTracker::poseCB, this);
+            pose_sub_ = nh_.subscribe("odom", 50, &DockTracker::poseCB, this);
             pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
         }
         else
@@ -183,20 +182,7 @@ void DockTracker::goalCB(const geometry_msgs::PoseStamped& data){
     ROS_INFO("[Dock Tracker]: Dock goal received!");
 }
 
-// void DockTracker::poseCB(const nav_msgs::Odometry& data){
-//     pose_[0] = data.pose.pose.position.x;
-//     pose_[1] = data.pose.pose.position.y;
-//     tf2::Quaternion q;
-//     tf2::fromMsg(data.pose.pose.orientation, q);
-//     tf2::Matrix3x3 qt(q);
-//     double _, yaw;
-//     qt.getRPY(_, _, yaw);
-//     pose_[2] = yaw;
-//     // ROS_INFO("odom: %f %f", pose_[0], pose_[1]);
-// }
-
-void DockTracker::poseCB(const geometry_msgs::PoseWithCovarianceStamped& data)
-{
+void DockTracker::poseCB(const nav_msgs::Odometry& data){
     pose_[0] = data.pose.pose.position.x;
     pose_[1] = data.pose.pose.position.y;
     tf2::Quaternion q;
