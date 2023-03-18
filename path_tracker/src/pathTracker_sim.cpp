@@ -29,6 +29,7 @@ pathTracker::pathTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local)
     nh_local_ = nh_local;
     std_srvs::Empty empt;
     p_active_ = false;
+    if_pub_zero_ = false;
     params_srv_ = nh_local_.advertiseService("params", &pathTracker::initializeParams, this);
     initializeParams(empt.request, empt.response);
     initialize();
@@ -72,9 +73,7 @@ void pathTracker::initialize()
     timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &pathTracker::timerCallback, this, false, false);
     timer_.setPeriod(ros::Duration(1.0 / control_frequency_), false);
     timer_.start();
-    // timer2_ = nh_.createTimer(ros::Duration(2), &pathTracker::timer2Callback, this, false, false);
-    // timer2_.setPeriod(ros::Duration(2), false);
-    // timer2_.start();
+
     workingMode_ = Mode::IDLE;
     workingMode_past_ = Mode::IDLE;
 }
@@ -125,7 +124,6 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
             // poseSub_ = nh_.subscribe("/ekf_pose", 50, &pathTracker::poseCallback, this);
             poseSub_ = nh_.subscribe("global_filter", 50, &pathTracker::poseCallback, this);
             goalSub_ = nh_.subscribe("nav_goal", 50, &pathTracker::goalCallback, this);
-            obstacleSub_ = nh_.subscribe("obstacle_position_array", 50, &pathTracker::obstacleCallbak, this);
             velPub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
             localgoalPub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
             posearrayPub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
@@ -185,7 +183,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
             // goal reached
             if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_) && !if_goal_is_blocked_)
             {
-                ROS_INFO("Working Mode : GOAL REACHED !");
+                // ROS_INFO("Working Mode : GOAL REACHED !");
                 switchMode(Mode::IDLE);
                 velocity_state_.x_ = 0;
                 velocity_state_.y_ = 0;
@@ -210,7 +208,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                     if_globalpath_switched = true;
                 }
             }
-            // ROS_INFO("Working Mode : TRACKING");
+            ROS_INFO("Working Mode : TRACKING");
             if (robot_type_ == "omni")
             {
                 // dynamic wei
@@ -248,10 +246,14 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 
         case Mode::IDLE: {
             // ROS_INFO("Working Mode : IDLE");
-            velocity_state_.x_ = 0;
-            velocity_state_.y_ = 0;
-            velocity_state_.theta_ = 0;
-            velocityPublish();
+            if(!if_pub_zero_)
+            {
+                velocity_state_.x_ = 0;
+                velocity_state_.y_ = 0;
+                velocity_state_.theta_ = 0;
+                velocityPublish();
+                if_pub_zero_ = true;
+            }
         }
         break;
 
@@ -304,15 +306,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
         break;
     }
 }
-void pathTracker::timer2Callback(const ros::TimerEvent& e2)
-{
-    // wei
-    //  ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
-    //  std_srvs::Empty srv;
-    //  if (client2.call(srv)){
-    //      ROS_INFO("Cleared the map!!");
-    //  }
-}
+
 void pathTracker::switchMode(Mode next_mode)
 {
     workingMode_past_ = workingMode_;
@@ -346,16 +340,6 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
     goal.pose.orientation.y = q.y();
     goal.pose.orientation.z = q.z();
     goal.pose.orientation.w = q.w();
-
-    // check if obstacles are on the path
-
-    // bool if_obstacle_on_path = true;
-    // if(global_path_.size()){
-    //     if_obstacle_on_path = checkObstacle(global_path_);
-    // }
-    // if(new_goal == false && if_obstacle_on_path == false){
-    //     return false;
-    // }
 
     ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
     nav_msgs::GetPlan srv;
@@ -487,20 +471,7 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
     if_globalpath_switched = false;
     switchMode(Mode::GLOBALPATH_RECEIVED);
     new_goal = true;
-}
-
-void pathTracker::obstacleCallbak(const geometry_msgs::PoseArray::ConstPtr& poses_msg)
-{
-    obstacle_pose_.poses.clear();
-    obstacle_pose_.header = poses_msg->header;
-    for (int i = 0; i < poses_msg->poses.size(); i++)
-    {
-        geometry_msgs::Pose pose;
-        pose.position.x = poses_msg->poses[i].position.x;
-        pose.position.y = poses_msg->poses[i].position.y;
-        obstacle_pose_.poses.push_back(pose);
-    }
-    // std::cout << obstacle_pose_.poses.size() << std::endl;
+    if_pub_zero_ = false;
 }
 
 RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState> path, double L_d)
@@ -893,25 +864,6 @@ void pathTracker::velocityPublish()
     vel_msg.angular.y = 0;
     vel_msg.angular.z = velocity_state_.theta_;
     velPub_.publish(vel_msg);
-}
-
-bool pathTracker::checkObstacle(std::vector<RobotState> path)
-{
-    double dist_thres = 0.1;
-    double d;
-    for (int i = 0; i < obstacle_pose_.poses.size(); i++)
-    {
-        for (int j = 0; j < path.size(); j++)
-        {
-            RobotState obs;
-            obs.x_ = obstacle_pose_.poses[i].position.x;
-            obs.y_ = obstacle_pose_.poses[i].position.y;
-            d = path[j].distanceTo(obs);
-            if (d < dist_thres)
-                return true;
-        }
-    }
-    return false;
 }
 
 int main(int argc, char** argv)
