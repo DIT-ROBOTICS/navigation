@@ -44,16 +44,21 @@
   <!-- path_Tracker -->
   <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
       <remap from="global_filter" to="odom"/>
-      <remap from="cmd_vel" to="raw_cmd_vel"/> <!-- for lpf to filter the velocity -->
+      <!-- <remap from="cmd_vel" to="raw_cmd_vel"/>  for lpf to filter the velocity -->
       <rosparam file="$(find path_tracker)/params/pathTracker_test.yaml" command="load" /> 
   </node>
 
   <!-- low pass filter on pt's cmd_vel -->
-  <node pkg="lpf" type="vel_lpf" name="vel_lpf">
-  </node>
+  <!-- <node pkg="lpf" type="vel_lpf" name="vel_lpf">
+  </node> -->
 
   <!-- obstacle_simulation.launch -->
   <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
   </include>
+
+  <!-- docking_tracker -->
+  <node name="docking_tracker" pkg="path_tracker" type="dockTracker" output="screen">
+    <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" /> 
+  </node>
 
 </launch>

@@ -1,0 +1,9 @@
+active: true
+control_frequency: 50
+#   ________
+#  /|       \
+# / |        \
+#   %(max:0.5)
+profile_percent: 0.2
+linear_max_velocity: 0.1
+stop_tolerance: 0.005

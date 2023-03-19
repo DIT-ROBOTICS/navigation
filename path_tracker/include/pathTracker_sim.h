@@ -68,7 +68,6 @@ class pathTracker
     // void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_msg);
     void poseCallback(const nav_msgs::Odometry::ConstPtr& pose_msg);
     void goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_msg);
-    void obstacleCallbak(const geometry_msgs::PoseArray::ConstPtr& poses_msg);
     // void actionCallback(const std_msgs::Bool::ConstPtr& action_msg);
 
     geometry_msgs::PoseArray obstacle_pose_;
@@ -100,9 +99,7 @@ class pathTracker
 
     // timer setup
     ros::Timer timer_;
-    ros::Timer timer2_;
     void timerCallback(const ros::TimerEvent& e);
-    void timer2Callback(const ros::TimerEvent& e2);
     Mode workingMode_;
     Mode workingMode_past_;
     void switchMode(Mode next_mode);
@@ -162,12 +159,10 @@ class pathTracker
     ros::Time t_now_;
     double dt_;
     
-    /**
-     *  @brief check if obstacle is on the current path 
-     *  @param path is the current path
-     *  accordint to the point line distance to calculate the distance between each obstacles with path
-     */
-    bool checkObstacle(std::vector<RobotState> path);
+    // check if goal is blocked after goal received
     bool new_goal;
     bool if_goal_is_blocked_;
+
+    // only publish zero velocity one time
+    bool if_pub_zero_;
 };
