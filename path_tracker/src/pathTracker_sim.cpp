@@ -29,7 +29,6 @@ pathTracker::pathTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local)
     nh_local_ = nh_local;
     std_srvs::Empty empt;
     p_active_ = false;
-    if_pub_zero_ = false;
     params_srv_ = nh_local_.advertiseService("params", &pathTracker::initializeParams, this);
     initializeParams(empt.request, empt.response);
     initialize();
@@ -246,14 +245,10 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 
         case Mode::IDLE: {
             // ROS_INFO("Working Mode : IDLE");
-            if(!if_pub_zero_)
-            {
-                velocity_state_.x_ = 0;
-                velocity_state_.y_ = 0;
-                velocity_state_.theta_ = 0;
-                velocityPublish();
-                if_pub_zero_ = true;
-            }
+            velocity_state_.x_ = 0;
+            velocity_state_.y_ = 0;
+            velocity_state_.theta_ = 0;
+            velocityPublish();
         }
         break;
 
@@ -471,7 +466,6 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
     if_globalpath_switched = false;
     switchMode(Mode::GLOBALPATH_RECEIVED);
     new_goal = true;
-    if_pub_zero_ = false;
 }
 
 RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState> path, double L_d)

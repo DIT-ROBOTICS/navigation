@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Status1
         - /Path1
+        - /Pose1
       Splitter Ratio: 0.5
     Tree Height: 520
   - Class: rviz/Selection
@@ -228,6 +229,22 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz/Pose
+      Color: 0; 0; 255
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Queue Size: 10
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Arrow
+      Topic: /dock_goal
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -248,7 +265,7 @@ Visualization Manager:
       X std deviation: 0.5
       Y std deviation: 0.5
     - Class: rviz/SetGoal
-      Topic: /nav_goal
+      Topic: /dock_goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
@@ -292,5 +309,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1200
-  X: 612
-  Y: 51
+  X: 224
+  Y: 46
