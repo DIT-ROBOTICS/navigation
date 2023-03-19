@@ -15,6 +15,7 @@
 // msgs
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/PoseWithCovariance.h"
 #include "nav_msgs/Odometry.h"
 #include "nav_msgs/Path.h"
 
@@ -28,6 +29,12 @@ namespace path_layer_namespace {
 enum class Robot_type {
     robot1,
     robot2
+};
+
+enum OdomCallbackType {
+    nav_msgs_Odometry = 0,
+    geometry_msgs_PoseStamped = 1,
+    geometry_msgs_PoseWithCovariance = 2
 };
 
 // public costmap_2d::CostmapLayer
@@ -55,6 +62,7 @@ class PathLayer : public costmap_2d::CostmapLayer {
     ros::NodeHandle Global_nh;
 
     int RobotType;
+    OdomCallbackType OdomType;
 
     // ------------------------- Inflation -------------------------
     // Robot Param
@@ -77,11 +85,17 @@ class PathLayer : public costmap_2d::CostmapLayer {
     // Sub
     ros::Subscriber RobotPath_Sub;
     ros::Subscriber RobotOdom_Sub;
-    nav_msgs::Odometry RobotOdom;
     nav_msgs::Path RobotPath;
 
+    nav_msgs::Odometry RobotOdom_type0;
+    geometry_msgs::PoseStamped RobotOdom_type1;
+    geometry_msgs::PoseWithCovariance RobotOdom_type2;
+
     void RobotPath_CB(const nav_msgs::Path& Path);
-    void RobotOdom_CB(const nav_msgs::Odometry& Odom);
+
+    void RobotOdom_type0_CB(const nav_msgs::Odometry& Odom);
+    void RobotOdom_type1_CB(const geometry_msgs::PoseStamped& Odom);
+    void RobotOdom_type2_CB(const geometry_msgs::PoseWithCovariance& Odom);
 
     // Time
     ros::Time RobotPathLastTime;
@@ -97,10 +111,19 @@ class PathLayer : public costmap_2d::CostmapLayer {
     // ------------------------- RivalOdom -------------------------
     // Sub
     ros::Subscriber RivalOdom_Sub[2];
-    nav_msgs::Odometry RivalOdom[2];
 
-    void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
-    void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
+    nav_msgs::Odometry RivalOdom_type0[2];
+    geometry_msgs::PoseStamped RivalOdom_type1[2];
+    geometry_msgs::PoseWithCovariance RivalOdom_type2[2];
+
+    void RivalOdom1_type0_CB(const nav_msgs::Odometry& Odom);
+    void RivalOdom2_type0_CB(const nav_msgs::Odometry& Odom);
+
+    void RivalOdom1_type1_CB(const geometry_msgs::PoseStamped& Odom);
+    void RivalOdom2_type1_CB(const geometry_msgs::PoseStamped& Odom);
+
+    void RivalOdom1_type2_CB(const geometry_msgs::PoseWithCovariance& Odom);
+    void RivalOdom2_type2_CB(const geometry_msgs::PoseWithCovariance& Odom);
 
     // Time
     ros::Time RivalOdomLastTime[2];

@@ -73,6 +73,11 @@
   path_layer:
     enabled: true
     RobotType: 2
+
+    # 0 -> nav_msgs::Odometry
+    # 1 -> geometry_msgs::PoseStamped
+    # 2 -> geometry_msgs::PoseWithCovariance
+    OdomCallbackType: 0
     
     # Inflation parameters
     Inflation:
