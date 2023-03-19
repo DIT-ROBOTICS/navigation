@@ -238,7 +238,7 @@ void DockTracker::poseCB(const nav_msgs::Odometry& data){
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "dockTracker");
+    ros::init(argc, argv, "dockTracker_sim");
     ros::NodeHandle nh(""), nh_local("~");
     DockTracker dockTracker(nh, nh_local);
 

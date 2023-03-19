@@ -29,7 +29,7 @@ pathTracker::pathTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local)
     nh_local_ = nh_local;
     std_srvs::Empty empt;
     p_active_ = false;
-    if_pub_zero_ = false;
+    if_pub_zero_ = 0;
     params_srv_ = nh_local_.advertiseService("params", &pathTracker::initializeParams, this);
     initializeParams(empt.request, empt.response);
     initialize();
@@ -124,7 +124,7 @@ bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
             poseSub_ = nh_.subscribe("ekf_pose", 50, &pathTracker::poseCallback, this);
             // poseSub_ = nh_.subscribe("global_filter", 50, &pathTracker::poseCallback, this);
             goalSub_ = nh_.subscribe("nav_goal", 50, &pathTracker::goalCallback, this);
-            velPub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+            velPub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
             localgoalPub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
             posearrayPub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
             goalreachedPub_ = nh_.advertise<std_msgs::Bool>("finishornot", 1);
@@ -183,7 +183,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
             // goal reached
             if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_) && !if_goal_is_blocked_)
             {
-                // ROS_INFO("Working Mode : GOAL REACHED !");
+                ROS_INFO("Working Mode : GOAL REACHED !");
                 switchMode(Mode::IDLE);
                 velocity_state_.x_ = 0;
                 velocity_state_.y_ = 0;
@@ -245,20 +245,22 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
         break;
 
         case Mode::IDLE: {
-            // ROS_INFO("Working Mode : IDLE");
-            if(!if_pub_zero_)
+            ROS_INFO("Working Mode : IDLE");
+            ROS_INFO("if_pub_zero:%d", if_pub_zero_);
+            if(if_pub_zero_<10)
             {
                 velocity_state_.x_ = 0;
                 velocity_state_.y_ = 0;
                 velocity_state_.theta_ = 0;
                 velocityPublish();
-                if_pub_zero_ = true;
+                ROS_INFO("publish zero velocity");
+                if_pub_zero_ ++;
             }
         }
         break;
 
         case Mode::TRANSITION: {
-            // ROS_INFO("Working Mode : TRANSITION");
+            ROS_INFO("Working Mode : TRANSITION");
             double linear_vel = sqrt(pow(velocity_state_.x_, 2) + pow(velocity_state_.y_, 2));
             double angular_vel = velocity_state_.theta_;
 
@@ -471,7 +473,7 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
     if_globalpath_switched = false;
     switchMode(Mode::GLOBALPATH_RECEIVED);
     new_goal = true;
-    if_pub_zero_ = false;
+    if_pub_zero_ = 0;
 }
 
 RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState> path, double L_d)
