@@ -7,6 +7,7 @@
 // ROS msgs
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 
@@ -27,6 +28,7 @@
 class Navigation_Main {
    public:
     Navigation_Main();
+    ~Navigation_Main();
 
     void Init(ros::NodeHandle *nh_global, ros::NodeHandle *nh_local, std::string node_name);
     double GetUpdateFrequency();
@@ -43,6 +45,8 @@ class Navigation_Main {
 
     // Callback functions
     void Odom_Callback(const nav_msgs::Odometry::ConstPtr &msg);
+    void PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
+    void DockTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
     void RobotMissionState_Callback(const std_msgs::Bool::ConstPtr &msg);
     void MainMission_Callback(const geometry_msgs::PoseStamped::ConstPtr &msg);
     void DynamicParam_Callback(navigation_main::navigation_main_paramConfig &config, uint32_t level);
@@ -56,12 +60,16 @@ class Navigation_Main {
 
     // Subscriber
     ros::Subscriber robot_odom_sub_;
+    ros::Subscriber robot_path_tracker_cmd_vel_sub_;
+    ros::Subscriber robot_dock_tracker_cmd_vel_sub_;
     ros::Subscriber robot_mission_state_sub_;
     ros::Subscriber main_mission_state_sub_;
 
     // Publisher
     ros::Publisher main_mission_state_pub_;
-    ros::Publisher robot_goal_pub_;
+    ros::Publisher robot_path_tracker_goal_pub_;
+    ros::Publisher robot_dock_tracker_goal_pub_;
+    ros::Publisher robot_cmd_vel_pub_;
 
     // Server
     ros::ServiceServer param_srv_;
@@ -82,7 +90,11 @@ class Navigation_Main {
     std::string param_node_name_;
     std::string param_robot_odom_topic_;
     std::string param_robot_mission_state_topic_;
-    std::string param_robot_goal_topic_;
+    std::string param_robot_path_tracker_goal_topic_;
+    std::string param_robot_dock_tracker_goal_topic_;
+    std::string param_robot_cmd_vel_topic_;
+    std::string param_robot_path_tracker_cmd_vel_topic_;
+    std::string param_robot_dock_tracker_cmd_vel_topic_;
     std::string param_main_mission_topic_;
     std::string param_main_mission_state_topic_;
 
@@ -90,12 +102,20 @@ class Navigation_Main {
     bool is_mission_start_;
     bool is_reach_goal_;
 
+    enum class mission_type {
+        PATH_TRACKER = 0,
+        DOCK_TRACKER = 1,
+        IDLE = 2
+    };
+    mission_type mission_status_;
+
     // Timeout
     ros::Time start_time_;
 
     // Robot Odometry
     geometry_msgs::Pose robot_goal_;
     geometry_msgs::Pose robot_odom_;
+    geometry_msgs::Twist robot_cmd_vel_;
 };
 
 extern Navigation_Main navigation_main_;

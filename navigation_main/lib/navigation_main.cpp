@@ -5,11 +5,30 @@ Navigation_Main navigation_main_;
 Navigation_Main::Navigation_Main() {
 }
 
+Navigation_Main::~Navigation_Main() {
+    if (param_active_) {
+        this->robot_odom_sub_.shutdown();
+        this->robot_mission_state_sub_.shutdown();
+        this->robot_path_tracker_goal_pub_.shutdown();
+        this->robot_dock_tracker_goal_pub_.shutdown();
+        this->robot_cmd_vel_pub_.shutdown();
+        this->robot_path_tracker_cmd_vel_sub_.shutdown();
+        this->robot_dock_tracker_cmd_vel_sub_.shutdown();
+        this->main_mission_state_sub_.shutdown();
+        this->main_mission_state_pub_.shutdown();
+
+        if (this->param_update_params_) {
+            this->param_srv_.shutdown();
+        }
+    }
+}
+
 void Navigation_Main::Init(ros::NodeHandle *nh_global, ros::NodeHandle *nh_local, std::string node_name) {
     this->nh_global_ = nh_global;
     this->nh_local_ = nh_local;
     this->param_node_name_ = node_name;
     robot_odom_.position.x = robot_odom_.position.y = 0.0;
+    this->mission_status_ = mission_type::IDLE;
 
     std_srvs::Empty empty;
 
@@ -33,9 +52,13 @@ void Navigation_Main::Loop() {
         temp.data = false;
         main_mission_state_pub_.publish(temp);
 
+        this->mission_status_ == mission_type::IDLE;
+        this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
         ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Timeout)");
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
     }
+
+    this->robot_cmd_vel_pub_.publish(this->robot_cmd_vel_);
 }
 
 bool Navigation_Main::isTimeout() {
@@ -75,8 +98,20 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
     if (this->nh_local_->param<std::string>("robot_mission_state_topic", param_robot_mission_state_topic_, "/robot1/finishornot")) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_robot_mission_state_topic_);
     }
-    if (this->nh_local_->param<std::string>("robot_goal_topic", param_robot_goal_topic_, "/robot1/nav_goal")) {
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_goal_topic_);
+    if (this->nh_local_->param<std::string>("robot_path_tracker_goal_topic", param_robot_path_tracker_goal_topic_, "/robot1/path_tracker_goal")) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_path_tracker_goal_topic_);
+    }
+    if (this->nh_local_->param<std::string>("robot_dock_tracker_goal_topic", param_robot_dock_tracker_goal_topic_, "/robot1/dock_tracker_goal")) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_dock_tracker_goal_topic_);
+    }
+    if (this->nh_local_->param<std::string>("robot_cmd_vel_topic", param_robot_cmd_vel_topic_, "/robot1/raw_cmd_vel")) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_cmd_vel_topic_);
+    }
+    if (this->nh_local_->param<std::string>("robot_path_tracker_cmd_vel_topic", param_robot_path_tracker_cmd_vel_topic_, "/robot1/path_tracker_cmd_vel")) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_path_tracker_cmd_vel_topic_);
+    }
+    if (this->nh_local_->param<std::string>("robot_dock_tracker_cmd_vel_topic", param_robot_dock_tracker_cmd_vel_topic_, "/robot1/dock_tracker_cmd_vel")) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_dock_tracker_cmd_vel_topic_);
     }
     if (this->nh_local_->param<std::string>("main_mission_topic", param_main_mission_topic_, "/navigation_main_1/mission")) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_main_mission_topic_);
@@ -89,11 +124,18 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
         if (param_active_) {
             ROS_INFO_STREAM("[" << param_node_name_ << "] : active node.");
 
+            // Subscribe
             this->robot_odom_sub_ = this->nh_global_->subscribe(param_robot_odom_topic_, 100, &Navigation_Main::Odom_Callback, this);
             this->robot_mission_state_sub_ = this->nh_global_->subscribe(param_robot_mission_state_topic_, 100, &Navigation_Main::RobotMissionState_Callback, this);
-            this->robot_goal_pub_ = this->nh_global_->advertise<geometry_msgs::PoseStamped>(param_robot_goal_topic_, 100);
             this->main_mission_state_sub_ = this->nh_global_->subscribe(param_main_mission_topic_, 100, &Navigation_Main::MainMission_Callback, this);
+            this->robot_path_tracker_cmd_vel_sub_ = this->nh_global_->subscribe(param_robot_path_tracker_cmd_vel_topic_, 100, &Navigation_Main::PathTrackerCmdVel_Callback, this);
+            this->robot_dock_tracker_cmd_vel_sub_ = this->nh_global_->subscribe(param_robot_dock_tracker_cmd_vel_topic_, 100, &Navigation_Main::DockTrackerCmdVel_Callback, this);
+
+            // Publish
+            this->robot_cmd_vel_pub_ = this->nh_global_->advertise<geometry_msgs::Twist>(param_robot_cmd_vel_topic_, 100);
             this->main_mission_state_pub_ = this->nh_global_->advertise<std_msgs::Bool>(param_main_mission_state_topic_, 100);
+            this->robot_path_tracker_goal_pub_ = this->nh_global_->advertise<geometry_msgs::PoseStamped>(param_robot_path_tracker_goal_topic_, 100);
+            this->robot_dock_tracker_goal_pub_ = this->nh_global_->advertise<geometry_msgs::PoseStamped>(param_robot_dock_tracker_goal_topic_, 100);
 
             if (this->param_update_params_) {
                 this->param_srv_ = nh_local_->advertiseService("params", &Navigation_Main::UpdateParams, this);
@@ -105,6 +147,13 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
         } else {
             this->robot_odom_sub_.shutdown();
             this->robot_mission_state_sub_.shutdown();
+            this->robot_path_tracker_goal_pub_.shutdown();
+            this->robot_dock_tracker_goal_pub_.shutdown();
+            this->robot_cmd_vel_pub_.shutdown();
+            this->robot_path_tracker_cmd_vel_sub_.shutdown();
+            this->robot_dock_tracker_cmd_vel_sub_.shutdown();
+            this->main_mission_state_sub_.shutdown();
+            this->main_mission_state_pub_.shutdown();
 
             if (this->param_update_params_) {
                 this->param_srv_.shutdown();
@@ -159,6 +208,8 @@ void Navigation_Main::RobotMissionState_Callback(const std_msgs::Bool::ConstPtr 
             ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Unreachable Goal)");
         }
 
+        this->mission_status_ == mission_type::IDLE;
+        this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
     }
 }
@@ -171,9 +222,29 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
     this->is_reach_goal_ = false;
 
     // Choose which mode we want to use here.
-    robot_goal_pub_.publish(msg);
+    if (msg->header.frame_id == "dock") {
+        this->mission_status_ == mission_type::DOCK_TRACKER;
+        robot_dock_tracker_goal_pub_.publish(msg);
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode.");
+    } else {
+        this->mission_status_ == mission_type::PATH_TRACKER;
+        robot_path_tracker_goal_pub_.publish(msg);
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Path mode.");
+    }
 
     ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission start.");
+}
+
+void Navigation_Main::PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs) {
+    if (this->mission_status_ == mission_type::PATH_TRACKER) {
+        this->robot_cmd_vel_ = *msgs;
+    }
+}
+
+void Navigation_Main::DockTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs) {
+    if (this->mission_status_ == mission_type::DOCK_TRACKER) {
+        this->robot_cmd_vel_ = *msgs;
+    }
 }
 
 void Navigation_Main::DynamicParam_Callback(navigation_main::navigation_main_paramConfig &config, uint32_t level) {

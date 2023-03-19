@@ -2,7 +2,7 @@
     <group ns="navigaton_main">
 
         <!-- Parameter -->
-        <arg name="update_frequency" default="5.0" />
+        <arg name="update_frequency" default="20.0" />
         <arg name="update_params" default="false" />
         <arg name="default_active" default="true"/>
         <arg name="use_dynamic_reconfigure" default="false" />
@@ -28,7 +28,11 @@
 
             <param name="robot_odom_topic" type="string" value="/robot1/odom" />
             <param name="robot_mission_state_topic" type="string" value="/robot1/finishornot" />
-            <param name="robot_goal_topic" type="string" value="/robot1/nav_goal" />
+            <param name="robot_path_tracker_goal_topic" type="string" value="/robot1/path_tracker_goal" />
+            <param name="robot_dock_tracker_goal_topic" type="string" value="/robot1/dock_tracker_goal" />
+            <param name="robot_cmd_vel_topic" type="string" value="/robot1/raw_cmd_vel" />
+            <param name="robot_path_tracker_cmd_vel_topic" type="string" value="/robot1/path_tracker_cmd_vel" />
+            <param name="robot_dock_tracker_cmd_vel_topic" type="string" value="/robot1/dock_tracker_cmd_vel" />
             <param name="main_mission_topic" type="string" value="/navigation_main_1/mission" />
             <param name="main_mission_state_topic" type="string" value="/navigation_main_1/is_finish" />
 
@@ -47,7 +51,11 @@
 
             <param name="robot_odom_topic" type="string" value="/robot2/odom" />
             <param name="robot_mission_state_topic" type="string" value="/robot2/finishornot" />
-            <param name="robot_goal_topic" type="string" value="/robot2/nav_goal" />
+            <param name="robot_path_tracker_goal_topic" type="string" value="/robot2/path_tracker_goal" />
+            <param name="robot_dock_tracker_goal_topic" type="string" value="/robot2/dock_tracker_goal" />
+            <param name="robot_cmd_vel_topic" type="string" value="/robot2/raw_cmd_vel" />
+            <param name="robot_path_tracker_cmd_vel_topic" type="string" value="/robot2/path_tracker_cmd_vel" />
+            <param name="robot_dock_tracker_cmd_vel_topic" type="string" value="/robot2/dock_tracker_cmd_vel" />
             <param name="main_mission_topic" type="string" value="/navigation_main_2/mission" />
             <param name="main_mission_state_topic" type="string" value="/navigation_main_2/is_finish" />
 
