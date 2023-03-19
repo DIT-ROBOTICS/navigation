@@ -1,23 +1,57 @@
 <launch>
+    <group ns="navigaton_main">
 
-    <!-- Parameter -->
-    <arg name="timeout" default="10.0" />
-    <arg name="update_frequency" default="5.0" />
-    <arg name="default_active" default="true"/>
-    <arg name="use_dynamic_reconfigure" default="true" />
+        <!-- Parameter -->
+        <arg name="update_frequency" default="5.0" />
+        <arg name="update_params" default="false" />
+        <arg name="default_active" default="true"/>
+        <arg name="use_dynamic_reconfigure" default="false" />
 
-    <!--  Node  -->
-    <node pkg="navigation_main" name="navigation_main_1" type="navigation_main_node" output="screen">
+        <!-- Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout -->
+        <!-- (timeout_a) should be [1 / (robot velocity)] -->
+        <arg name="timeout_a" default="5.0" />
+        <arg name="timeout_b" default="5.0" />
+        <arg name="min_timeout" default="10.0" />
+        <arg name="max_timeout" default="15.0" />
 
-        <param name="active" type="boolean" value="$(arg default_active)" />
-        <param name="timeout" type="double" value="$(arg timeout)" />
-        <param name="update_frequency" type="double" value="$(arg update_frequency)" />
-        <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
+        <!--  Node  -->
+        <node pkg="navigation_main" name="navigation_main_1" type="navigation_main_node" args="navigation_main_1" output="screen">
 
-        <param name="update_params" value="false" />
-        <param name="robot_odom_topic" type="string" value="/robot1/odom" />
-        <param name="robot_mission_state_topic" type="string" value="/robot1/mission_state" />
+            <param name="active" type="boolean" value="$(arg default_active)" />
+            <param name="timeout_a" type="double" value="$(arg timeout_a)" />
+            <param name="timeout_b" type="double" value="$(arg timeout_b)" />
+            <param name="min_timeout" type="double" value="$(arg min_timeout)" />
+            <param name="max_timeout" type="double" value="$(arg max_timeout)" />
+            <param name="update_frequency" type="double" value="$(arg update_frequency)" />
+            <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
+            <param name="update_params" value="$(arg update_params)" />
 
-    </node>
+            <param name="robot_odom_topic" type="string" value="/robot1/odom" />
+            <param name="robot_mission_state_topic" type="string" value="/robot1/finishornot" />
+            <param name="robot_goal_topic" type="string" value="/robot1/nav_goal" />
+            <param name="main_mission_topic" type="string" value="/navigation_main_1/mission" />
+            <param name="main_mission_state_topic" type="string" value="/navigation_main_1/is_finish" />
 
+        </node>
+
+        <node pkg="navigation_main" name="navigation_main_2" type="navigation_main_node" args="navigation_main_2" output="screen">
+
+            <param name="active" type="boolean" value="$(arg default_active)" />
+            <param name="timeout_a" type="double" value="$(arg timeout_a)" />
+            <param name="timeout_b" type="double" value="$(arg timeout_b)" />
+            <param name="min_timeout" type="double" value="$(arg min_timeout)" />
+            <param name="max_timeout" type="double" value="$(arg max_timeout)" />
+            <param name="update_frequency" type="double" value="$(arg update_frequency)" />
+            <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
+            <param name="update_params" value="$(arg update_params)" />
+
+            <param name="robot_odom_topic" type="string" value="/robot2/odom" />
+            <param name="robot_mission_state_topic" type="string" value="/robot2/finishornot" />
+            <param name="robot_goal_topic" type="string" value="/robot2/nav_goal" />
+            <param name="main_mission_topic" type="string" value="/navigation_main_2/mission" />
+            <param name="main_mission_state_topic" type="string" value="/navigation_main_2/is_finish" />
+
+        </node>
+
+    </group>
 </launch>

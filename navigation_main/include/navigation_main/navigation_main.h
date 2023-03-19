@@ -7,6 +7,7 @@
 // ROS msgs
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 
 // ROS srvs
@@ -27,7 +28,7 @@ class Navigation_Main {
    public:
     Navigation_Main();
 
-    void Init(ros::NodeHandle *nh_global, ros::NodeHandle *nh_local);
+    void Init(ros::NodeHandle *nh_global, ros::NodeHandle *nh_local, std::string node_name);
     double GetUpdateFrequency();
 
     void Loop();
@@ -37,11 +38,13 @@ class Navigation_Main {
 
     void SetDynamicReconfigure();
 
+    void SetTimeout(geometry_msgs::Pose poseGoal);
     bool isTimeout();
 
     // Callback functions
-    void Pose_Callback(const geometry_msgs::PoseStamped::ConstPtr &msg);
+    void Odom_Callback(const nav_msgs::Odometry::ConstPtr &msg);
     void RobotMissionState_Callback(const std_msgs::Bool::ConstPtr &msg);
+    void MainMission_Callback(const geometry_msgs::PoseStamped::ConstPtr &msg);
     void DynamicParam_Callback(navigation_main::navigation_main_paramConfig &config, uint32_t level);
 
     // Other functions
@@ -54,9 +57,11 @@ class Navigation_Main {
     // Subscriber
     ros::Subscriber robot_odom_sub_;
     ros::Subscriber robot_mission_state_sub_;
+    ros::Subscriber main_mission_state_sub_;
 
     // Publisher
-    // ros::Publisher mission_state_pub_;
+    ros::Publisher main_mission_state_pub_;
+    ros::Publisher robot_goal_pub_;
 
     // Server
     ros::ServiceServer param_srv_;
@@ -66,10 +71,20 @@ class Navigation_Main {
     bool param_publish_;
     bool param_update_params_;
     bool param_use_dynamic_reconfigure_;
+
     double param_update_frequency_;
     double param_timeout_;
+    double param_timeout_a_;
+    double param_timeout_b_;
+    double param_timeout_min_;
+    double param_timeout_max_;
+
+    std::string param_node_name_;
     std::string param_robot_odom_topic_;
     std::string param_robot_mission_state_topic_;
+    std::string param_robot_goal_topic_;
+    std::string param_main_mission_topic_;
+    std::string param_main_mission_state_topic_;
 
     // Variables
     bool is_mission_start_;
@@ -79,6 +94,7 @@ class Navigation_Main {
     ros::Time start_time_;
 
     // Robot Odometry
+    geometry_msgs::Pose robot_goal_;
     geometry_msgs::Pose robot_odom_;
 };
 
