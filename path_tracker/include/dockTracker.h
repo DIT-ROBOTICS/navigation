@@ -4,11 +4,13 @@
 #include <cmath>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_srvs/Empty.h>
+#include <std_msgs/Bool.h>
 
 
 class DockTracker{
@@ -29,9 +31,10 @@ private:
     void goalCB(const geometry_msgs::PoseStamped& data);
     // void poseCB(const nav_msgs::Odometry& data);
     void poseCB(const geometry_msgs::PoseWithCovarianceStamped& data);
-
+    
     // Publisher
     ros::Publisher pub_;
+    ros::Publisher goalreachedPub_;
     void velocityPUB();
 
     // Timer

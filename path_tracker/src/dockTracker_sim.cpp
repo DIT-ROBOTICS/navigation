@@ -21,9 +21,19 @@ DockTracker::~DockTracker(){
 
 void DockTracker::initialize()
 {
-    memset(goal_, 0, 3*sizeof(double));
-    memset(pose_, 0, 3*sizeof(double));
-    memset(vel_, 0, 3*sizeof(double));
+    // zeroing the arrays
+    goal_[0] = 0.0;
+    goal_[1] = 0.0;
+    goal_[2] = 0.0;
+
+    pose_[0] = 0.0;
+    pose_[1] = 0.0;
+    pose_[2] = 0.0;
+
+    vel_[0] = 0.0;
+    vel_[1] = 0.0;
+    vel_[2] = 0.0;
+
     dock_dist_ = 0.05;
     if_get_goal_ = false;
     count_dock_dist_ = false;
@@ -49,7 +59,9 @@ bool DockTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
         {
             goal_sub_ = nh_.subscribe("dock_goal", 50, &DockTracker::goalCB, this);
             pose_sub_ = nh_.subscribe("odom", 50, &DockTracker::poseCB, this);
-            pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+            // pose_sub_ = nh_.subscribe("ekf_pose", 50, &DockTracker::poseCB, this);
+            pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+            goalreachedPub_ = nh_.advertise<std_msgs::Bool>("finishornot", 1);
         }
         else
         {
@@ -90,7 +102,6 @@ void DockTracker::velocityPUB(){
 }
 
 void DockTracker::timerCB(const ros::TimerEvent& e){
-  
     // simple p control
     if(if_get_goal_){
 
@@ -112,7 +123,7 @@ void DockTracker::timerCB(const ros::TimerEvent& e){
         // check if profile cut-off point valid
         if(profile_percent_ > 0.5 || profile_percent_ < 0.0){
             profile_percent_ = 0.5;
-            ROS_INFO("[Dock Tracker]: Profile percent out of range, using 0.5!");
+            // ROS_INFO("[Dock Tracker]: Profile percent out of range, using 0.5!");
         }
         
         // current time when going in this loop
@@ -122,29 +133,36 @@ void DockTracker::timerCB(const ros::TimerEvent& e){
         // velocity profile: trapezoidal
         // accelerate
         if(dist_ > (1-profile_percent_)*dock_dist_){
-            vel_[0] = vel_[0]+a_*dt*cosx_;
-            vel_[1] = vel_[1]+a_*dt*sinx_;
-            vel_[2] = 0.0;
-            ROS_INFO("[Dock Tracker]: Accelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
+            if(fabs(hypot(vel_[0],vel_[1])) >= linear_max_vel_){
+                vel_[0] = linear_max_vel_*cosx_;
+                vel_[1] = linear_max_vel_*sinx_;
+                vel_[2] = 0.0;
+            }
+            else{
+                vel_[0] = vel_[0]+a_*dt*cosx_;
+                vel_[1] = vel_[1]+a_*dt*sinx_;
+                vel_[2] = 0.0;
+            }
+            // ROS_INFO("[Dock Tracker]: Accelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
         }
         // uniform velocity
         else if(dist_ <= (1-profile_percent_)*dock_dist_ && dist_ >= profile_percent_*dock_dist_){
             vel_[0] = linear_max_vel_*cosx_;
             vel_[1] = linear_max_vel_*sinx_;
             vel_[2] = 0.0;
-            ROS_INFO("[Dock Tracker]: Uniform Velocity!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
+            // ROS_INFO("[Dock Tracker]: Uniform Velocity!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
         }
         // deccelerate
         else if(dist_ < profile_percent_*dock_dist_){
-            vel_[0] = vel_[0]-a_*dt*cosx_;
-            vel_[1] = vel_[1]-a_*dt*sinx_;
+            vel_[0] = linear_max_vel_*(dist_/(profile_percent_*dock_dist_))*cosx_; //vel_[0]-a_*dt*cosx_;
+            vel_[1] = linear_max_vel_*(dist_/(profile_percent_*dock_dist_))*sinx_; //vel_[1]-a_*dt*sinx_;
             vel_[2] = 0.0;
-            ROS_INFO("[Dock Tracker]: Deccelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
+            // ROS_INFO("[Dock Tracker]: Deccelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
         }
         // error message
         else{
-            ROS_WARN("[Dock Tracker]: Docking distance goes wrong(dist_, px, py, gx, gy): %f %f %f %f %f"
-                    , dist_, pose_[0], pose_[1], goal_[0], goal_[1]);
+            // ROS_WARN("[Dock Tracker]: Docking distance goes wrong(dist_, px, py, gx, gy): %f %f %f %f %f"
+            //         , dist_, pose_[0], pose_[1], goal_[0], goal_[1]);
         }
 
         // stop
@@ -153,22 +171,33 @@ void DockTracker::timerCB(const ros::TimerEvent& e){
             vel_[1] = 0.0;
             vel_[2] = 0.0;
             if_get_goal_ = false;
+            // Return finishornot = true!
+            // for(int i = 0; i < 5; ++i){
+                std_msgs::Bool finished;
+                finished.data = true;
+                goalreachedPub_.publish(finished);
+            // }
             ROS_INFO("[Dock Tracker]: Successfully docked!");
         }
 
-        // publish cmd_vel
-        velocityPUB();
-        
-        // remember the time when leaving this loop
-        t_bef_ = t_now_;
     }
     else{
-        // ROS_WARN("[Dock Tracker]: No goal received!");
-        return;
+        ROS_INFO_STREAM_THROTTLE(5, "[Dock Tracker]: No goal received!");
     }
+
+    // publish cmd_vel
+    velocityPUB();
+    
+    // ROS_INFO("%f %f %f", vel_[0], vel_[1], dt);
+
+    // remember the time when leaving this loop
+    t_bef_ = t_now_;
 }
 
 void DockTracker::goalCB(const geometry_msgs::PoseStamped& data){    
+    vel_[0] = 0.0;
+    vel_[1] = 0.0;
+    vel_[2] = 0.0;
     tf2::Quaternion q;
     tf2::fromMsg(data.pose.orientation, q);
     tf2::Matrix3x3 qt(q);
@@ -193,6 +222,19 @@ void DockTracker::poseCB(const nav_msgs::Odometry& data){
     pose_[2] = yaw;
     // ROS_INFO("odom: %f %f", pose_[0], pose_[1]);
 }
+
+// void DockTracker::poseCB(const geometry_msgs::PoseWithCovarianceStamped& data)
+// {
+//     pose_[0] = data.pose.pose.position.x;
+//     pose_[1] = data.pose.pose.position.y;
+//     tf2::Quaternion q;
+//     tf2::fromMsg(data.pose.pose.orientation, q);
+//     tf2::Matrix3x3 qt(q);
+//     double _, yaw;
+//     qt.getRPY(_, _, yaw);
+//     pose_[2] = yaw;
+//     // ROS_INFO("odom: %f %f", pose_[0], pose_[1]);
+// }
 
 int main(int argc, char** argv)
 {
