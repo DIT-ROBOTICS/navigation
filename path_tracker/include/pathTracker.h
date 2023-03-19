@@ -164,5 +164,5 @@ class pathTracker
     bool if_goal_is_blocked_;
 
     // only publish zero velocity one time
-    bool if_pub_zero_;
+    int if_pub_zero_;
 };

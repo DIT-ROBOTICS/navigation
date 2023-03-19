@@ -30,7 +30,7 @@
   <!-- Publish: /cmd_vel -->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <remap from="cmd_vel" to ="vel_obseleted" /> <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
-    <remap from="nav_goal" to="nav_goal_obseleted" />
+    <!-- <remap from="nav_goal" to="nav_goal_obseleted" /> for dockTracker -->
     <rosparam file="$(find navigation_run)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
     <rosparam file="$(find navigation_run)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
@@ -42,11 +42,11 @@
   </node>
 
   <!-- path_Tracker -->
-  <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
-      <remap from="global_filter" to="odom"/>
+  <!-- <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+      <remap from="global_filter" to="odom"/> -->
       <!-- <remap from="cmd_vel" to="raw_cmd_vel"/>  for lpf to filter the velocity -->
-      <rosparam file="$(find path_tracker)/params/pathTracker_test.yaml" command="load" /> 
-  </node>
+      <!-- <rosparam file="$(find path_tracker)/params/pathTracker_test.yaml" command="load" /> 
+  </node> -->
 
   <!-- low pass filter on pt's cmd_vel -->
   <!-- <node pkg="lpf" type="vel_lpf" name="vel_lpf">
@@ -57,7 +57,7 @@
   </include>
 
   <!-- docking_tracker -->
-  <node name="docking_tracker" pkg="path_tracker" type="dockTracker" output="screen">
+  <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
     <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" /> 
   </node>
 

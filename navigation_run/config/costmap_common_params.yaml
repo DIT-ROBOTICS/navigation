@@ -51,7 +51,6 @@
       camera: true
       tracker: false
       lidar: false
-                // setCost(mx, my, cost);
 
     update_frequency: 1.0
     inflation_radius: 0.25
