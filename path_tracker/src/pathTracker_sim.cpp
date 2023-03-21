@@ -182,7 +182,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
             // goal reached
             if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_) && !if_goal_is_blocked_)
             {
-                // ROS_INFO("Working Mode : GOAL REACHED !");
+                ROS_INFO("Working Mode : GOAL REACHED !");
                 switchMode(Mode::IDLE);
                 velocity_state_.x_ = 0;
                 velocity_state_.y_ = 0;

@@ -55,8 +55,8 @@
     </node>
 
     <!-- obstacle_simulation.launch -->
-    <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-    </include>
+    <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+    </include> -->
   </group>
 
   <group ns="robot2">
@@ -113,8 +113,8 @@
     </node>
 
     <!-- obstacle_simulation.launch -->
-    <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-    </include>
+    <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+    </include> -->
   </group>
   <include file="$(find path_layer)/launch/Rival_Sim.launch">
   

@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Status1
         - /Path1
-        - /Pose1
       Splitter Ratio: 0.5
     Tree Height: 520
   - Class: rviz/Selection
@@ -242,7 +241,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05000000074505806
       Shape: Arrow
-      Topic: /dock_goal
+      Topic: /nav_goal
       Unreliable: false
       Value: true
   Enabled: true
@@ -265,7 +264,7 @@ Visualization Manager:
       X std deviation: 0.5
       Y std deviation: 0.5
     - Class: rviz/SetGoal
-      Topic: /dock_goal
+      Topic: /nav_goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
@@ -273,7 +272,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.8251843452453613
+      Distance: 4.161709308624268
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -309,5 +308,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1200
-  X: 224
-  Y: 46
+  X: 118
+  Y: 82
