@@ -21,10 +21,12 @@ void PathLayer::onInitialize() {
     std::string RobotOdom_CB_TopicName;
     std::string RobotPath_CB_TopicName;
     std::string RivalOdom_CB_TopicName[2];
+    int temp_OdomType;
 
     // ---------------- Read YAML parameter ----------------
     nh.param("enabled", enabled_, true);
     nh.param("RobotType", RobotType, 1);
+    nh.param("OdomCallbackType", temp_OdomType, 0);
 
     // Inflation
     nh.param("Inflation/Robot/CostScalingFactor", RobotCostScalingFactor, 10.0);
@@ -52,7 +54,18 @@ void PathLayer::onInitialize() {
 
     // Subscriber
     RobotPath_Sub = nh.subscribe(RobotPath_CB_TopicName, 1000, &PathLayer::RobotPath_CB, this);
-    RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_CB, this);
+
+    switch (temp_OdomType) {
+        case 0:
+            OdomType = nav_msgs_Odometry;
+            RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type0_CB, this);
+            break;
+        case 1:
+            OdomType = geometry_msgs_PoseWithCovariance;
+            RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type1_CB, this);
+            break;
+    }
+
     RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_CB, this);
     RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_CB, this);
 
@@ -107,7 +120,14 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
 
     // Inflation Robot Odom
     if (isRobotOdom) {
-        InflatePoint(RobotOdom.pose.pose.position.x, RobotOdom.pose.pose.position.y, min_x, min_y, max_x, max_y, 1);
+        switch (OdomType) {
+            case nav_msgs_Odometry:
+                InflatePoint(RobotOdom_type0.pose.pose.position.x, RobotOdom_type0.pose.pose.position.y, min_x, min_y, max_x, max_y, 1);
+                break;
+            case geometry_msgs_PoseWithCovariance:
+                InflatePoint(RobotOdom_type1.pose.position.x, RobotOdom_type1.pose.position.y, min_x, min_y, max_x, max_y, 1);
+                break;
+        }
     }
 
     // Inflation Robot Path
@@ -131,6 +151,7 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         if (isRivalOdom[Idx]) {
             double mark_x = RivalOdom[Idx].pose.pose.position.x;
             double mark_y = RivalOdom[Idx].pose.pose.position.y;
+
             unsigned int mx;
             unsigned int my;
             for (int i = 0; i < RivalOdomPredictLength; i++) {
@@ -239,8 +260,13 @@ void PathLayer::RobotPath_CB(const nav_msgs::Path& Path) {
     RobotPathLastTime = ros::Time::now();
 }
 
-void PathLayer::RobotOdom_CB(const nav_msgs::Odometry& Odom) {
-    this->RobotOdom = Odom;
+void PathLayer::RobotOdom_type0_CB(const nav_msgs::Odometry& Odom) {
+    this->RobotOdom_type0 = Odom;
+    isRobotOdom = true;
+    RobotOdomLastTime = ros::Time::now();
+}
+void PathLayer::RobotOdom_type1_CB(const geometry_msgs::PoseWithCovariance& Odom) {
+    this->RobotOdom_type1 = Odom;
     isRobotOdom = true;
     RobotOdomLastTime = ros::Time::now();
 }
