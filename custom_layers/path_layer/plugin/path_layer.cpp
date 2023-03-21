@@ -59,22 +59,15 @@ void PathLayer::onInitialize() {
         case 0:
             OdomType = nav_msgs_Odometry;
             RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type0_CB, this);
-            RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_type0_CB, this);
-            RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_type0_CB, this);
             break;
         case 1:
-            OdomType = geometry_msgs_PoseStamped;
-            RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type1_CB, this);
-            RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_type1_CB, this);
-            RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_type1_CB, this);
-            break;
-        case 2:
             OdomType = geometry_msgs_PoseWithCovariance;
-            RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type2_CB, this);
-            RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_type2_CB, this);
-            RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_type2_CB, this);
+            RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type1_CB, this);
             break;
     }
+
+    RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_CB, this);
+    RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_CB, this);
 
     // Init variable
     isRobotPath = isRobotOdom = isRivalOdom[0] = isRivalOdom[1] = false;
@@ -131,11 +124,8 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
             case nav_msgs_Odometry:
                 InflatePoint(RobotOdom_type0.pose.pose.position.x, RobotOdom_type0.pose.pose.position.y, min_x, min_y, max_x, max_y, 1);
                 break;
-            case geometry_msgs_PoseStamped:
-                InflatePoint(RobotOdom_type1.pose.position.x, RobotOdom_type1.pose.position.y, min_x, min_y, max_x, max_y, 1);
-                break;
             case geometry_msgs_PoseWithCovariance:
-                InflatePoint(RobotOdom_type2.pose.position.x, RobotOdom_type2.pose.position.y, min_x, min_y, max_x, max_y, 1);
+                InflatePoint(RobotOdom_type1.pose.position.x, RobotOdom_type1.pose.position.y, min_x, min_y, max_x, max_y, 1);
                 break;
         }
     }
@@ -159,22 +149,8 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     // Add Rival Path to costmap.
     for (int Idx = 0; Idx < 2; Idx++) {
         if (isRivalOdom[Idx]) {
-            double mark_x;
-            double mark_y;
-            switch (OdomType) {
-                case nav_msgs_Odometry:
-                    mark_x = RivalOdom_type0[Idx].pose.pose.position.x;
-                    mark_y = RivalOdom_type0[Idx].pose.pose.position.y;
-                    break;
-                case geometry_msgs_PoseStamped:
-                    mark_x = RivalOdom_type1[Idx].pose.position.x;
-                    mark_y = RivalOdom_type1[Idx].pose.position.y;
-                    break;
-                case geometry_msgs_PoseWithCovariance:
-                    mark_x = RivalOdom_type2[Idx].pose.position.x;
-                    mark_y = RivalOdom_type2[Idx].pose.position.y;
-                    break;
-            }
+            double mark_x = RivalOdom[Idx].pose.pose.position.x;
+            double mark_y = RivalOdom[Idx].pose.pose.position.y;
 
             unsigned int mx;
             unsigned int my;
@@ -184,20 +160,8 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
                 } else {
                     break;
                 }
-                switch (OdomType) {
-                    case nav_msgs_Odometry:
-                        mark_x += RivalOdom_type0[Idx].twist.twist.linear.x / 10.0;
-                        mark_y += RivalOdom_type0[Idx].twist.twist.linear.y / 10.0;
-                        break;
-                    case geometry_msgs_PoseStamped:
-                        mark_x += RivalOdom_type1[Idx].pose.orientation.x / 10.0;
-                        mark_y += RivalOdom_type1[Idx].pose.orientation.y / 10.0;
-                        break;
-                    case geometry_msgs_PoseWithCovariance:
-                        mark_x += RivalOdom_type2[Idx].pose.orientation.x / 10.0;
-                        mark_y += RivalOdom_type2[Idx].pose.orientation.y / 10.0;
-                        break;
-                }
+                mark_x += RivalOdom[Idx].twist.twist.linear.x / 10.0;
+                mark_y += RivalOdom[Idx].twist.twist.linear.y / 10.0;
             }
         }
     }
@@ -301,45 +265,20 @@ void PathLayer::RobotOdom_type0_CB(const nav_msgs::Odometry& Odom) {
     isRobotOdom = true;
     RobotOdomLastTime = ros::Time::now();
 }
-void PathLayer::RobotOdom_type1_CB(const geometry_msgs::PoseStamped& Odom) {
+void PathLayer::RobotOdom_type1_CB(const geometry_msgs::PoseWithCovariance& Odom) {
     this->RobotOdom_type1 = Odom;
     isRobotOdom = true;
     RobotOdomLastTime = ros::Time::now();
 }
-void PathLayer::RobotOdom_type2_CB(const geometry_msgs::PoseWithCovariance& Odom) {
-    this->RobotOdom_type2 = Odom;
-    isRobotOdom = true;
-    RobotOdomLastTime = ros::Time::now();
-}
 
-void PathLayer::RivalOdom1_type0_CB(const nav_msgs::Odometry& Odom) {
-    RivalOdom_type0[0] = Odom;
-    isRivalOdom[0] = true;
-    RivalOdomLastTime[0] = ros::Time::now();
-}
-void PathLayer::RivalOdom1_type1_CB(const geometry_msgs::PoseStamped& Odom) {
-    RivalOdom_type1[0] = Odom;
-    isRivalOdom[0] = true;
-    RivalOdomLastTime[0] = ros::Time::now();
-}
-void PathLayer::RivalOdom1_type2_CB(const geometry_msgs::PoseWithCovariance& Odom) {
-    RivalOdom_type2[0] = Odom;
+void PathLayer::RivalOdom1_CB(const nav_msgs::Odometry& Odom) {
+    RivalOdom[0] = Odom;
     isRivalOdom[0] = true;
     RivalOdomLastTime[0] = ros::Time::now();
 }
 
-void PathLayer::RivalOdom2_type0_CB(const nav_msgs::Odometry& Odom) {
-    RivalOdom_type0[1] = Odom;
-    isRivalOdom[1] = true;
-    RivalOdomLastTime[1] = ros::Time::now();
-}
-void PathLayer::RivalOdom2_type1_CB(const geometry_msgs::PoseStamped& Odom) {
-    RivalOdom_type1[1] = Odom;
-    isRivalOdom[1] = true;
-    RivalOdomLastTime[1] = ros::Time::now();
-}
-void PathLayer::RivalOdom2_type2_CB(const geometry_msgs::PoseWithCovariance& Odom) {
-    RivalOdom_type2[1] = Odom;
+void PathLayer::RivalOdom2_CB(const nav_msgs::Odometry& Odom) {
+    RivalOdom[1] = Odom;
     isRivalOdom[1] = true;
     RivalOdomLastTime[1] = ros::Time::now();
 }

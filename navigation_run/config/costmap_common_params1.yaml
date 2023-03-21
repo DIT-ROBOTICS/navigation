@@ -73,8 +73,7 @@
     RobotType: 1
 
     # 0 -> nav_msgs::Odometry
-    # 1 -> geometry_msgs::PoseStamped
-    # 2 -> geometry_msgs::PoseWithCovariance
+    # 1 -> geometry_msgs::PoseWithCovariance
     OdomCallbackType: 0
     ## Remember to change the topic name.
     ## move_base use nav_msgs::Odometry -- /robot1/odom
