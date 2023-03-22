@@ -12,7 +12,7 @@
   #map info
   map_topic: map
   subscribe_to_updates: true
-  update_frequency: 40.0  #frequency to update costmap
+  update_frequency: 20.0  #frequency to update costmap
   publish_frequency: 10.0 #frequency to publish the new costmap to Rviz
 
   plugins:
