@@ -26,9 +26,13 @@
 
 namespace path_layer_namespace {
 
-enum class Robot_type {
-    robot1,
-    robot2
+enum class ROBOT_TYPE {
+    ROBOT = 0,
+    ROBOT1,
+    ROBOT2,
+    RIVAL,
+    RIVAL1,
+    RIVAL2
 };
 
 enum OdomCallbackType {
@@ -58,8 +62,6 @@ class PathLayer : public costmap_2d::CostmapLayer {
     void reconfigureCB(costmap_2d::GenericPluginConfig& config, uint32_t level);
     dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>* dsrv_;
 
-    ros::NodeHandle Global_nh;
-
     int RobotType;
     OdomCallbackType OdomType;
 
@@ -77,8 +79,7 @@ class PathLayer : public costmap_2d::CostmapLayer {
     // double MaxDistance;
 
     // Function
-    void ExpandPointWithCircle(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y);
-    void InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y, int type);
+    void ExpandPointWithCircle(double x, double y, double Radius);
 
     // ------------------------- RobotPath -------------------------
     // Sub
@@ -114,7 +115,12 @@ class PathLayer : public costmap_2d::CostmapLayer {
     void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
     void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
 
-    // Time
+    // ------------------------- Functions -------------------------
+
+    void InflatePredictPath(ROBOT_TYPE type);
+    void InflatePoint(double x, double y, double InflateBase, double InflationRadius, double CostScalingFactor, double InscribedRadius);
+
+    // Timeout
     ros::Time RivalOdomLastTime[2];
     double RivalOdomTimeout;
     bool isRivalOdom[2];

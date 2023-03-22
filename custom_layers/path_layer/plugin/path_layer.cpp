@@ -6,10 +6,6 @@
 
 PLUGINLIB_EXPORT_CLASS(path_layer_namespace::PathLayer, costmap_2d::Layer)
 
-using costmap_2d::FREE_SPACE;
-using costmap_2d::LETHAL_OBSTACLE;
-using costmap_2d::NO_INFORMATION;
-
 namespace path_layer_namespace {
 
 PathLayer::PathLayer() {
@@ -74,7 +70,7 @@ void PathLayer::onInitialize() {
     RobotPathLastTime = ros::Time::now();
 
     current_ = true;
-    default_value_ = NO_INFORMATION;
+    default_value_ = costmap_2d::NO_INFORMATION;
 
     // Resize map
     matchSize();
@@ -101,9 +97,6 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     if (!enabled_)
         return;
 
-    // Clean up the old costmap.
-    resetMap(0, 0, getSizeInCellsX(), getSizeInCellsY());
-
     // Timeout.
     double CurrentTime = ros::Time::now().toSec();
     if (RobotPathTimeout != -1 && CurrentTime - RobotPathLastTime.toSec() > RobotPathTimeout)
@@ -118,60 +111,35 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     // Get the Costmap lock. (Optional)
     boost::unique_lock<mutex_t> lock(*(getMutex()));
 
+    // Clean up the old costmap.
+    resetMaps();
+
     // Inflation Robot Odom
     if (isRobotOdom) {
-        switch (OdomType) {
-            case nav_msgs_Odometry:
-                InflatePoint(RobotOdom_type0.pose.pose.position.x, RobotOdom_type0.pose.pose.position.y, min_x, min_y, max_x, max_y, 1);
-                break;
-            case geometry_msgs_PoseWithCovariance:
-                InflatePoint(RobotOdom_type1.pose.position.x, RobotOdom_type1.pose.position.y, min_x, min_y, max_x, max_y, 1);
-                break;
+        if (OdomType == nav_msgs_Odometry) {
+            InflatePoint(RobotOdom_type0.pose.pose.position.x, RobotOdom_type0.pose.pose.position.y, 252, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
+        } else {
+            InflatePoint(RobotOdom_type1.pose.position.x, RobotOdom_type1.pose.position.y, 252, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
         }
     }
 
     // Inflation Robot Path
     if (isRobotPath) {
-        for (int i = 0; i < RobotPredictLength; i++) {
-            if (RobotPath.poses.size() <= i)
-                break;
-
-            double mark_x = RobotPath.poses[i].pose.position.x;
-            double mark_y = RobotPath.poses[i].pose.position.y;
-            unsigned int mx;
-            unsigned int my;
-            if (worldToMap(mark_x, mark_y, mx, my)) {
-                InflatePoint(mark_x, mark_y, min_x, min_y, max_x, max_y, 1);
-            }
-        }
+        InflatePredictPath(ROBOT_TYPE::ROBOT);
     }
 
     // Add Rival Path to costmap.
-    for (int Idx = 0; Idx < 2; Idx++) {
-        if (isRivalOdom[Idx]) {
-            double mark_x = RivalOdom[Idx].pose.pose.position.x;
-            double mark_y = RivalOdom[Idx].pose.pose.position.y;
-
-            unsigned int mx;
-            unsigned int my;
-            for (int i = 0; i < RivalOdomPredictLength; i++) {
-                if (worldToMap(mark_x, mark_y, mx, my)) {
-                    InflatePoint(mark_x, mark_y, min_x, min_y, max_x, max_y, -1);
-                } else {
-                    break;
-                }
-                mark_x += RivalOdom[Idx].twist.twist.linear.x / 10.0;
-                mark_y += RivalOdom[Idx].twist.twist.linear.y / 10.0;
-            }
-        }
+    if (isRivalOdom[0]) {
+        InflatePredictPath(ROBOT_TYPE::RIVAL1);
+    }
+    if (isRivalOdom[1]) {
+        InflatePredictPath(ROBOT_TYPE::RIVAL2);
     }
 
-    if (isRobotPath || isRobotOdom || isRivalOdom[0] || isRivalOdom[1]) {
-        *min_x -= 0.5;
-        *min_y -= 0.5;
-        *max_x += 0.5;
-        *max_y += 0.5;
-    }
+    *min_x = 0.0;
+    *max_x = getSizeInMetersX();
+    *min_y = 0.0;
+    *max_y = getSizeInMetersY();
 }
 
 void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j) {
@@ -181,36 +149,73 @@ void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int m
     // Get the costmap lock.
     boost::unique_lock<mutex_t> lock(*(getMutex()));
 
-    // updateWithMax(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
-    updateWithMax(master_grid, min_i, min_j, max_i, max_j);
+    // updateWithMax(master_grid, min_i, min_j, max_i, max_j);
+    updateWithMax(master_grid, 0, 0, getSizeInCellsX(), getSizeInCellsY());
 }
 
-void PathLayer::ExpandPointWithCircle(double x, double y, double Radius, double* min_x, double* min_y, double* max_x, double* max_y) {
-    for (int angle = 0; angle <= 360; angle++) {
-        double Rad = angle * M_PI / 180;
+void PathLayer::ExpandPointWithCircle(double x, double y, double Radius) {
+    for (int angle = 0; angle < 360; angle++) {
+        double Rad = angle * M_PI / 180.0;
         double mark_x = x + Radius * cos(Rad);
         double mark_y = y + Radius * sin(Rad);
         unsigned int mx;
         unsigned int my;
         if (worldToMap(mark_x, mark_y, mx, my)) {
-            *min_x = std::min(*min_x, mark_x);
-            *min_y = std::min(*min_y, mark_y);
-            *max_x = std::max(*max_x, mark_x);
-            *max_y = std::max(*max_y, mark_y);
-            setCost(mx, my, LETHAL_OBSTACLE);
+            setCost(mx, my, costmap_2d::LETHAL_OBSTACLE);
         }
     }
 }
 
-// type 1 -> Robot
-//      2 -> Rival
-void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y, int type) {
+void PathLayer::InflatePredictPath(ROBOT_TYPE type) {
+    if (type == ROBOT_TYPE::ROBOT) {
+        for (int i = 0; i < RobotPredictLength; i++) {
+            if (RobotPath.poses.size() <= i)
+                break;
+
+            double mark_x = RobotPath.poses[i].pose.position.x;
+            double mark_y = RobotPath.poses[i].pose.position.y;
+            unsigned int mx;
+            unsigned int my;
+            if (worldToMap(mark_x, mark_y, mx, my)) {
+                InflatePoint(mark_x, mark_y, 252, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
+            }
+        }
+    } else if (type == ROBOT_TYPE::RIVAL1) {
+        double mark_x = RivalOdom[0].pose.pose.position.x;
+        double mark_y = RivalOdom[0].pose.pose.position.y;
+
+        unsigned int mx;
+        unsigned int my;
+        for (int i = 0; i < RivalOdomPredictLength; i++) {
+            if (worldToMap(mark_x, mark_y, mx, my)) {
+                InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
+            } else {
+                break;
+            }
+            mark_x += RivalOdom[0].twist.twist.linear.x / 10.0;
+            mark_y += RivalOdom[0].twist.twist.linear.y / 10.0;
+        }
+    } else if (type == ROBOT_TYPE::RIVAL2) {
+        double mark_x = RivalOdom[1].pose.pose.position.x;
+        double mark_y = RivalOdom[1].pose.pose.position.y;
+
+        unsigned int mx;
+        unsigned int my;
+        for (int i = 0; i < RivalOdomPredictLength; i++) {
+            if (worldToMap(mark_x, mark_y, mx, my)) {
+                InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
+            } else {
+                break;
+            }
+            mark_x += RivalOdom[1].twist.twist.linear.x / 10.0;
+            mark_y += RivalOdom[1].twist.twist.linear.y / 10.0;
+        }
+    }
+}
+
+void PathLayer::InflatePoint(double x, double y, double InflateBase, double InflationRadius, double CostScalingFactor, double InscribedRadius) {
     // MaxDistance = 6.22258 / CostScalingFactor + InscribedRadius;  // 6.22258 = -ln(0.5/252.0)
     // MaxDistance = (double)(((int)(MaxDistance / resolution_) + resolution_) * resolution_);
-
-    double InflationRadius = type == 1 ? RobotInflationRadius : RivalInflationRadius;
-    double CostScalingFactor = type == 1 ? RobotCostScalingFactor : RivalCostScalingFactor;
-    double InscribedRadius = type == 1 ? RobotInscribedRadius : RivalInscribedRadius;
 
     double MaxX = x + InflationRadius;
     double MinX = x - InflationRadius;
@@ -233,18 +238,12 @@ void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, d
         for (double currentPointY = MinY; currentPointY <= MaxY; currentPointY += resolution_) {
             mark_y = currentPointY;
             if (worldToMap(mark_x, mark_y, mx, my)) {
-                *min_x = std::min(*min_x, mark_x);
-                *min_y = std::min(*min_y, mark_y);
-                *max_x = std::max(*max_x, mark_x);
-                *max_y = std::max(*max_y, mark_y);
-
                 Distance = sqrt(pow(fabs(x - currentPointX), 2) + pow(fabs(y - currentPointY), 2));
 
-                cost = round(252 * exp(-CostScalingFactor * (Distance - InscribedRadius)));
-                cost = std::min(cost, 254.0);
-                cost = std::max(cost, 0.0);
+                cost = round(InflateBase * exp(-CostScalingFactor * (Distance - InscribedRadius)));
+                cost = std::max(std::min(cost, 254.0), 0.0);
 
-                if (getCost(mx, my) != NO_INFORMATION) {
+                if (getCost(mx, my) != costmap_2d::NO_INFORMATION) {
                     setCost(mx, my, std::max((unsigned char)cost, getCost(mx, my)));
                 } else {
                     setCost(mx, my, cost);
@@ -253,6 +252,8 @@ void PathLayer::InflatePoint(double x, double y, double* min_x, double* min_y, d
         }
     }
 }
+
+// ---------------------------- Callback ---------------------------- //
 
 void PathLayer::RobotPath_CB(const nav_msgs::Path& Path) {
     this->RobotPath = Path;
