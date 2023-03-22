@@ -45,7 +45,8 @@ void PathLayer::onInitialize() {
 
     // PredictLength
     nh.param("PredictLength/Robot/Path", RobotPredictLength, 1);
-    nh.param("PredictLength/Rival/Odom", RivalOdomPredictLength, 1);
+    nh.param("PredictLength/Rival/Odom", RivalOdom_PredictTime, 0.1);
+    nh.param("PredictLength/Rival/Resolution", RivalOdom_Resolution, 0.01);
     // ---------------- Read YAML parameter ----------------
 
     // Subscriber
@@ -184,32 +185,53 @@ void PathLayer::InflatePredictPath(ROBOT_TYPE type) {
         double mark_x = RivalOdom[0].pose.pose.position.x;
         double mark_y = RivalOdom[0].pose.pose.position.y;
 
-        unsigned int mx;
-        unsigned int my;
-        for (int i = 0; i < RivalOdomPredictLength; i++) {
-            if (worldToMap(mark_x, mark_y, mx, my)) {
-                InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
-            } else {
-                break;
-            }
-            mark_x += RivalOdom[0].twist.twist.linear.x / 10.0;
-            mark_y += RivalOdom[0].twist.twist.linear.y / 10.0;
+        double Vel = sqrt(pow(RivalOdom[0].twist.twist.linear.x, 2) + pow(RivalOdom[0].twist.twist.linear.y, 2));
+        double len = Vel * RivalOdom_PredictTime;
+
+        if (len == 0.0) {
+            InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
+            return;
         }
-    } else if (type == ROBOT_TYPE::RIVAL2) {
-        double mark_x = RivalOdom[1].pose.pose.position.x;
-        double mark_y = RivalOdom[1].pose.pose.position.y;
+
+        double theta = 0.0;
+        if (RivalOdom[0].twist.twist.linear.x == 0.0) {
+            theta = RivalOdom[0].twist.twist.linear.y >= 0 ? M_PI_2 : -M_PI_2;
+        } else {
+            theta = std::atan(RivalOdom[0].twist.twist.linear.y / RivalOdom[0].twist.twist.linear.x);
+            if (RivalOdom[0].twist.twist.linear.x <= 0) {
+                theta += M_PI;
+            }
+        }
+
+        double IncX = RivalOdom_Resolution * std::cos(theta);
+        double IncY = RivalOdom_Resolution * std::sin(theta);
 
         unsigned int mx;
         unsigned int my;
-        for (int i = 0; i < RivalOdomPredictLength; i++) {
+        for (double i = 0.0; i < len; i += RivalOdom_Resolution) {
             if (worldToMap(mark_x, mark_y, mx, my)) {
                 InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
             } else {
                 break;
             }
-            mark_x += RivalOdom[1].twist.twist.linear.x / 10.0;
-            mark_y += RivalOdom[1].twist.twist.linear.y / 10.0;
+            mark_x += IncX;
+            mark_y += IncY;
         }
+    } else if (type == ROBOT_TYPE::RIVAL2) {
+        // double mark_x = RivalOdom[1].pose.pose.position.x;
+        // double mark_y = RivalOdom[1].pose.pose.position.y;
+
+        // unsigned int mx;
+        // unsigned int my;
+        // for (int i = 0; i < RivalOdomPredictLength; i++) {
+        //     if (worldToMap(mark_x, mark_y, mx, my)) {
+        //         InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
+        //     } else {
+        //         break;
+        //     }
+        //     mark_x += RivalOdom[1].twist.twist.linear.x / 10.0;
+        //     mark_y += RivalOdom[1].twist.twist.linear.y / 10.0;
+        // }
     }
 }
 

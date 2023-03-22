@@ -112,6 +112,9 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     nav_msgs::Odometry RivalOdom[2];
 
+    double RivalOdom_Resolution;
+    double RivalOdom_PredictTime;
+
     void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
     void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
 
@@ -124,9 +127,6 @@ class PathLayer : public costmap_2d::CostmapLayer {
     ros::Time RivalOdomLastTime[2];
     double RivalOdomTimeout;
     bool isRivalOdom[2];
-
-    // Param
-    int RivalOdomPredictLength;
 };
 
 }  // namespace path_layer_namespace
