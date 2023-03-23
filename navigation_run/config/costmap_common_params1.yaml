@@ -86,8 +86,9 @@
         InflationRadius: 0.35 # Unit: m (MaxDistance)
       Rival:
         CostScalingFactor: 10
-        InscribedRadius: 0.15 # Unit: m
-        InflationRadius: 0.25 # Unit: m (MaxDistance)
+        InscribedRadius: 0.15         # Unit: m
+        InflationRadius: 0.25         # Unit: m (MaxDistance)
+        InscribedRadiusDecline: 0.85  # Unit: m / Resolution
 
     # Topic Name
     Topic:
@@ -111,7 +112,7 @@
       Robot:
         Path: 50 # Unit: none
       Rival:
-        Odom: 1.0        # Unit: s
+        Odom: 0.7        # Unit: s
         Resolution: 0.05 # Unit: m
 
   inflation_layer:

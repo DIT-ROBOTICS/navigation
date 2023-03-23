@@ -31,6 +31,7 @@ void PathLayer::onInitialize() {
     nh.param("Inflation/Rival/CostScalingFactor", RivalCostScalingFactor, 10.0);
     nh.param("Inflation/Rival/InscribedRadius", RivalInscribedRadius, 0.1);
     nh.param("Inflation/Rival/InflationRadius", RivalInflationRadius, 0.3);
+    nh.param("Inflation/Rival/InscribedRadiusDecline", RivalRadiusDecline, 0.001);
 
     // Topic
     nh.param<std::string>("Topic/Robot/Odom", RobotOdom_CB_TopicName, "/robot1/odom");
@@ -118,9 +119,9 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     // Inflation Robot Odom
     if (isRobotOdom) {
         if (OdomType == nav_msgs_Odometry) {
-            InflatePoint(RobotOdom_type0.pose.pose.position.x, RobotOdom_type0.pose.pose.position.y, 252, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
+            InflatePoint(RobotOdom_type0.pose.pose.position.x, RobotOdom_type0.pose.pose.position.y, costmap_2d::LETHAL_OBSTACLE, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
         } else {
-            InflatePoint(RobotOdom_type1.pose.position.x, RobotOdom_type1.pose.position.y, 252, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
+            InflatePoint(RobotOdom_type1.pose.position.x, RobotOdom_type1.pose.position.y, costmap_2d::LETHAL_OBSTACLE, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
         }
     }
 
@@ -181,61 +182,52 @@ void PathLayer::InflatePredictPath(ROBOT_TYPE type) {
                 InflatePoint(mark_x, mark_y, 252, RobotInflationRadius, RobotCostScalingFactor, RobotInscribedRadius);
             }
         }
-    } else if (type == ROBOT_TYPE::RIVAL1) {
-        double mark_x = RivalOdom[0].pose.pose.position.x;
-        double mark_y = RivalOdom[0].pose.pose.position.y;
+    } else if (type == ROBOT_TYPE::RIVAL1 || type == ROBOT_TYPE::RIVAL2) {
+        const char idx = (type == ROBOT_TYPE::RIVAL1) ? 0 : 1;
 
-        double Vel = sqrt(pow(RivalOdom[0].twist.twist.linear.x, 2) + pow(RivalOdom[0].twist.twist.linear.y, 2));
-        double len = Vel * RivalOdom_PredictTime;
+        double mark_x = RivalOdom[idx].pose.pose.position.x;
+        double mark_y = RivalOdom[idx].pose.pose.position.y;
 
+        // Rival Object
+        InflatePoint(mark_x, mark_y, costmap_2d::LETHAL_OBSTACLE, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
+
+        double len = sqrt(pow(RivalOdom[idx].twist.twist.linear.x, 2) + pow(RivalOdom[idx].twist.twist.linear.y, 2)) * RivalOdom_PredictTime;
         if (len == 0.0) {
-            InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
             return;
         }
 
         double theta = 0.0;
-        if (RivalOdom[0].twist.twist.linear.x == 0.0) {
-            theta = RivalOdom[0].twist.twist.linear.y >= 0 ? M_PI_2 : -M_PI_2;
+        if (RivalOdom[idx].twist.twist.linear.x == 0.0) {
+            theta = RivalOdom[idx].twist.twist.linear.y >= 0 ? M_PI_2 : -M_PI_2;
         } else {
-            theta = std::atan(RivalOdom[0].twist.twist.linear.y / RivalOdom[0].twist.twist.linear.x);
-            if (RivalOdom[0].twist.twist.linear.x <= 0) {
+            theta = std::atan(RivalOdom[idx].twist.twist.linear.y / RivalOdom[idx].twist.twist.linear.x);
+            if (RivalOdom[idx].twist.twist.linear.x <= 0) {
                 theta += M_PI;
             }
         }
 
-        double IncX = RivalOdom_Resolution * std::cos(theta);
-        double IncY = RivalOdom_Resolution * std::sin(theta);
+        const double IncX = RivalOdom_Resolution * std::cos(theta);
+        const double IncY = RivalOdom_Resolution * std::sin(theta);
+        double InflationRadius = RivalInflationRadius;
+        double InscribedRadius = RivalInscribedRadius;
 
         unsigned int mx;
         unsigned int my;
         for (double i = 0.0; i < len; i += RivalOdom_Resolution) {
+            mark_x += IncX;
+            mark_y += IncY;
             if (worldToMap(mark_x, mark_y, mx, my)) {
-                InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
+                InflatePoint(mark_x, mark_y, 252, InflationRadius, RivalCostScalingFactor, InscribedRadius);
             } else {
                 break;
             }
-            mark_x += IncX;
-            mark_y += IncY;
+            // InflationRadius *= RivalRadiusDecline;
+            InscribedRadius *= RivalRadiusDecline;
         }
-    } else if (type == ROBOT_TYPE::RIVAL2) {
-        // double mark_x = RivalOdom[1].pose.pose.position.x;
-        // double mark_y = RivalOdom[1].pose.pose.position.y;
-
-        // unsigned int mx;
-        // unsigned int my;
-        // for (int i = 0; i < RivalOdomPredictLength; i++) {
-        //     if (worldToMap(mark_x, mark_y, mx, my)) {
-        //         InflatePoint(mark_x, mark_y, 252, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
-        //     } else {
-        //         break;
-        //     }
-        //     mark_x += RivalOdom[1].twist.twist.linear.x / 10.0;
-        //     mark_y += RivalOdom[1].twist.twist.linear.y / 10.0;
-        // }
     }
 }
 
-void PathLayer::InflatePoint(double x, double y, double InflateBase, double InflationRadius, double CostScalingFactor, double InscribedRadius) {
+void PathLayer::InflatePoint(double x, double y, double MaxCost, double InflationRadius, double CostScalingFactor, double InscribedRadius) {
     // MaxDistance = 6.22258 / CostScalingFactor + InscribedRadius;  // 6.22258 = -ln(0.5/252.0)
     // MaxDistance = (double)(((int)(MaxDistance / resolution_) + resolution_) * resolution_);
 
@@ -262,8 +254,8 @@ void PathLayer::InflatePoint(double x, double y, double InflateBase, double Infl
             if (worldToMap(mark_x, mark_y, mx, my)) {
                 Distance = sqrt(pow(fabs(x - currentPointX), 2) + pow(fabs(y - currentPointY), 2));
 
-                cost = round(InflateBase * exp(-CostScalingFactor * (Distance - InscribedRadius)));
-                cost = std::max(std::min(cost, 254.0), 0.0);
+                cost = round(252 * exp(-CostScalingFactor * (Distance - InscribedRadius)));
+                cost = std::max(std::min(cost, MaxCost), 0.0);
 
                 if (getCost(mx, my) != costmap_2d::NO_INFORMATION) {
                     setCost(mx, my, std::max((unsigned char)cost, getCost(mx, my)));

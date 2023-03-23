@@ -77,6 +77,7 @@ class PathLayer : public costmap_2d::CostmapLayer {
     double RivalInflationRadius;
 
     // double MaxDistance;
+    double RivalRadiusDecline;
 
     // Function
     void ExpandPointWithCircle(double x, double y, double Radius);
@@ -121,7 +122,7 @@ class PathLayer : public costmap_2d::CostmapLayer {
     // ------------------------- Functions -------------------------
 
     void InflatePredictPath(ROBOT_TYPE type);
-    void InflatePoint(double x, double y, double InflateBase, double InflationRadius, double CostScalingFactor, double InscribedRadius);
+    void InflatePoint(double x, double y, double MaxCost, double InflationRadius, double CostScalingFactor, double InscribedRadius);
 
     // Timeout
     ros::Time RivalOdomLastTime[2];
