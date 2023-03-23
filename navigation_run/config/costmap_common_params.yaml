@@ -69,26 +69,49 @@
       threshold_time: 1 # unit: seconds
 
   path_layer:
-    enabled: false
+    enabled: true
+    RobotType: 1
 
-    # Inflation
-    enabled_Inflation: true
-    CostScalingFactor: 10
-    InscribedRadius: 0.15 # Unit: m
-    InflationRadius: 0.35 # Unit: m (MaxDistance)
+    # 0 -> nav_msgs::Odometry
+    # 1 -> geometry_msgs::PoseWithCovariance
+    OdomCallbackType: 0
+    ## Remember to change the topic name.
+    ## move_base use nav_msgs::Odometry -- /robot1/odom
 
-    # Topic 
-    RobotPath_TopicName: /robot2/move_base/GlobalPlanner/plan
-    RivalOdom1_TopicName: /RivalOdom_1
-    RivalOdom2_TopicName: /RivalOdom_2
+    # Inflation parameters
+    Inflation:
+      Robot:
+        CostScalingFactor: 10
+        InscribedRadius: 0.15 # Unit: m
+        InflationRadius: 0.35 # Unit: m (MaxDistance)
+      Rival:
+        CostScalingFactor: 10
+        InscribedRadius: 0.15 # Unit: m
+        InflationRadius: 0.25 # Unit: m (MaxDistance)
+
+    # Topic Name
+    Topic:
+      Robot:
+        Odom: /robot2/odom
+        Path: /robot2/move_base/GlobalPlanner/plan
+      Rival:
+        Odom1: /RivalOdom_1
+        Odom2: /RivalOdom_2
     
     # Timeout -1 -> Disable Timeout 
-    RobotPath_Timeout: -1
-    RivalOdom_Timeout: 0.5
+    Timeout:
+      Robot:
+        Odom: -1
+        Path: 1.0
+      Rival:
+        Odom: 1.0
     
     # Predict Length
-    RobotPath_PredictLength: 50 # Unit: none
-    RivalOdom_PredictLength: 0 # Unit: ms
+    PredictLength:
+      Robot:
+        Path: 50 # Unit: none
+      Rival:
+        Odom: 10 # Unit: 100 ms
 
   inflation_layer:
     enabled: true

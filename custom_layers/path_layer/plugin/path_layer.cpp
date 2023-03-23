@@ -167,10 +167,10 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     }
 
     if (isRobotPath || isRobotOdom || isRivalOdom[0] || isRivalOdom[1]) {
-        *min_x -= 0.5;
-        *min_y -= 0.5;
-        *max_x += 0.5;
-        *max_y += 0.5;
+        *min_x -= 1.0;
+        *min_y -= 1.0;
+        *max_x += 1.0;
+        *max_y += 1.0;
     }
 }
 
