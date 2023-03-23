@@ -51,17 +51,27 @@
         <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
+            <remap from="nav_goal" to="path_tracker_goal"/>
             <!-- for lpf to filter the velocity -->
             <rosparam file="$(find path_tracker)/params/pathTracker_test1.yaml" command="load" />
         </node>
 
         <!-- low pass filter on pt's cmd_vel -->
-        <node pkg="lpf" type="vel_lpf" name="vel_lpf">
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
+            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
+            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
         </node>
 
         <!-- obstacle_simulation.launch -->
         <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
         </include>
+
+        <!-- docking_tracker -->
+        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
+            <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
+            <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
+            <remap from="dock_goal" to="dock_tracker_goal"/>
+        </node>
     </group>
 
     <group ns="robot2">
@@ -111,17 +121,27 @@
         <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
+            <remap from="nav_goal" to="path_tracker_goal"/>
             <!-- for lpf to filter the velocity -->
             <rosparam file="$(find path_tracker)/params/pathTracker_test2.yaml" command="load" />
         </node>
 
         <!-- low pass filter on pt's cmd_vel -->
-        <node pkg="lpf" type="vel_lpf" name="vel_lpf">
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
+            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
+            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
         </node>
 
         <!-- obstacle_simulation.launch -->
         <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
         </include>
+
+        <!-- docking_tracker -->
+        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
+            <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
+            <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
+            <remap from="nav_goal" to="dock_tracker_goal"/>
+        </node>
     </group>
 
 </launch>

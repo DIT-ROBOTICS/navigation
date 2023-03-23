@@ -223,11 +223,11 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
 
     // Choose which mode we want to use here.
     if (msg->header.frame_id == "dock") {
-        this->mission_status_ == mission_type::DOCK_TRACKER;
+        this->mission_status_ = mission_type::DOCK_TRACKER;
         robot_dock_tracker_goal_pub_.publish(msg);
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode.");
     } else {
-        this->mission_status_ == mission_type::PATH_TRACKER;
+        this->mission_status_ = mission_type::PATH_TRACKER;
         robot_path_tracker_goal_pub_.publish(msg);
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Path mode.");
     }
@@ -238,6 +238,7 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
 void Navigation_Main::PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs) {
     if (this->mission_status_ == mission_type::PATH_TRACKER) {
         this->robot_cmd_vel_ = *msgs;
+        // ROS_INFO("received cmd_vel! %f", this->robot_cmd_vel_.linear.x);
     }
 }
 
