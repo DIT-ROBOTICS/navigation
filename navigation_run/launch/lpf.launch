@@ -1,0 +1,8 @@
+<launch>
+
+    <!-- low pass filter on pt's cmd_vel -->
+    <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
+        <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
+    </node>
+
+</launch>
