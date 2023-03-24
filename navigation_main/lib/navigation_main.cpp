@@ -52,7 +52,7 @@ void Navigation_Main::Loop() {
         temp.data = false;
         main_mission_state_pub_.publish(temp);
 
-        this->mission_status_ == mission_type::IDLE;
+        this->mission_status_ = mission_type::IDLE;
         this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
         ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Timeout)");
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
@@ -208,7 +208,7 @@ void Navigation_Main::RobotMissionState_Callback(const std_msgs::Bool::ConstPtr 
             ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Unreachable Goal)");
         }
 
-        this->mission_status_ == mission_type::IDLE;
+        this->mission_status_ = mission_type::IDLE;
         this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
     }
