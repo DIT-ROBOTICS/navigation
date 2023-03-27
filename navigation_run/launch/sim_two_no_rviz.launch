@@ -17,7 +17,7 @@
 
         <!-- Initial Pose and Goal Publisher -->
         <!-- Publish: /initialpose, /move_base_simple/goal -->
-        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim1.rviz"/>
+        <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim1.rviz"/> -->
 
         <!-- Map File -->
         <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
@@ -53,11 +53,12 @@
 
         <!-- path_Tracker -->
         <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+            <param name="frame" value="robot1/map" />
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
             <remap from="nav_goal" to="path_tracker_goal"/>
             <!-- for lpf to filter the velocity -->
-            <rosparam file="$(find path_tracker)/params/pathTracker_test1.yaml" command="load" />
+            <rosparam file="$(find path_tracker)/params/pathTracker_sim.yaml" command="load" />
         </node>
 
         <!-- low pass filter on pt's cmd_vel -->
@@ -67,8 +68,8 @@
         </node>
 
         <!-- obstacle_simulation.launch -->
-        <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-        </include>
+        <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+        </include> -->
 
         <!-- docking_tracker -->
         <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
@@ -105,7 +106,7 @@
         </node>
         <!-- Robot odometry simulator-->
         <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry">
+        <node pkg="navigation_run" name="odometry" type="odometry" >
             <param name="tf_prefix" value="robot2" />
         </node>
 
@@ -127,11 +128,12 @@
 
         <!-- path_Tracker -->
         <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+            <param name="frame" value="robot2/map" />
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
             <remap from="nav_goal" to="path_tracker_goal"/>
             <!-- for lpf to filter the velocity -->
-            <rosparam file="$(find path_tracker)/params/pathTracker_test2.yaml" command="load" />
+            <rosparam file="$(find path_tracker)/params/pathTracker_sim.yaml" command="load" />
         </node>
 
         <!-- low pass filter on pt's cmd_vel -->
@@ -141,8 +143,8 @@
         </node>
 
         <!-- obstacle_simulation.launch -->
-        <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-        </include>
+        <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+        </include> -->
 
         <!-- docking_tracker -->
         <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">

@@ -156,17 +156,13 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(odom_tutorial src/odom_tutorial.cpp)
-add_dependencies(odom_tutorial ${catkin_EXPORTED_TARGETS})
-target_link_libraries(odom_tutorial ${catkin_LIBRARIES})
+add_executable(odometry src/odometry.cpp)
+add_dependencies(odometry ${catkin_EXPORTED_TARGETS})
+target_link_libraries(odometry ${catkin_LIBRARIES})
 
-add_executable(odom_tutorial1 src/odom_tutorial1.cpp)
-add_dependencies(odom_tutorial1 ${catkin_EXPORTED_TARGETS})
-target_link_libraries(odom_tutorial1 ${catkin_LIBRARIES})
-
-add_executable(odom_tutorial2 src/odom_tutorial2.cpp)
-add_dependencies(odom_tutorial2 ${catkin_EXPORTED_TARGETS})
-target_link_libraries(odom_tutorial2 ${catkin_LIBRARIES})
+add_executable(odometry_global_velocity src/odometry_global_velocity.cpp)
+add_dependencies(odometry_global_velocity ${catkin_EXPORTED_TARGETS})
+target_link_libraries(odometry_global_velocity ${catkin_LIBRARIES})
 
 add_executable(laser_scan_publisher src/laser_scan_publisher.cpp)
 add_dependencies(laser_scan_publisher ${catkin_EXPORTED_TARGETS})
