@@ -65,22 +65,6 @@ target_link_libraries(map_server
     ${catkin_LIBRARIES}
 )
 
-add_executable(map_server1 src/main1.cpp)
-add_dependencies(map_server1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(map_server1
-    map_server_image_loader
-    ${YAMLCPP_LIBRARIES}
-    ${catkin_LIBRARIES}
-)
-
-add_executable(map_server2 src/main2.cpp)
-add_dependencies(map_server2 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(map_server2
-    map_server_image_loader
-    ${YAMLCPP_LIBRARIES}
-    ${catkin_LIBRARIES}
-)
-
 add_executable(map_server-map_saver src/map_saver.cpp)
 add_dependencies(map_server-map_saver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 set_target_properties(map_server-map_saver PROPERTIES OUTPUT_NAME map_saver)

@@ -87,7 +87,7 @@
       Rival:
         CostScalingFactor: 10
         InscribedRadius: 0.15 # Unit: m
-        InflationRadius: 0.25 # Unit: m (MaxDistance)
+        InflationRadius: 0.4 # Unit: m (MaxDistance)
 
     # Topic Name
     Topic:
@@ -95,8 +95,8 @@
         Odom: /robot2/odom
         Path: /robot2/move_base/GlobalPlanner/plan
       Rival:
-        Odom1: /RivalOdom_1
-        Odom2: /RivalOdom_2
+        Odom1: /rival1/odom
+        Odom2: /rival2/odom
     
     # Timeout -1 -> Disable Timeout 
     Timeout:
