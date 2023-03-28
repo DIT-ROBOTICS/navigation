@@ -1,43 +1,57 @@
 <launch>
+    <include file="$(find navigation_main)/launch/main_robot2.launch" />
+
     <!-- robot2 -->
     <group ns="robot2">
-
         <!-- Map File -->
         <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
-        
+
         <!-- Map Server -->
         <!-- Publish: /map, /map_metadata -->
-        <node pkg="map_server" name="map_server" type="map_server2" args="$(arg map_file)"/>
+        <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
+            <param name="frame_id" value="robot2/map" />
+        </node>
 
         <!-- Move Base Node -->
         <!-- Subscribe: /move_base_simple/goal -->
         <!-- Publish: /cmd_vel -->
         <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-          <remap from="cmd_vel" to ="vel_obseleted" /> <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
-          <rosparam file="$(find navigation_run)/config/costmap_common_params2.yaml" command="load" ns="global_costmap" />
-          <rosparam file="$(find navigation_run)/config/costmap_common_params2.yaml" command="load" ns="local_costmap" />
-          <!-- <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" /> -->
-          <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load"  />
+            <remap from="cmd_vel" to ="vel_obseleted" />
+            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
 
-          <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
-          <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
-          <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/costmap_common_params1.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find navigation_run)/config/costmap_common_params1.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
+
+            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
+            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
         </node>
 
         <!-- path_Tracker -->
         <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
             <remap from="cmd_vel" to="raw_cmd_vel"/>
-            <rosparam file="$(find path_tracker)/params/pathTracker_test2.yaml" command="load" /> 
+            <remap from="nav_goal" to="path_tracker_goal"/>
+            <!-- for lpf to filter the velocity -->
+            <rosparam file="$(find path_tracker)/params/pathTracker_test1.yaml" command="load" /> 
         </node>
 
-        <!-- obstacle_simulation.launch -->
-        <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch"> -->
-        <!-- </include> -->
-        
-        <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
-        <!-- low pass filter on cmd_vel -->
-        <node pkg="lpf" type="vel_lpf" name="vel_lpf">
+        <!-- docking_tracker -->
+        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
+            <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
+            <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
+            <remap from="dock_goal" to="dock_tracker_goal"/>
         </node>
+
+        <!-- low pass filter on pt's cmd_vel -->
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
+            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
+            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
+        </node>
+
+        <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
+
 
     </group>    
 </launch>

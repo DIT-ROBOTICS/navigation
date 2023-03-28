@@ -182,7 +182,7 @@ void DockTracker::timerCB(const ros::TimerEvent& e){
 
     }
     else{
-        ROS_INFO_STREAM_THROTTLE(5, "[Dock Tracker]: No goal received!");
+        // ROS_INFO_STREAM_THROTTLE(5, "[Dock Tracker]: No goal received!");
     }
 
     // publish cmd_vel

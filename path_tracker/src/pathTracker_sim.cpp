@@ -207,7 +207,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                     if_globalpath_switched = true;
                 }
             }
-            ROS_INFO("Working Mode : TRACKING");
+            // ROS_INFO("Working Mode : TRACKING");
             if (robot_type_ == "omni")
             {
                 // dynamic wei
