@@ -1,7 +1,7 @@
 <launch>
 
     <include file="$(find navigation_run)/launch/sim_two_no_rviz.launch" />
-    <include file="$(find navigation_main)/launch/main_rival.launch" />
+    <include file="$(find navigation_main)/launch/sim_main_rival.launch" />
 
     <!-- Initial Pose and Goal Publisher -->
     <!-- Publish: /initialpose, /move_base_simple/goal -->
