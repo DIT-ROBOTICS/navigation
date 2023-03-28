@@ -1,5 +1,5 @@
 <launch>
-    <include file="$(find navigation_main)/launch/main_robot1.launch" />
+    <include file="$(find navigation_main)/launch/sim_main_robot1.launch" />
 
     <!-- robot1 -->
     <group ns="robot1">
