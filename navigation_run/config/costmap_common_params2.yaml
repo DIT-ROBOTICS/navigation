@@ -114,7 +114,7 @@
       Robot:
         Path: 1 # Unit: none
       Rival:
-        Odom: 10        # Unit: s
+        Odom: 1        # Unit: s
         Resolution: 0.05 # Unit: m
 
   inflation_layer:
