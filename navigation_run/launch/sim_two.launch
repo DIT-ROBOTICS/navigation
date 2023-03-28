@@ -30,7 +30,7 @@
 
         <!-- Robot odometry simulator-->
         <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry" >
+        <node pkg="navigation_run" name="odometry" type="odometry_sim" >
             <param name="tf_prefix" value="robot1" />
         </node>
 
@@ -105,7 +105,7 @@
         </node>
         <!-- Robot odometry simulator-->
         <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry">
+        <node pkg="navigation_run" name="odometry" type="odometry_sim">
             <param name="tf_prefix" value="robot2" />
         </node>
 
