@@ -36,7 +36,7 @@
     </node>
 
     <!-- docking_tracker -->
-    <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
+    <node name="docking_tracker" pkg="path_tracker" type="dockTracker" output="screen">
         <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
         <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
         <remap from="dock_goal" to="dock_tracker_goal"/>
