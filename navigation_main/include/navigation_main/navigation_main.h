@@ -7,6 +7,7 @@
 // ROS msgs
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovariance.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
@@ -44,7 +45,8 @@ class Navigation_Main {
     bool isTimeout();
 
     // Callback functions
-    void Odom_Callback(const nav_msgs::Odometry::ConstPtr &msg);
+    void Odom_type0_Callback(const nav_msgs::Odometry::ConstPtr &msg);
+    void Odom_type1_Callback(const geometry_msgs::PoseWithCovariance::ConstPtr &msg);
     void PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
     void DockTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
     void RobotMissionState_Callback(const std_msgs::Bool::ConstPtr &msg);
@@ -109,11 +111,17 @@ class Navigation_Main {
     };
     mission_type mission_status_;
 
+    enum class odom_callback_type {
+        nav_msgs_Odometry = 0,
+        geometry_msgs_PoseWithCovariance = 1
+    };
+    odom_callback_type odom_type_;
+
     // Timeout
     ros::Time start_time_;
 
     // Robot Odometry
-    geometry_msgs::Pose robot_goal_;
+    geometry_msgs::PoseStamped robot_goal_;
     geometry_msgs::Pose robot_odom_;
     geometry_msgs::Twist robot_cmd_vel_;
 };

@@ -52,10 +52,10 @@ void Navigation_Main::Loop() {
         temp.data = false;
         main_mission_state_pub_.publish(temp);
 
-        this->mission_status_ == mission_type::IDLE;
+        this->mission_status_ = mission_type::IDLE;
         this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
         ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Timeout)");
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
+        ROS_ERROR_STREAM("[" << param_node_name_ << "] : Mission Failed.");
     }
 
     this->robot_cmd_vel_pub_.publish(this->robot_cmd_vel_);
@@ -68,6 +68,8 @@ bool Navigation_Main::isTimeout() {
 bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
     bool prev_active = this->param_active_;
 
+    int temp_odom_type_;
+
     if (this->nh_local_->param<bool>("active", param_active_, true)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : active set to " << param_active_);
     }
@@ -76,6 +78,10 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
     }
     if (this->nh_local_->param<bool>("use_dynamic_reconfigure", param_use_dynamic_reconfigure_, false)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : use_dynamic_reconfigure set to " << param_use_dynamic_reconfigure_);
+    }
+    if (this->nh_local_->param<int>("odom_type", temp_odom_type_, 0)) {
+        this->odom_type_ = (temp_odom_type_ == 0) ? odom_callback_type::nav_msgs_Odometry : odom_callback_type::geometry_msgs_PoseWithCovariance;
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : odom type set to " << temp_odom_type_);
     }
     if (this->nh_local_->param<double>("update_frequency", param_update_frequency_, 5.0)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : update frequency set to " << param_update_frequency_);
@@ -125,7 +131,14 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
             ROS_INFO_STREAM("[" << param_node_name_ << "] : active node.");
 
             // Subscribe
-            this->robot_odom_sub_ = this->nh_global_->subscribe(param_robot_odom_topic_, 100, &Navigation_Main::Odom_Callback, this);
+            switch (odom_type_) {
+                case odom_callback_type::nav_msgs_Odometry:
+                    this->robot_odom_sub_ = this->nh_global_->subscribe(param_robot_odom_topic_, 100, &Navigation_Main::Odom_type0_Callback, this);
+                    break;
+                case odom_callback_type::geometry_msgs_PoseWithCovariance:
+                    this->robot_odom_sub_ = this->nh_global_->subscribe(param_robot_odom_topic_, 100, &Navigation_Main::Odom_type1_Callback, this);
+                    break;
+            }
             this->robot_mission_state_sub_ = this->nh_global_->subscribe(param_robot_mission_state_topic_, 100, &Navigation_Main::RobotMissionState_Callback, this);
             this->main_mission_state_sub_ = this->nh_global_->subscribe(param_main_mission_topic_, 100, &Navigation_Main::MainMission_Callback, this);
             this->robot_path_tracker_cmd_vel_sub_ = this->nh_global_->subscribe(param_robot_path_tracker_cmd_vel_topic_, 100, &Navigation_Main::PathTrackerCmdVel_Callback, this);
@@ -187,36 +200,45 @@ double Navigation_Main::Distance_Between_A_and_B(geometry_msgs::Pose poseA, geom
 }
 
 // Callback function
-void Navigation_Main::Odom_Callback(const nav_msgs::Odometry::ConstPtr &msg) {
+void Navigation_Main::Odom_type0_Callback(const nav_msgs::Odometry::ConstPtr &msg) {
     robot_odom_ = msg->pose.pose;
+}
+void Navigation_Main::Odom_type1_Callback(const geometry_msgs::PoseWithCovariance::ConstPtr &msg) {
+    robot_odom_ = msg->pose;
 }
 
 void Navigation_Main::RobotMissionState_Callback(const std_msgs::Bool::ConstPtr &msg) {
     this->is_reach_goal_ = msg->data;
 
     if (param_active_ && is_mission_start_) {
-        is_mission_start_ = false;
-
         if (is_reach_goal_) {
+            is_mission_start_ = false;
+
             std_msgs::Bool temp;
             temp.data = true;
             main_mission_state_pub_.publish(temp);
-        } else {
-            std_msgs::Bool temp;
-            temp.data = false;
-            main_mission_state_pub_.publish(temp);
-            ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Unreachable Goal)");
-        }
 
-        this->mission_status_ == mission_type::IDLE;
-        this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
+            this->mission_status_ = mission_type::IDLE;
+            this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
+            ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
+        } else {
+            ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Unreachable Goal)");
+
+            // If there has some time remaining, retry to finish the mission.
+            // Otherwise, return failure to the goal. (The timeout handler will send this failure.)
+            ROS_WARN_STREAM("[" << param_node_name_ << "] : Resend mission ...");
+            if (this->mission_status_ == mission_type::DOCK_TRACKER) {
+                robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
+            } else {
+                robot_path_tracker_goal_pub_.publish(this->robot_goal_);
+            }
+        }
     }
 }
 
 void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
-    this->robot_goal_ = msg->pose;
-    this->SetTimeout(robot_goal_);
+    this->robot_goal_ = *msg;
+    this->SetTimeout(this->robot_goal_.pose);
     this->start_time_ = ros::Time::now();
     this->is_mission_start_ = true;
     this->is_reach_goal_ = false;
@@ -224,11 +246,11 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
     // Choose which mode we want to use here.
     if (msg->header.frame_id == "dock") {
         this->mission_status_ = mission_type::DOCK_TRACKER;
-        robot_dock_tracker_goal_pub_.publish(msg);
+        robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode.");
     } else {
         this->mission_status_ = mission_type::PATH_TRACKER;
-        robot_path_tracker_goal_pub_.publish(msg);
+        robot_path_tracker_goal_pub_.publish(this->robot_goal_);
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Path mode.");
     }
 
