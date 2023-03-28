@@ -1,122 +1,156 @@
 <launch>
-  <group ns="robot1">
-    <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
-    <!-- x y z r p y -->
-    <node pkg="tf" type="static_transform_publisher" name="map1_to_map2" args="0 0 0 0 0 0 robot1/map robot2/map 30" />
-    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="-0.01 0 0 3.1415926 0 0 robot1/base_link robot1/laser_frame 30" />
-    <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster" args="0 0.06 0.02 0 0 0 robot1/base_link robot1/imu 30" />
-    <node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.3 0 0 0 robot1/base_footprint robot1/base_link 30" />
-    <!-- <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 30" /> -->
 
-    <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
-    <!-- map to odom will be provided by the AMCL -->
-    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot1/map robot1/odom 30" />
+    <include file="$(find navigation_run)/launch/sim_two_no_rviz.launch" />
+    <include file="$(find navigation_main)/launch/main_rival.launch" />
 
     <!-- Initial Pose and Goal Publisher -->
     <!-- Publish: /initialpose, /move_base_simple/goal -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim1.rviz"/>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim_rival.rviz"/>
 
-    <!-- Map File -->
-    <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
+    <group ns="rival1">
+        <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
+        <!-- x y z r p y -->
+        <node pkg="tf" type="static_transform_publisher" name="map_to_rival1" args="0 0 0 0 0 0 map rival1/map 30" />
+        <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="-0.01 0 0 3.1415926 0 0 rival1/base_link rival1/laser_frame 30" />
+        <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster" args="0 0.06 0.02 0 0 0 rival1/base_link rival1/imu 30" />
+        <node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.3 0 0 0 rival1/base_footprint rival1/base_link 30" />
+        <!-- <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 30" /> -->
 
-    <!-- Map Server -->
-    <!-- Publish: /map, /map_metadata -->
-    <node pkg="map_server" name="map_server" type="map_server1" args="$(arg map_file)"/>
+        <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
+        <!-- map to odom will be provided by the AMCL -->
+        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 rival1/map rival1/odom 30" />
 
-    <!-- Robot odometry simulator-->
-    <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-    <node pkg="navigation_run" name="odometry" type="odom_tutorial1" />
+        <!-- Map File -->
+        <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
 
-    <!-- Move Base Node -->
-    <!-- Subscribe: /move_base_simple/goal -->
-    <!-- Publish: /cmd_vel -->
-    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-      <remap from="cmd_vel" to ="vel_obseleted" /> <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+        <!-- Map Server -->
+        <!-- Publish: /map, /map_metadata -->
+        <node pkg="map_server" name="map_server" type="map_server1" args="$(arg map_file)">
+            <param name="frame_id" value="rival1/map" />
+        </node>
 
-      <rosparam file="$(find navigation_run)/config/costmap_common_params1.yaml" command="load" ns="global_costmap" />
-      <rosparam file="$(find navigation_run)/config/costmap_common_params1.yaml" command="load" ns="local_costmap" />
-      <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load"  />
-      <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load"  />
+        <!-- Robot odometry simulator-->
+        <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
+        <node pkg="navigation_run" name="odometry" type="odometry_global_velocity" >
+            <param name="tf_prefix" value="rival1" />
+        </node>
 
-      <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
-      <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
-      <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
-    </node>
+        <!-- Move Base Node -->
+        <!-- Subscribe: /move_base_simple/goal -->
+        <!-- Publish: /cmd_vel -->
+        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+            <remap from="cmd_vel" to ="vel_obseleted" />
+            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
 
-    <!-- path_Tracker -->
-    <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
-        <remap from="global_filter" to="odom"/>
-        <remap from="cmd_vel" to="raw_cmd_vel"/> <!-- for lpf to filter the velocity -->
-        <rosparam file="$(find path_tracker)/params/pathTracker_test1.yaml" command="load" /> 
-    </node>
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params1.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params1.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
 
-    <!-- low pass filter on pt's cmd_vel -->
-    <node pkg="lpf" type="vel_lpf" name="vel_lpf">
-    </node>
+            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
+            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+        </node>
 
-    <!-- obstacle_simulation.launch -->
-    <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-    </include> -->
-  </group>
+        <!-- path_Tracker -->
+        <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+            <param name="frame" value="rival1/map" />
+            <remap from="global_filter" to="odom"/>
+            <remap from="cmd_vel" to="raw_cmd_vel"/>
+            <remap from="nav_goal" to="path_tracker_goal"/>
+            <!-- for lpf to filter the velocity -->
+            <rosparam file="$(find path_tracker)/params/pathTracker_sim.yaml" command="load" />
+        </node>
 
-  <group ns="robot2">
-    <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
-    <!-- x y z r p y -->
-    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="-0.01 0 0 3.1415926 0 0 robot2/base_link robot2/laser_frame 30" />
-    <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster" args="0 0.06 0.02 0 0 0 robot2/base_link robot2/imu 30" />
-    <node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.3 0 0 0 robot2/base_footprint robot2/base_link 30" />
-    <!-- <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 30" /> -->
+        <!-- low pass filter on pt's cmd_vel -->
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf" >
+            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
+            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
+        </node>
 
-    <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
-    <!-- map to odom will be provided by the AMCL -->
-    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot2/map robot2/odom 30" />
+        <!-- obstacle_simulation.launch -->
+        <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+        </include> -->
 
-    <!-- Initial Pose and Goal Publisher -->
-    <!-- Publish: /initialpose, /move_base_simple/goal -->
-    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim2.rviz"/> -->
+        <!-- docking_tracker -->
+        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" >
+            <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
+            <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
+            <remap from="dock_goal" to="dock_tracker_goal"/>
+        </node>
+    </group>
 
-    <!-- Map File -->
-    <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
+        <group ns="rival2">
+        <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
+        <!-- x y z r p y -->
+        <node pkg="tf" type="static_transform_publisher" name="map_to_rival1" args="0 0 0 0 0 0 map rival2/map 30" />
+        <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="-0.01 0 0 3.1415926 0 0 rival2/base_link rival2/laser_frame 30" />
+        <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster" args="0 0.06 0.02 0 0 0 rival2/base_link rival2/imu 30" />
+        <node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.3 0 0 0 rival2/base_footprint rival2/base_link 30" />
+        <!-- <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 30" /> -->
 
-    <!-- Map Server -->
-    <!-- Publish: /map, /map_metadata -->
-    <node pkg="map_server" name="map_server" type="map_server2" args="$(arg map_file)" />
+        <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
+        <!-- map to odom will be provided by the AMCL -->
+        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 rival2/map rival2/odom 30" />
 
-    <!-- Robot odometry simulator-->
-    <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-    <node pkg="navigation_run" name="odometry" type="odom_tutorial2" />
+        <!-- Map File -->
+        <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
 
-    <!-- Move Base Node -->
-    <!-- Subscribe: /move_base_simple/goal -->
-    <!-- Publish: /cmd_vel -->
-    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-      <remap from="cmd_vel" to ="vel_obseleted" /> <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
-      <rosparam file="$(find navigation_run)/config/costmap_common_params2.yaml" command="load" ns="global_costmap" />
-      <rosparam file="$(find navigation_run)/config/costmap_common_params2.yaml" command="load" ns="local_costmap" />
-      <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load"  />
-      <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load"  />
+        <!-- Map Server -->
+        <!-- Publish: /map, /map_metadata -->
+        <node pkg="map_server" name="map_server" type="map_server1" args="$(arg map_file)">
+            <param name="frame_id" value="rival2/map" />
+        </node>
 
-      <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
-      <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
-      <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
-    </node>
+        <!-- Robot odometry simulator-->
+        <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
+        <node pkg="navigation_run" name="odometry" type="odometry_global_velocity" >
+            <param name="tf_prefix" value="rival2" />
+        </node>
 
-    <!-- path_Tracker -->
-    <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
-        <remap from="global_filter" to="odom"/>
-        <remap from="cmd_vel" to="raw_cmd_vel"/> <!-- for lpf to filter the velocity -->
-        <rosparam file="$(find path_tracker)/params/pathTracker_test2.yaml" command="load" /> 
-    </node>
+        <!-- Move Base Node -->
+        <!-- Subscribe: /move_base_simple/goal -->
+        <!-- Publish: /cmd_vel -->
+        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+            <remap from="cmd_vel" to ="vel_obseleted" />
+            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
 
-    <!-- low pass filter on pt's cmd_vel -->
-    <node pkg="lpf" type="vel_lpf" name="vel_lpf">
-    </node>
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params2.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params2.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
 
-    <!-- obstacle_simulation.launch -->
-    <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-    </include> -->
-  </group>
-  <include file="$(find path_layer)/launch/Rival_Sim.launch">
-  
-  </include>
+            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
+            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+        </node>
+
+        <!-- path_Tracker -->
+        <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+            <param name="frame" value="rival2/map" />
+            <remap from="global_filter" to="odom"/>
+            <remap from="cmd_vel" to="raw_cmd_vel"/>
+            <remap from="nav_goal" to="path_tracker_goal"/>
+            <!-- for lpf to filter the velocity -->
+            <rosparam file="$(find path_tracker)/params/pathTracker_sim.yaml" command="load" />
+        </node>
+
+        <!-- low pass filter on pt's cmd_vel -->
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf" >
+            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
+            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
+        </node>
+
+        <!-- obstacle_simulation.launch -->
+        <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
+        </include> -->
+
+        <!-- docking_tracker -->
+        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" >
+            <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
+            <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
+            <remap from="dock_goal" to="dock_tracker_goal"/>
+        </node>
+    </group>
+
 </launch>

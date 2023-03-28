@@ -46,7 +46,7 @@ int main(int argc, char** argv){
     vy[2] = beta*vy[1] + (1-beta)*vy[0];
     vth[2] = beta*vth[1] + (1-beta)*vth[0];
 
-    ROS_INFO("%f %f\n", (ros::Time::now()).toSec(), vx[1]);
+    // ROS_INFO("%f %f\n", (ros::Time::now()).toSec(), vx[1]);
     // ROS_INFO("vy:\t%f\n", vy[1]);
     // ROS_INFO("vth:\t%f\n\n", vth[1]);
 

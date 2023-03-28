@@ -23,7 +23,7 @@
 
   <!-- Robot odometry simulator-->
   <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-  <node pkg="navigation_run" name="odometry" type="odom_tutorial" />
+  <node pkg="navigation_run" name="odometry" type="odometry" />
 
   <!-- Move Base Node -->
   <!-- Subscribe: /move_base_simple/goal -->
