@@ -7,6 +7,11 @@
         <arg name="default_active" default="true"/>
         <arg name="use_dynamic_reconfigure" default="false" />
 
+        <!-- 0 -> nav_msgs::Odometry -->
+        <!-- 1 -> geometry_msgs::PoseWithCovariance -->
+        <!-- Remember to change the topic name. -->
+        <arg name="odom_type" default="1" />
+
         <!-- Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout -->
         <!-- (timeout_a) should be [1 / (robot velocity)] -->
         <arg name="timeout_a" default="5.0" />
@@ -25,8 +30,9 @@
             <param name="update_frequency" type="double" value="$(arg update_frequency)" />
             <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
             <param name="update_params" value="$(arg update_params)" />
+            <param name="odom_type" value="$(arg odom_type)" />
 
-            <param name="robot_odom_topic" type="string" value="/robot2/odom" />
+            <param name="robot_odom_topic" type="string" value="/robot2/ekf_pose" />
             <param name="robot_mission_state_topic" type="string" value="/robot2/finishornot" />
             <param name="robot_path_tracker_goal_topic" type="string" value="/robot2/path_tracker_goal" />
             <param name="robot_dock_tracker_goal_topic" type="string" value="/robot2/dock_tracker_goal" />
