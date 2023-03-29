@@ -50,9 +50,8 @@
             <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
             <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
         </node>
-
-        <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
-
-
-    </group>    
+    </group>   
+    
+    <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
+ 
 </launch>
