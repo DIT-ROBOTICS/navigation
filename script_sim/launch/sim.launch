@@ -1,9 +1,9 @@
 <launch>
 
-    <node pkg="script_sim" type="point_to_point" name="point_to_point1" args="$(find script_sim)/config/script5_real_robot1_with_dock.yaml /robot1/mission /robot1/is_finish" output="screen">
+    <node pkg="script_sim" type="point_to_point" name="point_to_point1" args="$(find script_sim)/config/script4_real_robot1.yaml /robot1/mission /robot1/is_finish" output="screen">
     </node>
 
-    <node pkg="script_sim" type="point_to_point" name="point_to_point2" args="$(find script_sim)/config/script5_real_robot2_with_dock.yaml /robot2/mission /robot2/is_finish" output="screen">
+    <node pkg="script_sim" type="point_to_point" name="point_to_point2" args="$(find script_sim)/config/script5_real_robot2.yaml /robot2/mission /robot2/is_finish" output="screen">
     </node>
 
 </launch>
