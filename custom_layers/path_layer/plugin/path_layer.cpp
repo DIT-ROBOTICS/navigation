@@ -59,7 +59,7 @@ void PathLayer::onInitialize() {
             RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type0_CB, this);
             break;
         case 1:
-            OdomType = geometry_msgs_PoseWithCovariance;
+            OdomType = geometry_msgs_PoseWithCovarianceStamped;
             RobotOdom_Sub = nh.subscribe(RobotOdom_CB_TopicName, 1000, &PathLayer::RobotOdom_type1_CB, this);
             break;
     }
@@ -280,8 +280,8 @@ void PathLayer::RobotOdom_type0_CB(const nav_msgs::Odometry& Odom) {
     isRobotOdom = true;
     RobotOdomLastTime = ros::Time::now();
 }
-void PathLayer::RobotOdom_type1_CB(const geometry_msgs::PoseWithCovariance& Odom) {
-    this->RobotOdom_type1 = Odom;
+void PathLayer::RobotOdom_type1_CB(const geometry_msgs::PoseWithCovarianceStamped& Odom) {
+    this->RobotOdom_type1 = Odom.pose;
     isRobotOdom = true;
     RobotOdomLastTime = ros::Time::now();
 }
