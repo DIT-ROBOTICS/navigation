@@ -1,16 +1,11 @@
 <launch>
 
-    <include file="$(find navigation_main)/launch/sim_main_robot12.launch" />
+    <include file="$(find navigation_main)/launch/main_sim_robot12.launch" />
 
     <group ns="robot1">
         <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
         <!-- x y z r p y -->
         <node pkg="tf" type="static_transform_publisher" name="map_to_map1" args="0 0 0 0 0 0 map robot1/map 30" />
-        <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="-0.01 0 0 3.1415926 0 0 robot1/base_link robot1/laser_frame 30" />
-        <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster" args="0 0.06 0.02 0 0 0 robot1/base_link robot1/imu 30" />
-        <node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.3 0 0 0 robot1/base_footprint robot1/base_link 30" />
-        <!-- <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 30" /> -->
-
         <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
         <!-- map to odom will be provided by the AMCL -->
         <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot1/map robot1/odom 30" />
@@ -41,8 +36,8 @@
             <remap from="cmd_vel" to ="vel_obseleted" />
             <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
 
-            <rosparam file="$(find navigation_run)/config/costmap_common_params1.yaml" command="load" ns="global_costmap" />
-            <rosparam file="$(find navigation_run)/config/costmap_common_params1.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params1.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params1.yaml" command="load" ns="local_costmap" />
             <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
             <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
 
@@ -82,11 +77,6 @@
         <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
         <!-- x y z r p y -->
         <node pkg="tf" type="static_transform_publisher" name="map_to_map2" args="0 0 0 0 0 0 map robot2/map 30" />
-        <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="-0.01 0 0 3.1415926 0 0 robot2/base_link robot2/laser_frame 30" />
-        <node pkg="tf" type="static_transform_publisher" name="imu_broadcaster" args="0 0.06 0.02 0 0 0 robot2/base_link robot2/imu 30" />
-        <node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.3 0 0 0 robot2/base_footprint robot2/base_link 30" />
-        <!-- <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 30" /> -->
-
         <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
         <!-- map to odom will be provided by the AMCL -->
         <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot2/map robot2/odom 30" />
@@ -115,8 +105,8 @@
         <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
             <remap from="cmd_vel" to ="vel_obseleted" />
             <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
-            <rosparam file="$(find navigation_run)/config/costmap_common_params2.yaml" command="load" ns="global_costmap" />
-            <rosparam file="$(find navigation_run)/config/costmap_common_params2.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params2.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params2.yaml" command="load" ns="local_costmap" />
             <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
             <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
 
@@ -148,7 +138,7 @@
         <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
             <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
             <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
-            <remap from="nav_goal" to="dock_tracker_goal"/>
+            <remap from="dock_goal" to="dock_tracker_goal"/>
         </node>
     </group>
 

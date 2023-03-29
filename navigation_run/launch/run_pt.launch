@@ -1,5 +1,5 @@
 <launch>
-    <include file="$(find navigation_main)/launch/sim_main.launch" />
+    <include file="$(find navigation_main)/launch/main_run.launch" />
 
     <!-- Map File -->
     <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>

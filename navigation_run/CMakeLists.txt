@@ -156,7 +156,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(odometry_sim src/odometry.cpp)
+add_executable(odometry_sim src/odometry_sim.cpp)
 add_dependencies(odometry_sim ${catkin_EXPORTED_TARGETS})
 target_link_libraries(odometry_sim ${catkin_LIBRARIES})
 
