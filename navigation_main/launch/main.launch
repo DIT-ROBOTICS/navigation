@@ -8,9 +8,9 @@
         <arg name="use_dynamic_reconfigure" default="false" />
 
         <!-- 0 -> nav_msgs::Odometry -->
-        <!-- 1 -> geometry_msgs::PoseWithCovariance -->
+        <!-- 1 -> geometry_msgs::PoseWithCovarianceStamped -->
         <!-- Remember to change the topic name. -->
-        <arg name="odom_type" default="0" />
+        <arg name="odom_type" default="1" />
 
         <!-- Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout -->
         <!-- (timeout_a) should be [1 / (robot velocity)] -->

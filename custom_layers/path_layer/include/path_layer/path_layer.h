@@ -16,6 +16,7 @@
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/PoseWithCovariance.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "nav_msgs/Odometry.h"
 #include "nav_msgs/Path.h"
 
@@ -37,7 +38,7 @@ enum class ROBOT_TYPE {
 
 enum OdomCallbackType {
     nav_msgs_Odometry = 0,
-    geometry_msgs_PoseWithCovariance = 1
+    geometry_msgs_PoseWithCovarianceStamped = 1
 };
 
 // public costmap_2d::CostmapLayer
@@ -94,7 +95,7 @@ class PathLayer : public costmap_2d::CostmapLayer {
     void RobotPath_CB(const nav_msgs::Path& Path);
 
     void RobotOdom_type0_CB(const nav_msgs::Odometry& Odom);
-    void RobotOdom_type1_CB(const geometry_msgs::PoseWithCovariance& Odom);
+    void RobotOdom_type1_CB(const geometry_msgs::PoseWithCovarianceStamped& Odom);
 
     // Time
     ros::Time RobotPathLastTime;
