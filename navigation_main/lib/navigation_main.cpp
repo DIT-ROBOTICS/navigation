@@ -80,7 +80,7 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
         ROS_INFO_STREAM("[" << param_node_name_ << "] : use_dynamic_reconfigure set to " << param_use_dynamic_reconfigure_);
     }
     if (this->nh_local_->param<int>("odom_type", temp_odom_type_, 0)) {
-        this->odom_type_ = (temp_odom_type_ == 0) ? odom_callback_type::nav_msgs_Odometry : odom_callback_type::geometry_msgs_PoseWithCovariance;
+        this->odom_type_ = (temp_odom_type_ == 0) ? odom_callback_type::nav_msgs_Odometry : odom_callback_type::geometry_msgs_PoseWithCovarianceStamped;
         ROS_INFO_STREAM("[" << param_node_name_ << "] : odom type set to " << temp_odom_type_);
     }
     if (this->nh_local_->param<double>("update_frequency", param_update_frequency_, 5.0)) {
@@ -135,7 +135,7 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
                 case odom_callback_type::nav_msgs_Odometry:
                     this->robot_odom_sub_ = this->nh_global_->subscribe(param_robot_odom_topic_, 100, &Navigation_Main::Odom_type0_Callback, this);
                     break;
-                case odom_callback_type::geometry_msgs_PoseWithCovariance:
+                case odom_callback_type::geometry_msgs_PoseWithCovarianceStamped:
                     this->robot_odom_sub_ = this->nh_global_->subscribe(param_robot_odom_topic_, 100, &Navigation_Main::Odom_type1_Callback, this);
                     break;
             }
@@ -203,8 +203,8 @@ double Navigation_Main::Distance_Between_A_and_B(geometry_msgs::Pose poseA, geom
 void Navigation_Main::Odom_type0_Callback(const nav_msgs::Odometry::ConstPtr &msg) {
     robot_odom_ = msg->pose.pose;
 }
-void Navigation_Main::Odom_type1_Callback(const geometry_msgs::PoseWithCovariance::ConstPtr &msg) {
-    robot_odom_ = msg->pose;
+void Navigation_Main::Odom_type1_Callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) {
+    robot_odom_ = msg->pose.pose;
 }
 
 void Navigation_Main::RobotMissionState_Callback(const std_msgs::Bool::ConstPtr &msg) {
