@@ -10,8 +10,8 @@ waiting_timeout: 5
 # acceleration
 # linear_max_velocity: 0.7 #0.4
 # linear_acceleration: 0.5 #0.2
-linear_max_velocity: 0.3 #0.4
-linear_acceleration: 0.15 #0.2
+linear_max_velocity: 0.4 #0.4
+linear_acceleration: 0.2 #0.2
 linear_acceleration_profile: linear
 
 # transition
@@ -33,8 +33,8 @@ linear_deceleration_profile: linear
 # angular_max_velocity: 2.2 # 1.5
 # angular_acceleration: 1.3 # 0.7
 
-angular_max_velocity: 0.8 # 1.5
-angular_acceleration: 0.4 # 0.7
+angular_max_velocity: 0.4 # 1.5
+angular_acceleration: 0.3 # 0.7
 
 # angular_max_velocity: 1.5 # 1.5
 # angular_acceleration: 0.7 # 0.7
