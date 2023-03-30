@@ -726,14 +726,14 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
                 {
                     double acc = pow(linear_max_vel_, 2) / 2 / linear_brake_distance_;
                     output_vel = sqrt(2 * acc * xy_err);
-                    // if (output_vel < 0.25)
-                    // {
-                    //     double output_vel_ = xy_err * linear_kp_;
-                    //     if (output_vel_ < output_vel)
-                    //     {
-                    //         output_vel = output_vel_;
-                    //     }
-                    // }
+                    if (output_vel < 0.25)
+                    {
+                        double output_vel_ = xy_err * linear_kp_;
+                        if (output_vel_ < output_vel)
+                        {
+                            output_vel = output_vel_;
+                        }
+                    }
                 }
                 else if (linear_deceleration_profile_ == "p_control")
                 {

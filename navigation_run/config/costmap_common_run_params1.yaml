@@ -83,11 +83,11 @@
       Robot:
         CostScalingFactor: 10
         InscribedRadius: 0.15 # Unit: m
-        InflationRadius: 0.35 # Unit: m (MaxDistance)
+        InflationRadius: 0.45 # Unit: m (MaxDistance)
       Rival:
         CostScalingFactor: 10
         InscribedRadius: 0.15         # Unit: m
-        InflationRadius: 0.4         # Unit: m (MaxDistance)
+        InflationRadius: 0.45         # Unit: m (MaxDistance)
         InscribedRadiusDecline: 0.85  # Unit: m / Resolution
 
     # Topic Name
