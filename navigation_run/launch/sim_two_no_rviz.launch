@@ -1,6 +1,12 @@
 <launch>
 
-    <include file="$(find navigation_main)/launch/main_sim_robot12.launch" />
+    <include file="$(find navigation_main)/launch/main_sim_robot12.launch">
+
+        <!-- 0 -> nav_msgs::Odometry -->
+        <!-- 1 -> geometry_msgs::PoseWithCovarianceStamped -->
+        <!-- Remember to change the topic name. -->
+        <arg name="odom_type" value="0"/>
+    </include>
 
     <group ns="robot1">
         <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
@@ -25,7 +31,7 @@
 
         <!-- Robot odometry simulator-->
         <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry_sim" >
+        <node pkg="navigation_run" name="odometry" type="odometry_sim">
             <param name="tf_prefix" value="robot1" />
         </node>
 
@@ -101,7 +107,7 @@
         </node>
         <!-- Robot odometry simulator-->
         <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry_sim" >
+        <node pkg="navigation_run" name="odometry" type="odometry_sim">
             <param name="tf_prefix" value="robot2" />
         </node>
 

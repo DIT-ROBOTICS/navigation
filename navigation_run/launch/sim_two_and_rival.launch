@@ -31,7 +31,7 @@
 
         <!-- Robot odometry simulator-->
         <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry_global_velocity" >
+        <node pkg="navigation_run" name="odometry" type="odometry_global_velocity">
             <param name="tf_prefix" value="rival1" />
         </node>
 
@@ -63,7 +63,7 @@
         </node>
 
         <!-- low pass filter on pt's cmd_vel -->
-        <node pkg="lpf" type="vel_lpf" name="vel_lpf" >
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf">
             <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
             <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
         </node>
@@ -73,7 +73,7 @@
         </include> -->
 
         <!-- docking_tracker -->
-        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" >
+        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim">
             <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
             <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
             <remap from="dock_goal" to="dock_tracker_goal"/>
@@ -104,7 +104,7 @@
 
         <!-- Robot odometry simulator-->
         <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry_global_velocity" >
+        <node pkg="navigation_run" name="odometry" type="odometry_global_velocity">
             <param name="tf_prefix" value="rival2" />
         </node>
 
@@ -136,7 +136,7 @@
         </node>
 
         <!-- low pass filter on pt's cmd_vel -->
-        <node pkg="lpf" type="vel_lpf" name="vel_lpf" >
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf">
             <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
             <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
         </node>
@@ -146,7 +146,7 @@
         </include> -->
 
         <!-- docking_tracker -->
-        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" >
+        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim">
             <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
             <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
             <remap from="dock_goal" to="dock_tracker_goal"/>
