@@ -6,66 +6,61 @@
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
 #include "yaml-cpp/yaml.h"
+
 using namespace std;
-double check = 1;
+
+bool check = true;
+
+geometry_msgs::PoseStamped goal_point;
+YAML::Node pathConfig;
+int path_length;
+tf2::Quaternion qt;
 
 void Check(const std_msgs::Bool::ConstPtr& msg) {
-    check = 1;
-    if(!msg->data)
-    {
+    check = true;
+    if (!msg->data) {
         ROS_INFO("script_sim: cannot arrive the goal, next point!");
     }
-    
 }
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "point_to_point");
     ros::NodeHandle nh;
 
+    string PathName(argv[1]);
     string PubName(argv[2]);
-    ros::Publisher pub = nh.advertise<geometry_msgs::PoseStamped>(PubName, 10);
-
     string SubName(argv[3]);
-    ros::Subscriber sub = nh.subscribe(SubName, 10, Check);
+
+    pathConfig = YAML::LoadFile(PathName);
+    ros::Publisher pub = nh.advertise<geometry_msgs::PoseStamped>(PubName, 100);
+    ros::Subscriber sub = nh.subscribe(SubName, 100, Check);
+
+    ros::Duration(2).sleep();
+
     ros::Rate loop_rate(1);
 
-    string PathName(argv[1]);
-
-    geometry_msgs::PoseStamped goal_point;
-    YAML::Node pathConfig = YAML::LoadFile(PathName);
-
-    loop_rate.sleep();
     for (auto goal : pathConfig) {
         if (!ros::ok()) {
             break;
         }
-        string goal_type = goal["xyz"][0].as<string>();
-        // std::cout << goal_type << std::endl;
-        if(goal_type == "path") {
-            goal_point.header.frame_id = "path";
-        }else if(goal_type == "dock"){
-            goal_point.header.frame_id = "dock";
-        }
-        
+
+        goal_point.header.frame_id = goal["xyz"][0].as<string>();
         goal_point.pose.position.x = goal["xyz"][1].as<double>();
         goal_point.pose.position.y = goal["xyz"][2].as<double>();
-
-        tf2::Quaternion qt;
         qt.setRPY(0, 0, goal["xyz"][3].as<double>());
 
         goal_point.pose.orientation.x = qt.x();
         goal_point.pose.orientation.y = qt.y();
         goal_point.pose.orientation.z = qt.z();
         goal_point.pose.orientation.w = qt.w();
+
         pub.publish(goal_point);
-        check = 0;
-        // cout << "x" << goal["xyz"][0].as<double>() << endl;
-        // cout << "y" << goal["xyz"][1].as<double>() << endl;
-        // cout << "z" << goal["xyz"][2].as<double>() << endl;
-        while (check == 0 && ros::ok()) {
+
+        check = false;
+        while (!check && ros::ok()) {
             ros::spinOnce();
+            loop_rate.sleep();
         }
-        loop_rate.sleep();
     }
 
     return 0;
