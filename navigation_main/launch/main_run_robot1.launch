@@ -1,24 +1,23 @@
 <launch>
+    <!-- Parameter -->
+    <arg name="update_frequency" default="20.0" />
+    <arg name="update_params" default="false" />
+    <arg name="default_active" default="true"/>
+    <arg name="use_dynamic_reconfigure" default="false" />
+
+    <!-- 0 -> nav_msgs::Odometry -->
+    <!-- 1 -> geometry_msgs::PoseWithCovariance -->
+    <!-- Remember to change the topic name. -->
+    <arg name="odom_type" default="1" />
+
+    <!-- Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout -->
+    <!-- (timeout_a) should be [1 / (robot velocity)] -->
+    <arg name="timeout_a" default="100.0" />
+    <arg name="timeout_b" default="5.0" />
+    <arg name="min_timeout" default="10.0" />
+    <arg name="max_timeout" default="100.0" />
+
     <group ns="navigaton_main">
-
-        <!-- Parameter -->
-        <arg name="update_frequency" default="20.0" />
-        <arg name="update_params" default="false" />
-        <arg name="default_active" default="true"/>
-        <arg name="use_dynamic_reconfigure" default="false" />
-
-        <!-- 0 -> nav_msgs::Odometry -->
-        <!-- 1 -> geometry_msgs::PoseWithCovariance -->
-        <!-- Remember to change the topic name. -->
-        <arg name="odom_type" default="1" />
-
-        <!-- Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout -->
-        <!-- (timeout_a) should be [1 / (robot velocity)] -->
-        <arg name="timeout_a" default="100.0" />
-        <arg name="timeout_b" default="5.0" />
-        <arg name="min_timeout" default="10.0" />
-        <arg name="max_timeout" default="100.0" />
-
         <!--  Node  -->
         <node pkg="navigation_main" name="navigation_main_1" type="navigation_main_node" args="navigation_main_1" output="screen">
 
@@ -43,6 +42,6 @@
             <param name="main_mission_state_topic" type="string" value="/robot1/is_finish" />
 
         </node>
-        
+
     </group>
 </launch>
