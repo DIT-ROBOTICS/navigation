@@ -134,18 +134,18 @@ namespace move_base {
     controller_costmap_ros_->pause();
 
     //create a local planner
-    try {
-      tc_ = blp_loader_.createInstance(local_planner);
-      ROS_INFO("Created local_planner %s", local_planner.c_str());
-      tc_->initialize(blp_loader_.getName(local_planner), &tf_, controller_costmap_ros_);
-    } catch (const pluginlib::PluginlibException& ex) {
-      ROS_FATAL("Failed to create the %s planner, are you sure it is properly registered and that the containing library is built? Exception: %s", local_planner.c_str(), ex.what());
-      exit(1);
-    }
+    // try {
+    //   tc_ = blp_loader_.createInstance(local_planner);
+    //   ROS_INFO("Created local_planner %s", local_planner.c_str());
+    //   tc_->initialize(blp_loader_.getName(local_planner), &tf_, controller_costmap_ros_);
+    // } catch (const pluginlib::PluginlibException& ex) {
+    //   ROS_FATAL("Failed to create the %s planner, are you sure it is properly registered and that the containing library is built? Exception: %s", local_planner.c_str(), ex.what());
+    //   exit(1);
+    // }
 
     // Start actively updating costmaps based on sensor data
     planner_costmap_ros_->start();
-    controller_costmap_ros_->start();
+    // controller_costmap_ros_->start();
 
     //advertise a service for getting a plan
     make_plan_srv_ = private_nh.advertiseService("make_plan", &MoveBase::planService, this);

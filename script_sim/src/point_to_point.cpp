@@ -43,8 +43,14 @@ int main(int argc, char** argv) {
         if (!ros::ok()) {
             break;
         }
-
-        goal_point.header.frame_id = goal["xyz"][0].as<string>();
+        string goal_type = goal["xyz"][0].as<string>();
+        // std::cout << goal_type << std::endl;
+        if(goal_type == "path") {
+            goal_point.header.frame_id = "path";
+        }else if(goal_type == "dock"){
+            goal_point.header.frame_id = "dock";
+        }
+        goal_point.header.frame_id = goal_type;
         goal_point.pose.position.x = goal["xyz"][1].as<double>();
         goal_point.pose.position.y = goal["xyz"][2].as<double>();
         qt.setRPY(0, 0, goal["xyz"][3].as<double>());
