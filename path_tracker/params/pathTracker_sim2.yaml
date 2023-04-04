@@ -1,5 +1,4 @@
 active: true
-robot_type: omni
 frame: robot2/map
 control_frequency: 30
 lookahead_distance: 0.1

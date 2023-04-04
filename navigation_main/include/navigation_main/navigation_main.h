@@ -112,20 +112,20 @@ class Navigation_Main {
     bool is_mission_start_;
     bool is_reach_goal_;
 
-    enum class mission_type {
+    enum class MISSION_TYPE {
         PATH_TRACKER = 0,
         DOCK_TRACKER = 1,
         RESEND_PATH_GOAL = 2,
         RESEND_DOCK_GOAL = 3,
         IDLE = 4
     };
-    mission_type mission_status_;
+    MISSION_TYPE mission_status_;
 
-    enum class odom_callback_type {
+    enum class ODOM_CALLBACK_TYPE {
         nav_msgs_Odometry = 0,
         geometry_msgs_PoseWithCovarianceStamped = 1
     };
-    odom_callback_type odom_type_;
+    ODOM_CALLBACK_TYPE odom_type_;
 
     // Timeout
     ros::Time start_time_;

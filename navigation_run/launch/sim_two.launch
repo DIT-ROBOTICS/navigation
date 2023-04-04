@@ -53,7 +53,7 @@
         </node>
 
         <!-- path_Tracker -->
-        <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+        <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
             <remap from="nav_goal" to="path_tracker_goal"/>
@@ -122,7 +122,7 @@
         </node>
 
         <!-- path_Tracker -->
-        <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+        <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
             <remap from="nav_goal" to="path_tracker_goal"/>

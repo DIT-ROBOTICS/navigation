@@ -155,6 +155,18 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(pathTracker src/pathTracker.cpp)
+add_dependencies(pathTracker ${catkin_EXPORTED_TARGETS})
+target_link_libraries(pathTracker ${catkin_LIBRARIES})
+
+add_executable(dockTracker src/dockTracker.cpp)
+add_dependencies(dockTracker ${catkin_EXPORTED_TARGETS})
+target_link_libraries(dockTracker ${catkin_LIBRARIES})
+
+add_executable(dockTracker_sim src/dockTracker_sim.cpp)
+add_dependencies(dockTracker_sim ${catkin_EXPORTED_TARGETS})
+target_link_libraries(dockTracker_sim ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
@@ -209,21 +221,3 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-add_executable(pathTracker src/pathTracker.cpp)
-add_dependencies(pathTracker ${catkin_EXPORTED_TARGETS})
-target_link_libraries(pathTracker ${catkin_LIBRARIES})
-
-add_executable(pathTracker_sim src/pathTracker_sim.cpp)
-add_dependencies(pathTracker_sim ${catkin_EXPORTED_TARGETS})
-target_link_libraries(pathTracker_sim ${catkin_LIBRARIES})
-
-add_executable(dockTracker src/dockTracker.cpp)
-add_dependencies(dockTracker ${catkin_EXPORTED_TARGETS})
-target_link_libraries(dockTracker ${catkin_LIBRARIES})
-
-add_executable(dockTracker_sim src/dockTracker_sim.cpp)
-add_dependencies(dockTracker_sim ${catkin_EXPORTED_TARGETS})
-target_link_libraries(dockTracker_sim ${catkin_LIBRARIES})
-
-#set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
