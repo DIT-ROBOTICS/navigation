@@ -54,8 +54,8 @@
 
         <!-- path_Tracker -->
         <include file="$(find path_tracker)/launch/pathTracker.launch">
-            <arg name="config_file" value="pathTracker_sim1"/>
             <arg name="isSim" value="$(arg isSim)" />
+            <arg name="isRobot1" value="true" />
         </include>
 
         <!-- low pass filter on pt's cmd_vel -->
@@ -116,7 +116,7 @@
 
         <!-- path_Tracker -->
         <include file="$(find path_tracker)/launch/pathTracker.launch">
-            <arg name="config_file" value="pathTracker_sim2"/>
+            <arg name="isRobot1" value="false" />
             <arg name="isSim" value="$(arg isSim)" />
         </include>
 

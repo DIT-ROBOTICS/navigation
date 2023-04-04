@@ -1,7 +1,7 @@
 <launch>
 
     <arg name="isSim" default="true" />
-    <arg name="config_file" default="pathTracker_sim1" />
+    <arg name="isRobot1" default="true" />
 
     <!-- 0 -> nav_msgs::Odometry -->
     <!-- 1 -> geometry_msgs::PoseWithCovarianceStamped -->
@@ -14,11 +14,14 @@
         <remap from="cmd_vel" to="raw_cmd_vel" />
         <remap from="nav_goal" to="path_tracker_goal" />
 
-        <rosparam file="$(find path_tracker)/params/$(arg config_file).yaml" command="load" />
+        <rosparam file="$(find path_tracker)/params/pathTracker.yaml" command="load" />
 
         <param name="odom_type" type="int" value="$(arg odom_type)" />
         <param name="odom_topic_name" type="string" value="odom" if="$(arg isSim)" />
         <param name="odom_topic_name" type="string" value="ekf_pose" unless="$(arg isSim)" />
+
+        <param name="frame" type="string" value="robot1/map" if="$(arg isRobot1)" />
+        <param name="frame" type="string" value="robot2/map" unless="$(arg isRobot1)" />
 
     </node>
 
