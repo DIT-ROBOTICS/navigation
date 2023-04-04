@@ -17,6 +17,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Char.h>
 #include <ros/time.h>
 
 enum class Mode
@@ -93,7 +94,7 @@ class pathTracker
     bool xy_goal_reached(RobotState cur_pose_, RobotState goal_pose_);
     bool theta_goal_reached(RobotState cur_pose_, RobotState goal_pose_);
 
-    // Goal rquest from Main and Path received from global planner
+    // Goal request from Main and Path received from global planner
     std::vector<RobotState> global_path_;
     std::vector<RobotState> global_path_past_;
 
@@ -158,9 +159,8 @@ class pathTracker
     ros::Time t_bef_;
     ros::Time t_now_;
     double dt_;
-    
+
     // check if goal is blocked after goal received
     bool new_goal;
     bool if_goal_is_blocked_;
-
 };

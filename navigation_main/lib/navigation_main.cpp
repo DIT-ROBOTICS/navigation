@@ -45,17 +45,9 @@ double Navigation_Main::GetUpdateFrequency() {
 }
 
 void Navigation_Main::Loop() {
+    // Fail to reach the goal (Timeout)
     if (param_active_ && is_mission_start_ && isTimeout()) {
-        is_mission_start_ = false;
-
-        std_msgs::Bool temp;
-        temp.data = false;
-        main_mission_state_pub_.publish(temp);
-
-        this->mission_status_ = mission_type::IDLE;
-        this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
-        ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Timeout)");
-        ROS_ERROR_STREAM("[" << param_node_name_ << "] : Mission Failed.");
+        FailToGoal();
     }
 
     this->robot_cmd_vel_pub_.publish(this->robot_cmd_vel_);
@@ -82,6 +74,12 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
     if (this->nh_local_->param<int>("odom_type", temp_odom_type_, 0)) {
         this->odom_type_ = (temp_odom_type_ == 0) ? odom_callback_type::nav_msgs_Odometry : odom_callback_type::geometry_msgs_PoseWithCovarianceStamped;
         ROS_INFO_STREAM("[" << param_node_name_ << "] : odom type set to " << temp_odom_type_);
+    }
+    if (this->nh_local_->param<int>("resend_goal_time", param_resend_goal_time_, 1)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : resend goal time set to " << param_resend_goal_time_);
+    }
+    if (this->nh_local_->param<double>("resend_goal_frequency", param_resend_goal_frequency_, 1.0)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : resend goal frequency set to " << param_resend_goal_frequency_);
     }
     if (this->nh_local_->param<double>("update_frequency", param_update_frequency_, 5.0)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : update frequency set to " << param_update_frequency_);
@@ -150,10 +148,15 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
             this->robot_path_tracker_goal_pub_ = this->nh_global_->advertise<geometry_msgs::PoseStamped>(param_robot_path_tracker_goal_topic_, 100);
             this->robot_dock_tracker_goal_pub_ = this->nh_global_->advertise<geometry_msgs::PoseStamped>(param_robot_dock_tracker_goal_topic_, 100);
 
+            // Create Timer for resend goal.
+            this->resend_goal_timer_ = nh_local_->createTimer(ros::Duration(param_resend_goal_frequency_), &Navigation_Main::ResendGoal_Callback, this, false, false);
+
+            // Service for Update params.
             if (this->param_update_params_) {
                 this->param_srv_ = nh_local_->advertiseService("params", &Navigation_Main::UpdateParams, this);
             }
 
+            // Init Dynamic Reconfigure
             if (this->param_use_dynamic_reconfigure_) {
                 this->SetDynamicReconfigure();
             }
@@ -167,6 +170,8 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
             this->robot_dock_tracker_cmd_vel_sub_.shutdown();
             this->main_mission_state_sub_.shutdown();
             this->main_mission_state_pub_.shutdown();
+
+            this->resend_goal_timer_.stop();
 
             if (this->param_update_params_) {
                 this->param_srv_.shutdown();
@@ -207,30 +212,49 @@ void Navigation_Main::Odom_type1_Callback(const geometry_msgs::PoseWithCovarianc
     robot_odom_ = msg->pose.pose;
 }
 
-void Navigation_Main::RobotMissionState_Callback(const std_msgs::Bool::ConstPtr &msg) {
-    this->is_reach_goal_ = msg->data;
-
+void Navigation_Main::RobotMissionState_Callback(const std_msgs::Char::ConstPtr &msg) {
     if (param_active_ && is_mission_start_) {
-        if (is_reach_goal_) {
+        if (msg->data == 1) {
             is_mission_start_ = false;
+            is_reach_goal_ = true;
 
+            // Publish to main for finish mission.
             std_msgs::Bool temp;
             temp.data = true;
             main_mission_state_pub_.publish(temp);
 
-            this->mission_status_ = mission_type::IDLE;
-            this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
+            mission_status_ = mission_type::IDLE;
+            robot_cmd_vel_.linear.x = robot_cmd_vel_.linear.y = robot_cmd_vel_.angular.z = 0.0;
+            resend_goal_timer_.stop();
             ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission end.");
-        } else {
-            ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Unreachable Goal)");
 
-            // If there has some time remaining, retry to finish the mission.
-            // Otherwise, return failure to the goal. (The timeout handler will send this failure.)
-            ROS_WARN_STREAM("[" << param_node_name_ << "] : Resend mission ...");
-            if (this->mission_status_ == mission_type::DOCK_TRACKER) {
-                robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
-            } else {
-                robot_path_tracker_goal_pub_.publish(this->robot_goal_);
+        } else if (msg->data == 2) {
+            // The goal is blocked.
+            is_reach_goal_ = false;
+            if (mission_status_ != mission_type::RESEND_PATH_GOAL && mission_status_ != mission_type::RESEND_DOCK_GOAL) {
+                ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Unreachable Goal)");
+
+                // If there has some time remaining, retry to finish the mission.
+                // Otherwise, return failure to the goal. (The timeout handler will send this failure.)
+                robot_cmd_vel_.linear.x = robot_cmd_vel_.linear.y = robot_cmd_vel_.angular.z = 0.0;
+                if (mission_status_ == mission_type::DOCK_TRACKER) {
+                    mission_status_ = mission_type::RESEND_DOCK_GOAL;
+                } else {
+                    mission_status_ = mission_type::RESEND_PATH_GOAL;
+                }
+
+                // Start the resend timer;
+                resend_goal_time_ = 0;
+                resend_goal_timer_.start();
+            }
+        } else if (msg->data == 0) {
+            // The goal is not blocked, going to goal.
+            is_reach_goal_ = false;
+            resend_goal_timer_.stop();
+            if (mission_status_ == mission_type::RESEND_PATH_GOAL) {
+                mission_status_ = mission_type::PATH_TRACKER;
+            } else if (mission_status_ == mission_type::RESEND_DOCK_GOAL) {
+                mission_status_ = mission_type::DOCK_TRACKER;
             }
         }
     }
@@ -242,6 +266,7 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
     this->start_time_ = ros::Time::now();
     this->is_mission_start_ = true;
     this->is_reach_goal_ = false;
+    this->resend_goal_timer_.stop();
 
     // Choose which mode we want to use here.
     if (msg->header.frame_id == "dock") {
@@ -258,20 +283,55 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
 }
 
 void Navigation_Main::PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs) {
-    if (this->mission_status_ == mission_type::PATH_TRACKER) {
-        this->robot_cmd_vel_ = *msgs;
+    if (mission_status_ == mission_type::PATH_TRACKER) {
+        robot_cmd_vel_ = *msgs;
     }
 }
 
 void Navigation_Main::DockTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs) {
-    if (this->mission_status_ == mission_type::DOCK_TRACKER) {
-        this->robot_cmd_vel_ = *msgs;
+    if (mission_status_ == mission_type::DOCK_TRACKER) {
+        robot_cmd_vel_ = *msgs;
     }
 }
 
-void Navigation_Main::DynamicParam_Callback(navigation_main::navigation_main_paramConfig &config, uint32_t level) {
+void Navigation_Main::DynamicParam_Callback(const navigation_main::navigation_main_paramConfig &config, uint32_t level) {
     if (param_active_ != config.active) {
         this->param_active_ = config.active;
         ROS_INFO_STREAM("[" << param_node_name_ << "] : active set to " << param_active_);
     }
+}
+
+void Navigation_Main::ResendGoal_Callback(const ros::TimerEvent &event) {
+    if (++resend_goal_time_ > param_resend_goal_time_) {
+        FailToGoal();
+        return;
+    }
+
+    ROS_WARN_STREAM("[" << param_node_name_ << "] : Resend mission : " << resend_goal_time_ << "th times.");
+
+    if (mission_status_ == mission_type::RESEND_DOCK_GOAL) {
+        robot_dock_tracker_goal_pub_.publish(robot_goal_);
+    } else if (mission_status_ == mission_type::RESEND_PATH_GOAL) {
+        robot_path_tracker_goal_pub_.publish(robot_goal_);
+    }
+}
+
+void Navigation_Main::FailToGoal() {
+    if (mission_status_ == mission_type::PATH_TRACKER || mission_status_ == mission_type::DOCK_TRACKER) {
+        ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Timeout)");
+    } else if (mission_status_ == mission_type::RESEND_PATH_GOAL || mission_status_ == mission_type::RESEND_DOCK_GOAL) {
+        ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Timeout for resending goal)");
+    }
+    ROS_ERROR_STREAM("[" << param_node_name_ << "] : Mission Failed.");
+
+    is_mission_start_ = false;
+
+    // Publish to main for fail to finish mission.
+    std_msgs::Bool temp;
+    temp.data = false;
+    main_mission_state_pub_.publish(temp);
+
+    this->mission_status_ = mission_type::IDLE;
+    this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
+    resend_goal_timer_.stop();
 }

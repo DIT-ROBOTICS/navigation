@@ -11,27 +11,28 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_srvs/Empty.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Char.h>
 
-
-class DockTracker{
-public:
+class DockTracker
+{
+  public:
     DockTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local);
     ~DockTracker();
     bool initializeParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
     void initialize();
 
-private:
+  private:
     ros::NodeHandle nh_;
     ros::NodeHandle nh_local_;
     ros::ServiceServer params_srv_;
-    
+
     // Subscriber
     ros::Subscriber goal_sub_;
     ros::Subscriber pose_sub_;
     void goalCB(const geometry_msgs::PoseStamped& data);
     // void poseCB(const nav_msgs::Odometry& data);
     void poseCB(const geometry_msgs::PoseWithCovarianceStamped& data);
-    
+
     // Publisher
     ros::Publisher pub_;
     ros::Publisher goalreachedPub_;

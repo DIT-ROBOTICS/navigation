@@ -180,7 +180,8 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 
         case Mode::TRACKING: {
             // goal reached
-            if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_) && !if_goal_is_blocked_)
+            if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_) &&
+                !if_goal_is_blocked_)
             {
                 ROS_INFO("Working Mode : GOAL REACHED !");
                 switchMode(Mode::IDLE);
@@ -212,7 +213,7 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
             {
                 // dynamic wei
                 RobotState local_goal;
-                if(!plannerClient(cur_pose_, goal_pose_))
+                if (!plannerClient(cur_pose_, goal_pose_))
                 {
                     local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
                     goal_pose_.x_ = local_goal.x_;
@@ -220,15 +221,14 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                     goal_pose_.theta_ = local_goal.theta_;
 
                     global_path_past_ = global_path_;
-                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_, local_goal.y_);
-                    // switchMode(Mode::TRACKING);
+                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_,
+                    // local_goal.y_); switchMode(Mode::TRACKING);
                     if_globalpath_switched = false;
                     if_goal_is_blocked_ = true;
                     // publish /finishornot
                     std_msgs::Bool goalreached;
                     goalreached.data = false;
                     goalreachedPub_.publish(goalreached);
-                    if_goal_is_blocked_ = false;
                     return;
                 }
                 local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
@@ -265,10 +265,10 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
 
             if (robot_type_ == "omni")
             {
-
                 RobotState local_goal;
-                // if the new goal has no path to reach, just change the goal to the local_goal which belong to past_path  
-                if(!plannerClient(cur_pose_, goal_pose_))
+                // if the new goal has no path to reach, just change the goal to the local_goal which belong to
+                // past_path
+                if (!plannerClient(cur_pose_, goal_pose_))
                 {
                     local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
                     goal_pose_.x_ = local_goal.x_;
@@ -276,7 +276,8 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                     goal_pose_.theta_ = local_goal.theta_;
 
                     global_path_past_ = global_path_;
-                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_, local_goal.y_);
+                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_,
+                    // local_goal.y_);
                     switchMode(Mode::TRACKING);
                     if_globalpath_switched = false;
                     if_goal_is_blocked_ = true;
@@ -285,7 +286,6 @@ void pathTracker::timerCallback(const ros::TimerEvent& e)
                     std_msgs::Bool goalreached;
                     goalreached.data = false;
                     goalreachedPub_.publish(goalreached);
-                    if_goal_is_blocked_ = false;
                     return;
                 }
                 local_goal = rollingWindow(cur_pose_, global_path_past_, lookahead_d_);
@@ -452,7 +452,7 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
             std_msgs::Bool goalreached;
             goalreached.data = false;
             goalreachedPub_.publish(goalreached);
-            
+
             return;
         }
         if_goal_is_blocked_ = false;
