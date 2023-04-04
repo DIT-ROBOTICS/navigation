@@ -114,10 +114,10 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_cmd_vel_topic_);
     }
     if (this->nh_local_->param<std::string>("robot_path_tracker_cmd_vel_topic", param_robot_path_tracker_cmd_vel_topic_, "/robot1/path_tracker_cmd_vel")) {
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_path_tracker_cmd_vel_topic_);
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_robot_path_tracker_cmd_vel_topic_);
     }
     if (this->nh_local_->param<std::string>("robot_dock_tracker_cmd_vel_topic", param_robot_dock_tracker_cmd_vel_topic_, "/robot1/dock_tracker_cmd_vel")) {
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Publish topic " << param_robot_dock_tracker_cmd_vel_topic_);
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_robot_dock_tracker_cmd_vel_topic_);
     }
     if (this->nh_local_->param<std::string>("main_mission_topic", param_main_mission_topic_, "/navigation_main_1/mission")) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_main_mission_topic_);
@@ -260,7 +260,6 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
 void Navigation_Main::PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs) {
     if (this->mission_status_ == mission_type::PATH_TRACKER) {
         this->robot_cmd_vel_ = *msgs;
-        // ROS_INFO("received cmd_vel! %f", this->robot_cmd_vel_.linear.x);
     }
 }
 
