@@ -68,12 +68,23 @@ void PathTracker::initialize() {
 bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
     // load parameter
     bool prev_active = p_active_;
+    int temp_odom_callback_type_;
+    std::string odom_topic_name_;
 
     nh_local_.param<bool>("active", p_active_, true);
     nh_local_.param<std::string>("frame", frame_, "map");
     nh_local_.param<double>("control_frequency", control_frequency_, 50);
     nh_local_.param<double>("lookahead_distance", lookahead_d_, 0.2);
     nh_local_.param<double>("waiting_timeout", waiting_timeout_, 3);
+
+    nh_local_.param<int>("odom_type", temp_odom_callback_type_, 0);
+    nh_local_.param<std::string>("odom_topic_name", odom_topic_name_, "odom");
+    if (temp_odom_callback_type_ == 0) {
+        odom_callback_type_ = ODOM_CALLBACK_TYPE::nav_msgs_Odometry;
+    } else {
+        odom_callback_type_ = ODOM_CALLBACK_TYPE::geometry_msgs_PoseWithCovarianceStamped;
+    }
+
     // linear parameter
     // acceleration
     nh_local_.param<double>("linear_max_velocity", linear_max_vel_, 0.5);
@@ -103,8 +114,11 @@ bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 
     if (p_active_ != prev_active) {
         if (p_active_) {
-            // pose_sub_ = nh_.subscribe("ekf_pose", 50, &PathTracker::Pose_type0_Callback, this);
-            pose_sub_ = nh_.subscribe("global_filter", 50, &PathTracker::Pose_type0_Callback, this);
+            if (odom_callback_type_ == ODOM_CALLBACK_TYPE::nav_msgs_Odometry) {
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type0_Callback, this);
+            } else {
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type1_Callback, this);
+            }
             goal_sub_ = nh_.subscribe("nav_goal", 50, &PathTracker::Goal_Callback, this);
             vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
             local_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
@@ -144,7 +158,7 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
             // goal reached
             if (is_XY_Reached(cur_pose_, goal_pose_) && is_Theta_Reached(cur_pose_, goal_pose_) &&
                 !is_goal_blocked_) {
-                ROS_INFO("Working MODE : GOAL REACHED !");
+                ROS_INFO("[Path Tracker]: GOAL REACHED !");
                 Switch_Mode(MODE::IDLE);
                 velocity_state_.x_ = 0;
                 velocity_state_.y_ = 0;

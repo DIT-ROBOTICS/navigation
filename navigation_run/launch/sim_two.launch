@@ -1,11 +1,16 @@
 <launch>
 
-    <include file="$(find navigation_main)/launch/main_sim_robot12.launch">
+    <!-- Set isSim to true if you want to run simulation. -->
+    <arg name="isSim" default="true" />
+    <arg name="isRun" default="false" />
+
+    <include file="$(find navigation_main)/launch/main_sim_robot12.launch" if="$(arg isSim)">
 
         <!-- 0 -> nav_msgs::Odometry -->
         <!-- 1 -> geometry_msgs::PoseWithCovarianceStamped -->
-        <!-- Remember to change the topic name. -->
-        <arg name="odom_type" value="0"/>
+        <arg name="odom_type" value="0" if="$(arg isSim)"/>
+        <arg name="odom_type" value="1" if="$(arg isRun)"/>
+
     </include>
 
     <group ns="robot1">
@@ -13,12 +18,8 @@
         <!-- x y z r p y -->
         <node pkg="tf" type="static_transform_publisher" name="map_to_map1" args="0 0 0 0 0 0 map robot1/map 30" />
         <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
-        <!-- map to odom will be provided by the AMCL -->
-        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot1/map robot1/odom 30" />
 
-        <!-- Initial Pose and Goal Publisher -->
-        <!-- Publish: /initialpose, /move_base_simple/goal -->
-        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim1.rviz"/>
+        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot1/map robot1/odom 30" />
 
         <!-- Map File -->
         <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
@@ -30,8 +31,7 @@
         </node>
 
         <!-- Robot odometry simulator-->
-        <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry_sim">
+        <node pkg="navigation_run" name="odometry" type="odometry_sim" if="$(arg isSim)">
             <param name="tf_prefix" value="robot1" />
         </node>
 
@@ -53,13 +53,10 @@
         </node>
 
         <!-- path_Tracker -->
-        <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
-            <remap from="global_filter" to="odom"/>
-            <remap from="cmd_vel" to="raw_cmd_vel"/>
-            <remap from="nav_goal" to="path_tracker_goal"/>
-            <!-- for lpf to filter the velocity -->
-            <rosparam file="$(find path_tracker)/params/pathTracker_sim1.yaml" command="load" />
-        </node>
+        <include file="$(find path_tracker)/launch/pathTracker.launch">
+            <arg name="config_file" value="pathTracker_sim1"/>
+            <arg name="isSim" value="$(arg isSim)" />
+        </include>
 
         <!-- low pass filter on pt's cmd_vel -->
         <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
@@ -84,12 +81,8 @@
         <!-- x y z r p y -->
         <node pkg="tf" type="static_transform_publisher" name="map_to_map2" args="0 0 0 0 0 0 map robot2/map 30" />
         <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
-        <!-- map to odom will be provided by the AMCL -->
-        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot2/map robot2/odom 30" />
 
-        <!-- Initial Pose and Goal Publisher -->
-        <!-- Publish: /initialpose, /move_base_simple/goal -->
-        <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim2.rviz"/> -->
+        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot2/map robot2/odom 30" />
 
         <!-- Map File -->
         <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
@@ -122,13 +115,10 @@
         </node>
 
         <!-- path_Tracker -->
-        <node name="path_tracker" pkg="path_tracker" type="pathTracker" output="screen">
-            <remap from="global_filter" to="odom"/>
-            <remap from="cmd_vel" to="raw_cmd_vel"/>
-            <remap from="nav_goal" to="path_tracker_goal"/>
-            <!-- for lpf to filter the velocity -->
-            <rosparam file="$(find path_tracker)/params/pathTracker_sim2.yaml" command="load" />
-        </node>
+        <include file="$(find path_tracker)/launch/pathTracker.launch">
+            <arg name="config_file" value="pathTracker_sim2"/>
+            <arg name="isSim" value="$(arg isSim)" />
+        </include>
 
         <!-- low pass filter on pt's cmd_vel -->
         <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
@@ -147,5 +137,7 @@
             <remap from="dock_goal" to="dock_tracker_goal"/>
         </node>
     </group>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim1.rviz" if="$(arg isSim)"/>
 
 </launch>
