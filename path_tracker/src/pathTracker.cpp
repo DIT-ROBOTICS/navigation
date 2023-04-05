@@ -1,43 +1,34 @@
 #include "pathTracker.h"
-#include <cmath>
-#include <ros/time.h>
 
-using namespace std;
-
-RobotState::RobotState(double x, double y, double theta)
-{
+RobotState::RobotState(double x, double y, double theta) {
     x_ = x;
     y_ = y;
     theta_ = theta;
 }
 
-double RobotState::distanceTo(RobotState pos)
-{
+double RobotState::distanceTo(RobotState pos) {
     return sqrt(pow(x_ - pos.x_, 2) + pow(y_ - pos.y_, 2));
 }
 
-Eigen::Vector3d RobotState::getVector()
-{
+Eigen::Vector3d RobotState::getVector() {
     Eigen::Vector3d vec;
     vec << x_, y_, theta_;
     return vec;
 }
 
-pathTracker::pathTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local)
-{
+PathTracker::PathTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local) {
     nh_ = nh;
     nh_local_ = nh_local;
     std_srvs::Empty empt;
     p_active_ = false;
-    params_srv_ = nh_local_.advertiseService("params", &pathTracker::initializeParams, this);
+    params_srv_ = nh_local_.advertiseService("params", &PathTracker::initializeParams, this);
     initializeParams(empt.request, empt.response);
     initialize();
     t_bef_ = ros::Time::now();
     t_now_ = ros::Time::now();
 }
 
-pathTracker::~pathTracker()
-{
+PathTracker::~PathTracker() {
     nh_local_.deleteParam("active");
     nh_local_.deleteParam("control_frequency");
     nh_local_.deleteParam("lookahead_distance");
@@ -64,252 +55,210 @@ pathTracker::~pathTracker()
     nh_local_.deleteParam("angular_deceleration_profile");
 }
 
-void pathTracker::initialize()
-{
-    if_localgoal_final_reached = false;
-    if_globalpath_switched = false;
-    if_goal_is_blocked_ = false;
-    timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &pathTracker::timerCallback, this, false, false);
-    timer_.setPeriod(ros::Duration(1.0 / control_frequency_), false);
-    timer_.start();
+void PathTracker::initialize() {
+    is_local_goal_final_reached_ = false;
+    is_global_path_switched_ = false;
+    is_goal_blocked_ = false;
+    timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &PathTracker::Timer_Callback, this, false);
 
-    workingMode_ = Mode::IDLE;
-    workingMode_past_ = Mode::IDLE;
+    working_mode_ = MODE::IDLE;
+    working_mode_pre_ = MODE::IDLE;
 }
 
-bool pathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
-{
+bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
     // load parameter
-    bool get_param_ok = true;
     bool prev_active = p_active_;
+    int temp_odom_callback_type_;
+    std::string odom_topic_name_;
 
-    get_param_ok = nh_local_.param<bool>("active", p_active_, true);
-    get_param_ok = nh_local_.param<string>("robot_type", robot_type_, "omni");
-    get_param_ok = nh_local_.param<string>("frame", frame_, "map");
-    get_param_ok = nh_local_.param<double>("control_frequency", control_frequency_, 50);
-    get_param_ok = nh_local_.param<double>("lookahead_distance", lookahead_d_, 0.2);
-    get_param_ok = nh_local_.param<double>("waiting_timeout", waiting_timeout_, 3);
+    nh_local_.param<bool>("active", p_active_, true);
+    nh_local_.param<std::string>("frame", frame_, "map");
+    nh_local_.param<double>("control_frequency", control_frequency_, 50);
+    nh_local_.param<double>("lookahead_distance", lookahead_d_, 0.2);
+    nh_local_.param<double>("waiting_timeout", waiting_timeout_, 3);
+
+    nh_local_.param<int>("odom_type", temp_odom_callback_type_, 0);
+    nh_local_.param<std::string>("odom_topic_name", odom_topic_name_, "odom");
+    if (temp_odom_callback_type_ == 0) {
+        odom_callback_type_ = ODOM_CALLBACK_TYPE::nav_msgs_Odometry;
+    } else {
+        odom_callback_type_ = ODOM_CALLBACK_TYPE::geometry_msgs_PoseWithCovarianceStamped;
+    }
+
     // linear parameter
     // acceleration
-    get_param_ok = nh_local_.param<double>("linear_max_velocity", linear_max_vel_, 0.5);
-    get_param_ok = nh_local_.param<double>("linear_acceleration", linear_acceleration_, 0.3);
-    get_param_ok = nh_local_.param<string>("linear_acceleration_profile", linear_acceleration_profile_, "linear");
+    nh_local_.param<double>("linear_max_velocity", linear_max_vel_, 0.5);
+    nh_local_.param<double>("linear_acceleration", linear_acceleration_, 0.3);
+    nh_local_.param<std::string>("linear_acceleration_profile", linear_acceleration_profile_, "linear");
     // transition
-    get_param_ok = nh_local_.param<double>("linear_transition_velocity", linear_transition_vel_, 0.15);
-    get_param_ok = nh_local_.param<double>("linear_transition_acceleration", linear_transition_acc_, 0.6);
+    nh_local_.param<double>("linear_transition_velocity", linear_transition_vel_, 0.15);
+    nh_local_.param<double>("linear_transition_acceleration", linear_transition_acc_, 0.6);
     // deceleration
-    get_param_ok = nh_local_.param<double>("linear_kp", linear_kp_, 0.8);
-    get_param_ok = nh_local_.param<double>("linear_brake_distance_ratio", linear_brake_distance_ratio_, 0.3);
-    get_param_ok = nh_local_.param<double>("linear_min_brake_distance", linear_min_brake_distance_, 0.3);
-    get_param_ok = nh_local_.param<string>("linear_deceleration_profile", linear_deceleration_profile_, "linear");
+    nh_local_.param<double>("linear_kp", linear_kp_, 0.8);
+    nh_local_.param<double>("linear_brake_distance_ratio", linear_brake_distance_ratio_, 0.3);
+    nh_local_.param<double>("linear_min_brake_distance", linear_min_brake_distance_, 0.3);
+    nh_local_.param<std::string>("linear_deceleration_profile", linear_deceleration_profile_, "linear");
 
     // angular parameter
-    get_param_ok = nh_local_.param<double>("angular_max_velocity", angular_max_vel_, 3);
-    get_param_ok = nh_local_.param<double>("angular_acceleration", angular_acceleration_, 0.5);
-    get_param_ok = nh_local_.param<double>("angular_brake_distance", angular_brake_distance_, 0.35);
-    get_param_ok = nh_local_.param<double>("angular_transition_velocity", angular_transition_vel_, 0.15);
-    get_param_ok = nh_local_.param<double>("angular_transition_acceleration", angular_transition_acc_, 0.6);
-    get_param_ok = nh_local_.param<double>("angular_kp", angular_kp_, 1.5);
-    get_param_ok = nh_local_.param<string>("angular_acceleration_profile", angular_acceleration_profile_, "linear");
-    get_param_ok = nh_local_.param<string>("angular_deceleration_profile", angular_deceleration_profile_, "linear");
+    nh_local_.param<double>("angular_max_velocity", angular_max_vel_, 3);
+    nh_local_.param<double>("angular_acceleration", angular_acceleration_, 0.5);
+    nh_local_.param<double>("angular_brake_distance", angular_brake_distance_, 0.35);
+    nh_local_.param<double>("angular_transition_velocity", angular_transition_vel_, 0.15);
+    nh_local_.param<double>("angular_transition_acceleration", angular_transition_acc_, 0.6);
+    nh_local_.param<double>("angular_kp", angular_kp_, 1.5);
+    nh_local_.param<std::string>("angular_acceleration_profile", angular_acceleration_profile_, "linear");
+    nh_local_.param<std::string>("angular_deceleration_profile", angular_deceleration_profile_, "linear");
 
-    get_param_ok = nh_local_.param<double>("xy_tolerance", xy_tolerance_, 0.01);
-    get_param_ok = nh_local_.param<double>("theta_tolerance", theta_tolerance_, 0.03);
+    nh_local_.param<double>("xy_tolerance", xy_tolerance_, 0.01);
+    nh_local_.param<double>("theta_tolerance", theta_tolerance_, 0.03);
 
-    if (p_active_ != prev_active)
-    {
-        if (p_active_)
-        {
-            poseSub_ = nh_.subscribe("ekf_pose", 50, &pathTracker::poseCallback, this);
-            // poseSub_ = nh_.subscribe("global_filter", 50, &pathTracker::poseCallback, this);
-            goalSub_ = nh_.subscribe("nav_goal", 50, &pathTracker::goalCallback, this);
-            velPub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-            localgoalPub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
-            posearrayPub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
-            goalreachedPub_ = nh_.advertise<std_msgs::Bool>("finishornot", 1);
+    if (p_active_ != prev_active) {
+        if (p_active_) {
+            if (odom_callback_type_ == ODOM_CALLBACK_TYPE::nav_msgs_Odometry) {
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type0_Callback, this);
+            } else {
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type1_Callback, this);
+            }
+            goal_sub_ = nh_.subscribe("nav_goal", 50, &PathTracker::Goal_Callback, this);
+            vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+            local_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
+            pose_array_pub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
+            goal_reached_pub_ = nh_.advertise<std_msgs::Char>("finishornot", 1);
+        } else {
+            pose_sub_.shutdown();
+            goal_sub_.shutdown();
+            vel_pub_.shutdown();
+            local_goal_pub_.shutdown();
+            pose_array_pub_.shutdown();
+            goal_reached_pub_.shutdown();
         }
-        else
-        {
-            poseSub_.shutdown();
-            goalSub_.shutdown();
-            velPub_.shutdown();
-            localgoalPub_.shutdown();
-            posearrayPub_.shutdown();
-            goalreachedPub_.shutdown();
-        }
     }
 
-    if (get_param_ok)
-    {
-        ROS_INFO_STREAM("[Path Tracker]: "
-                        << "set param ok");
-    }
-    else
-    {
-        ROS_WARN_STREAM("[Path Tracker]: "
-                        << "set param failed");
-    }
-    // cout << "param updated !" << endl;
+    ROS_INFO_STREAM("[Path Tracker]: set param ok");
     return true;
 }
 
-void pathTracker::timerCallback(const ros::TimerEvent& e)
-{
-    // ROS_INFO("%d", workingMode_);
-    switch (workingMode_)
-    {
-        case Mode::GLOBALPATH_RECEIVED: {
-            if (workingMode_past_ == Mode::IDLE)
-            {
-                switchMode(Mode::TRACKING);
+void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
+    switch (working_mode_) {
+        case MODE::GLOBAL_PATH_RECEIVED: {
+            if (working_mode_pre_ == MODE::IDLE) {
+                Switch_Mode(MODE::TRACKING);
                 break;
-            }
-            else if (workingMode_past_ == Mode::TRACKING)
-            {
+            } else if (working_mode_pre_ == MODE::TRACKING) {
                 // Slow down first then start tracking new path
-                switchMode(Mode::TRANSITION);
+                Switch_Mode(MODE::TRANSITION);
+                break;
+            } else if (working_mode_pre_ == MODE::TRANSITION) {
+                Switch_Mode(MODE::TRACKING);
                 break;
             }
-            else if (workingMode_past_ == Mode::TRANSITION)
-            {
-                switchMode(Mode::TRACKING);
-                break;
-            }
-        }
-        break;
+        } break;
 
-        case Mode::TRACKING: {
+        case MODE::TRACKING: {
             // goal reached
-            if (xy_goal_reached(cur_pose_, goal_pose_) && theta_goal_reached(cur_pose_, goal_pose_) && !if_goal_is_blocked_)
-            {
-                ROS_INFO("Working Mode : GOAL REACHED !");
-                switchMode(Mode::IDLE);
+            if (is_XY_Reached(cur_pose_, goal_pose_) && is_Theta_Reached(cur_pose_, goal_pose_) &&
+                !is_goal_blocked_) {
+                ROS_INFO("[Path Tracker]: GOAL REACHED !");
+                Switch_Mode(MODE::IDLE);
                 velocity_state_.x_ = 0;
                 velocity_state_.y_ = 0;
                 velocity_state_.theta_ = 0;
-                velocityPublish();
+                Velocity_Publish();
 
-                if_goal_is_blocked_ = false;
+                is_goal_blocked_ = false;
+
                 // publish /finishornot
-                std_msgs::Bool goalreached;
-                goalreached.data = true;
-                goalreachedPub_.publish(goalreached);
+                goal_reached_.data = 1;
+                goal_reached_pub_.publish(goal_reached_);
                 break;
             }
 
-            if (workingMode_past_ == Mode::TRANSITION)
-            {
-                if (if_globalpath_switched == false)
-                {
-                    if_localgoal_final_reached = false;
-                    // plannerClient(cur_pose_, goal_pose_);
+            if (working_mode_pre_ == MODE::TRANSITION) {
+                if (is_global_path_switched_ == false) {
+                    is_local_goal_final_reached_ = false;
+                    // Planner_Client(cur_pose_, goal_pose_);
                     linear_brake_distance_ = linear_brake_distance_ratio_ * cur_pose_.distanceTo(goal_pose_);
-                    if_globalpath_switched = true;
+                    is_global_path_switched_ = true;
                 }
             }
-            // ROS_INFO("Working Mode : TRACKING");
-            if (robot_type_ == "omni")
-            {
-                // dynamic wei
-                RobotState local_goal;
-                if(!plannerClient(cur_pose_, goal_pose_))
-                {
-                    local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
-                    goal_pose_.x_ = local_goal.x_;
-                    goal_pose_.y_ = local_goal.y_;
-                    goal_pose_.theta_ = local_goal.theta_;
 
-                    global_path_past_ = global_path_;
-                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_, local_goal.y_);
-                    // switchMode(Mode::TRACKING);
-                    if_globalpath_switched = false;
-                    if_goal_is_blocked_ = true;
-                    // publish /finishornot
-                    std_msgs::Bool goalreached;
-                    goalreached.data = false;
-                    goalreachedPub_.publish(goalreached);
-                    if_goal_is_blocked_ = false;
-                    return;
-                }
-                local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
-                omniController(local_goal, cur_pose_);
-            }
-            else if (robot_type_ == "diff")
-            {
-                RobotState local_goal;
-                local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
-                diffController(local_goal, cur_pose_);
-            }
-        }
-        break;
+            RobotState local_goal;
+            if (!Planner_Client(cur_pose_, goal_pose_)) {
+                local_goal = Rolling_Window(cur_pose_, global_path_, lookahead_d_);
+                goal_pose_.x_ = local_goal.x_;
+                goal_pose_.y_ = local_goal.y_;
+                goal_pose_.theta_ = local_goal.theta_;
 
-        case Mode::IDLE: {
+                global_path_past_ = global_path_;
+
+                is_global_path_switched_ = false;
+                is_goal_blocked_ = true;
+
+                // publish /finishornot
+                goal_reached_.data = 2;
+                goal_reached_pub_.publish(goal_reached_);
+
+                Switch_Mode(MODE::IDLE);
+
+                return;
+            }
+            local_goal = Rolling_Window(cur_pose_, global_path_, lookahead_d_);
+            Omni_Controller(local_goal, cur_pose_);
+        } break;
+
+        case MODE::IDLE: {
             // ROS_INFO("Working Mode : IDLE");
             velocity_state_.x_ = 0;
             velocity_state_.y_ = 0;
             velocity_state_.theta_ = 0;
-            velocityPublish();
-        }
-        break;
+            Velocity_Publish();
+        } break;
 
-        case Mode::TRANSITION: {
+        case MODE::TRANSITION: {
             ROS_INFO("Working Mode : TRANSITION");
             double linear_vel = sqrt(pow(velocity_state_.x_, 2) + pow(velocity_state_.y_, 2));
             double angular_vel = velocity_state_.theta_;
 
-            if (linear_vel <= linear_transition_vel_ && angular_vel <= angular_transition_vel_)
-            {
-                switchMode(Mode::TRACKING);
+            if (linear_vel <= linear_transition_vel_ && angular_vel <= angular_transition_vel_) {
+                Switch_Mode(MODE::TRACKING);
                 break;
             }
 
-            if (robot_type_ == "omni")
-            {
+            RobotState local_goal;
+            // if the new goal has no path to reach, just change the goal to the local_goal which belong to
+            // past_path
+            if (!Planner_Client(cur_pose_, goal_pose_)) {
+                local_goal = Rolling_Window(cur_pose_, global_path_, lookahead_d_);
+                goal_pose_.x_ = local_goal.x_;
+                goal_pose_.y_ = local_goal.y_;
+                goal_pose_.theta_ = local_goal.theta_;
 
-                RobotState local_goal;
-                // if the new goal has no path to reach, just change the goal to the local_goal which belong to past_path  
-                if(!plannerClient(cur_pose_, goal_pose_))
-                {
-                    local_goal = rollingWindow(cur_pose_, global_path_, lookahead_d_);
-                    goal_pose_.x_ = local_goal.x_;
-                    goal_pose_.y_ = local_goal.y_;
-                    goal_pose_.theta_ = local_goal.theta_;
+                global_path_past_ = global_path_;
 
-                    global_path_past_ = global_path_;
-                    // ROS_INFO("cur_pose x:%f, y:%f; local_pose x:%f, y:%f", cur_pose_.x_, cur_pose_.y_, local_goal.x_, local_goal.y_);
-                    switchMode(Mode::TRACKING);
-                    if_globalpath_switched = false;
-                    if_goal_is_blocked_ = true;
+                Switch_Mode(MODE::TRACKING);
 
-                    // publish /finishornot
-                    std_msgs::Bool goalreached;
-                    goalreached.data = false;
-                    goalreachedPub_.publish(goalreached);
-                    if_goal_is_blocked_ = false;
-                    return;
-                }
-                local_goal = rollingWindow(cur_pose_, global_path_past_, lookahead_d_);
-                omniController(local_goal, cur_pose_);
+                is_global_path_switched_ = false;
+                is_goal_blocked_ = true;
+
+                // publish /finishornot
+                goal_reached_.data = 2;
+                goal_reached_pub_.publish(goal_reached_);
+
+                return;
             }
-            else if (robot_type_ == "diff")
-            {
-                RobotState local_goal;
-                local_goal = rollingWindow(cur_pose_, global_path_past_, lookahead_d_);
-                diffController(local_goal, cur_pose_);
-            }
-        }
-        break;
+            local_goal = Rolling_Window(cur_pose_, global_path_past_, lookahead_d_);
+            Omni_Controller(local_goal, cur_pose_);
+
+        } break;
     }
 }
 
-void pathTracker::switchMode(Mode next_mode)
-{
-    workingMode_past_ = workingMode_;
-    workingMode_ = next_mode;
+void PathTracker::Switch_Mode(MODE next_mode) {
+    working_mode_pre_ = working_mode_;
+    working_mode_ = next_mode;
 }
 
-bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
-{
+bool PathTracker::Planner_Client(RobotState cur_pos, RobotState goal_pos) {
     geometry_msgs::PoseStamped cur;
     cur.header.frame_id = frame_;
     cur.pose.position.x = cur_pos.x_;
@@ -343,29 +292,19 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
 
     std::vector<geometry_msgs::PoseStamped> path_msg;
 
-    if (client.call(srv))
-    {
-        // ******* add by Ben
+    if (client.call(srv)) {
         new_goal = false;
-        if (srv.response.plan.poses.empty())
-        {
-            ROS_WARN("pathTracker: Got empty plan");
+        if (srv.response.plan.poses.empty()) {
+            ROS_WARN_STREAM("[PathTracker] : Got empty plan");
             return false;
         }
-        else
-        {
-            // ROS_INFO("Path received from make_plan service");
-        }
-        // *******
 
-        // ROS_INFO("1 - Path received from global planner !");
         nav_msgs::Path path_msg;
         path_msg.poses = srv.response.plan.poses;
 
         global_path_.clear();
 
-        for (const auto& point : path_msg.poses)
-        {
+        for (const auto& point : path_msg.poses) {
             RobotState pose;
             pose.x_ = point.pose.position.x;
             pose.y_ = point.pose.position.y;
@@ -377,30 +316,15 @@ bool pathTracker::plannerClient(RobotState cur_pos, RobotState goal_pos)
             pose.theta_ = yaw;
             global_path_.push_back(pose);
         }
-        global_path_ = orientationFilter(global_path_);
-
-        // add by Ben
+        global_path_ = Orientation_Filter(global_path_);
         return true;
-        // ROS_INFO("2 - Path received from global planner !");
-
-        // print global path
-        // ROS_INFO("--- global path ---");
-        // for (const auto& point : global_path_)
-        // {
-        //     ROS_INFO("(%f, %f, %f)", point.x_, point.y_, point.theta_);
-        // }
-        // ROS_INFO("--- ---");
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service make_plan");
-        // return 1;
+    } else {
+        ROS_ERROR_STREAM("[PathTracker] : Failed to call service make_plan");
         return false;
     }
 }
 
-void pathTracker::poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_msg)
-{
+void PathTracker::Pose_type0_Callback(const nav_msgs::Odometry::ConstPtr& pose_msg) {
     cur_pose_.x_ = pose_msg->pose.pose.position.x;
     cur_pose_.y_ = pose_msg->pose.pose.position.y;
     tf2::Quaternion q;
@@ -411,21 +335,18 @@ void pathTracker::poseCallback(const geometry_msgs::PoseWithCovarianceStamped::C
     cur_pose_.theta_ = yaw;
 }
 
-// void pathTracker::poseCallback(const nav_msgs::Odometry::ConstPtr& pose_msg)
-// {
-//     cur_pose_.x_ = pose_msg->pose.pose.position.x;
-//     cur_pose_.y_ = pose_msg->pose.pose.position.y;
-//     tf2::Quaternion q;
-//     tf2::fromMsg(pose_msg->pose.pose.orientation, q);
-//     tf2::Matrix3x3 qt(q);
-//     double _, yaw;
-//     qt.getRPY(_, _, yaw);
-//     cur_pose_.theta_ = yaw;
-// }
+void PathTracker::Pose_type1_Callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_msg) {
+    cur_pose_.x_ = pose_msg->pose.pose.position.x;
+    cur_pose_.y_ = pose_msg->pose.pose.position.y;
+    tf2::Quaternion q;
+    tf2::fromMsg(pose_msg->pose.pose.orientation, q);
+    tf2::Matrix3x3 qt(q);
+    double _, yaw;
+    qt.getRPY(_, _, yaw);
+    cur_pose_.theta_ = yaw;
+}
 
-void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_msg)
-{
-    // add by ben
+void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose_msg) {
     ros::ServiceClient client2 = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
     std_srvs::Empty srv;
     t_bef_ = ros::Time::now();
@@ -443,33 +364,32 @@ void pathTracker::goalCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_
     ROS_INFO("Goal received ! (%f, %f, %f)", goal_pose_.x_, goal_pose_.y_, goal_pose_.theta_);
 
     global_path_past_ = global_path_;
-    if (workingMode_ == Mode::IDLE)
-    {
-        if (!plannerClient(cur_pose_, goal_pose_))
-        {
-            if_goal_is_blocked_ = true;
-            // publish /finishornot
-            std_msgs::Bool goalreached;
-            goalreached.data = false;
-            goalreachedPub_.publish(goalreached);
-            
-            return;
-        }
-        if_goal_is_blocked_ = false;
+    if (!Planner_Client(cur_pose_, goal_pose_)) {
+        is_goal_blocked_ = true;
 
-        linear_brake_distance_ = linear_brake_distance_ratio_ * cur_pose_.distanceTo(goal_pose_);
-        if (linear_brake_distance_ < linear_min_brake_distance_)
-            linear_brake_distance_ = linear_min_brake_distance_;
+        // publish /finishornot
+        goal_reached_.data = 2;
+        goal_reached_pub_.publish(goal_reached_);
+
+        return;
     }
+    is_goal_blocked_ = false;
 
-    if_localgoal_final_reached = false;
-    if_globalpath_switched = false;
-    switchMode(Mode::GLOBALPATH_RECEIVED);
+    // publish /finishornot
+    goal_reached_.data = 0;
+    goal_reached_pub_.publish(goal_reached_);
+
+    linear_brake_distance_ = linear_brake_distance_ratio_ * cur_pose_.distanceTo(goal_pose_);
+    if (linear_brake_distance_ < linear_min_brake_distance_)
+        linear_brake_distance_ = linear_min_brake_distance_;
+
+    is_local_goal_final_reached_ = false;
+    is_global_path_switched_ = false;
+    Switch_Mode(MODE::GLOBAL_PATH_RECEIVED);
     new_goal = true;
 }
 
-RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState> path, double L_d)
-{
+RobotState PathTracker::Rolling_Window(RobotState cur_pos, std::vector<RobotState> path, double L_d) {
     int k = 1;
     int last_k = 0;
     int d_k = 0;
@@ -482,8 +402,7 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
     double r = L_d;
 
     // ROS_INFO("%ld", path.size());
-    for (int i = 0; i < path.size(); i++)
-    {
+    for (int i = 0; i < path.size(); i++) {
         if (i == 1)
             last_k = 0;
         last_k = k;
@@ -494,8 +413,7 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
 
         d_k = k - last_k;
 
-        if (d_k == 1)
-        {
+        if (d_k == 1) {
             b = path.at(i);
             if_b_asigned = true;
             b_idx = i;
@@ -504,13 +422,10 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
         }
     }
 
-    if (!if_b_asigned)
-    {
+    if (!if_b_asigned) {
         double min = 1000000;
-        for (int i = 0; i < path.size(); i++)
-        {
-            if (cur_pos.distanceTo(path.at(i)) < min)
-            {
+        for (int i = 0; i < path.size(); i++) {
+            if (cur_pos.distanceTo(path.at(i)) < min) {
                 min = cur_pos.distanceTo(path.at(i));
                 b_idx = i;
                 a_idx = i - 1;
@@ -519,12 +434,9 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
         }
     }
 
-    if (a_idx == -1)
-    {
+    if (a_idx == -1) {
         local_goal = path.at(b_idx);
-    }
-    else
-    {
+    } else {
         a = path.at(a_idx);
         double d_ca = cur_pos.distanceTo(a);
         double d_cb = cur_pos.distanceTo(b);
@@ -533,8 +445,7 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
         local_goal.theta_ = a.theta_;
     }
 
-    if (if_localgoal_final_reached)
-    {
+    if (is_local_goal_final_reached_) {
         // cout << "local goal set to path.back()" << endl;
         local_goal = path.back();
     }
@@ -542,10 +453,9 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
     if (cur_pos.distanceTo(path.back()) < r + 0.01)
         local_goal = path.back();
 
-    if (local_goal.distanceTo(path.back()) < 0.005)
-    {
+    if (local_goal.distanceTo(path.back()) < 0.005) {
         local_goal = path.back();
-        if_localgoal_final_reached = true;
+        is_local_goal_final_reached_ = true;
     }
 
     // for rviz visualization
@@ -554,18 +464,19 @@ RobotState pathTracker::rollingWindow(RobotState cur_pos, std::vector<RobotState
     pos_msg.header.stamp = ros::Time::now();
     pos_msg.pose.position.x = local_goal.x_;
     pos_msg.pose.position.y = local_goal.y_;
+
     tf2::Quaternion q;
     q.setRPY(0, 0, local_goal.theta_);
     pos_msg.pose.orientation.x = q.x();
     pos_msg.pose.orientation.y = q.y();
     pos_msg.pose.orientation.z = q.z();
     pos_msg.pose.orientation.w = q.w();
-    localgoalPub_.publish(pos_msg);
+    local_goal_pub_.publish(pos_msg);
+
     return local_goal;
 }
 
-std::vector<RobotState> pathTracker::orientationFilter(std::vector<RobotState> origin_path)
-{
+std::vector<RobotState> PathTracker::Orientation_Filter(std::vector<RobotState> origin_path) {
     std::vector<RobotState> path;
     double init_theta = cur_pose_.theta_;
     double goal_theta = goal_pose_.theta_;
@@ -583,18 +494,16 @@ std::vector<RobotState> pathTracker::orientationFilter(std::vector<RobotState> o
         rotate_direction_ = -1;
 
     // theta_err = acos(init(0)*goal(0)+init(1)*goal(1));
-    theta_err = fabs(angleLimitChecking(goal_theta - init_theta));
+    theta_err = fabs(Angle_Limit_Checking(goal_theta - init_theta));
     d_theta = rotate_direction_ * theta_err / (origin_path.size() - 1);
 
     RobotState point(origin_path.at(0).x_, origin_path.at(0).y_, init_theta);
     path.push_back(point);
 
-    for (int i = 0; i < origin_path.size(); i++)
-    {
-        if (i != 0)
-        {
+    for (int i = 0; i < origin_path.size(); i++) {
+        if (i != 0) {
             double theta;
-            theta = angleLimitChecking(path.at(i - 1).theta_ + d_theta);
+            theta = Angle_Limit_Checking(path.at(i - 1).theta_ + d_theta);
             // cout << "theta = " << theta << endl;
             RobotState point(origin_path.at(i).x_, origin_path.at(i).y_, theta);
             path.push_back(point);
@@ -607,8 +516,7 @@ std::vector<RobotState> pathTracker::orientationFilter(std::vector<RobotState> o
     arr_msg.header.stamp = ros::Time::now();
     std::vector<geometry_msgs::Pose> poses;
 
-    for (int i = 0; i < path.size(); i++)
-    {
+    for (int i = 0; i < path.size(); i++) {
         geometry_msgs::Pose pose;
         pose.position.x = path.at(i).x_;
         pose.position.y = path.at(i).y_;
@@ -621,28 +529,17 @@ std::vector<RobotState> pathTracker::orientationFilter(std::vector<RobotState> o
         poses.push_back(pose);
     }
     arr_msg.poses = poses;
-    posearrayPub_.publish(arr_msg);
+    pose_array_pub_.publish(arr_msg);
 
     return path;
 }
 
-double pathTracker::angleLimitChecking(double theta)
-{
-    while (theta > M_PI)
-        theta -= 2 * M_PI;
-    while (theta < -M_PI)
-        theta += 2 * M_PI;
-    return theta;
-}
-
-// Path tracker for differential drive robot
-void pathTracker::diffController(RobotState local_goal, RobotState cur_pos)
-{
+double PathTracker::Angle_Limit_Checking(double theta) {
+    return fmod(theta + 2 * M_PI, 2 * M_PI);
 }
 
 // Path tracker for omni drive robot
-void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
-{
+void PathTracker::Omni_Controller(RobotState local_goal, RobotState cur_pos) {
     double linear_velocity = 0.0;
     double angular_velocity = 0.0;
 
@@ -657,124 +554,81 @@ void pathTracker::omniController(RobotState local_goal, RobotState cur_pos)
 
     // transform local_goal to base_footprint frame
     Eigen::Vector2d goal_base_vec;
-    Eigen::Vector2d localgoal_bf;
+    Eigen::Vector2d local_goal_bf;
     Eigen::Matrix2d rot;
     goal_base_vec << (local_goal.x_ - cur_pos.x_), (local_goal.y_ - cur_pos.y_);
     rot << cos(-cur_pos.theta_), -sin(-cur_pos.theta_), sin(-cur_pos.theta_), cos(-cur_pos.theta_);
-    localgoal_bf = rot * goal_base_vec;
+    local_goal_bf = rot * goal_base_vec;
 
     t_now_ = ros::Time::now();
 
     dt_ = (t_now_ - t_bef_).toSec();
     // ROS_INFO("dt: %f", dt_);
 
-    if (xy_goal_reached(cur_pose_, goal_pose_))
-    {
+    if (is_XY_Reached(cur_pose_, goal_pose_)) {
         velocity_state_.x_ = 0;
         velocity_state_.y_ = 0;
-    }
-    else
-    {
-        linear_velocity =
-            velocityProfile(Velocity::linear, cur_pose_, goal_pose_, velocity_state_, linear_acceleration_);
-        double direction = atan2(localgoal_bf(1), localgoal_bf(0));
+    } else {
+        linear_velocity = Velocity_Profile(VELOCITY::LINEAR, cur_pose_, goal_pose_, velocity_state_, linear_acceleration_);
+        double direction = atan2(local_goal_bf(1), local_goal_bf(0));
         velocity_state_.x_ = linear_velocity * cos(direction);
         velocity_state_.y_ = linear_velocity * sin(direction);
     }
 
-    if (theta_goal_reached(cur_pose_, goal_pose_))
-    {
+    if (is_Theta_Reached(cur_pose_, goal_pose_)) {
         velocity_state_.theta_ = 0;
-    }
-    else
-    {
-        angular_velocity = velocityProfile(Velocity::angular, cur_pose_, goal_pose_, velocity_state_,
-                                           rotate_direction_ * angular_acceleration_);
+    } else {
+        angular_velocity = Velocity_Profile(VELOCITY::ANGULAR, cur_pose_, goal_pose_, velocity_state_, rotate_direction_ * angular_acceleration_);
         velocity_state_.theta_ = angular_velocity;
     }
-    velocityPublish();
+    Velocity_Publish();
 
     t_bef_ = t_now_;
 }
 
-double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, RobotState goal_pos, RobotState vel_state_,
-                                    double acceleration)
-{
+double PathTracker::Velocity_Profile(VELOCITY vel_type, RobotState cur_pos, RobotState goal_pos, RobotState vel_state_, double acceleration) {
     double output_vel = 0;
-    if (workingMode_ == Mode::TRACKING)
-    {
-        if (vel_type == Velocity::linear)
-        {
+    if (working_mode_ == MODE::TRACKING) {
+        if (vel_type == VELOCITY::LINEAR) {
             RobotState _(0, 0, 0);
             double last_vel = vel_state_.distanceTo(_);
             // acceleration
-            if (linear_acceleration_profile_ == "linear")
-            {
+            if (linear_acceleration_profile_ == "linear") {
                 double d_vel = acceleration * dt_;
                 output_vel = last_vel + d_vel;
-            }
-            else if (linear_acceleration_profile_ == "smooth_step")
-            {
+            } else if (linear_acceleration_profile_ == "smooth_step") {
             }
 
             double xy_err = cur_pose_.distanceTo(goal_pose_);
-            // ROS_INFO("err = %f\n", xy_err);
+
             // deceleration
-            if (xy_err < linear_brake_distance_)
-            {
-                if (linear_deceleration_profile_ == "linear")
-                {
+            if (xy_err < linear_brake_distance_) {
+                if (linear_deceleration_profile_ == "linear") {
                     double acc = pow(linear_max_vel_, 2) / 2 / linear_brake_distance_;
                     output_vel = sqrt(2 * acc * xy_err);
-                    if (output_vel < 0.25)
-                    {
+                    if (output_vel < 0.25) {
                         double output_vel_ = xy_err * linear_kp_;
-                        if (output_vel_ < output_vel)
-                        {
+                        if (output_vel_ < output_vel) {
                             output_vel = output_vel_;
                         }
                     }
-                }
-                else if (linear_deceleration_profile_ == "p_control")
-                {
+                } else if (linear_deceleration_profile_ == "p_control") {
                     output_vel = cur_pos.distanceTo(goal_pos) * linear_kp_;
-                }
-                else if (linear_deceleration_profile_ == "smooth_step")
-                {
+                } else if (linear_deceleration_profile_ == "smooth_step") {
                 }
             }
 
             // Saturation
             if (output_vel > linear_max_vel_)
                 output_vel = linear_max_vel_;
-            // ROS_INFO("linear vel %f", output_vel);
         }
 
-        if (vel_type == Velocity::angular)
-        {
-            // double theta_err;
-            // // theta_err = fabs(angleLimitChecking(goal_pos.theta_ - cur_pos.theta_));
-            // theta_err = (angleLimitChecking(goal_pos.theta_ - cur_pos.theta_));
-            // output_vel = theta_err * angular_kp_;
-
-            // // if (signbit(acceleration))
-            // // {
-            // //     output_vel *= -1;
-            // // }
-
-            // // Saturation
-            // if (output_vel > angular_max_vel_)
-            //     output_vel = angular_max_vel_;
-            // if (output_vel < -angular_max_vel_)
-            //     output_vel = -angular_max_vel_;
-
-            // ================= old version =================
+        if (vel_type == VELOCITY::ANGULAR) {
             double d_vel = acceleration * dt_;
             output_vel = vel_state_.theta_ + d_vel;
-            double theta_err = (angleLimitChecking(goal_pos.theta_ - cur_pos.theta_));
+            double theta_err = (Angle_Limit_Checking(goal_pos.theta_ - cur_pos.theta_));
 
-            if (fabs(theta_err) < angular_brake_distance_)
-            {
+            if (fabs(theta_err) < angular_brake_distance_) {
                 output_vel = theta_err * angular_kp_;
             }
 
@@ -784,11 +638,8 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
             if (output_vel < -angular_max_vel_)
                 output_vel = -angular_max_vel_;
         }
-    }
-    else if (workingMode_ == Mode::TRANSITION)
-    {
-        if (vel_type == Velocity::linear)
-        {
+    } else if (working_mode_ == MODE::TRANSITION) {
+        if (vel_type == VELOCITY::LINEAR) {
             double d_vel = linear_transition_acc_ * dt_;
             RobotState _(0, 0, 0);
             double last_vel = vel_state_.distanceTo(_);
@@ -797,17 +648,13 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
                 output_vel = linear_transition_vel_;
         }
 
-        if (vel_type == Velocity::angular)
-        {
+        if (vel_type == VELOCITY::ANGULAR) {
             double d_vel = angular_transition_acc_ * dt_;
-            if (output_vel > 0)
-            {
+            if (output_vel > 0) {
                 output_vel = vel_state_.theta_ - d_vel;
                 if (output_vel < angular_transition_vel_)
                     output_vel = angular_transition_vel_;
-            }
-            else
-            {
+            } else {
                 output_vel = vel_state_.theta_ + d_vel;
                 if (output_vel > angular_transition_vel_)
                     output_vel = angular_transition_vel_;
@@ -818,20 +665,15 @@ double pathTracker::velocityProfile(Velocity vel_type, RobotState cur_pos, Robot
     return output_vel;
 }
 
-bool pathTracker::xy_goal_reached(RobotState cur_pos, RobotState goal_pos)
-{
-    if (cur_pos.distanceTo(goal_pos) < xy_tolerance_)
-    {
+bool PathTracker::is_XY_Reached(RobotState cur_pos, RobotState goal_pos) {
+    if (cur_pos.distanceTo(goal_pos) < xy_tolerance_) {
         return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
 
-bool pathTracker::theta_goal_reached(RobotState cur_pos, RobotState goal_pos)
-{
+bool PathTracker::is_Theta_Reached(RobotState cur_pos, RobotState goal_pos) {
     double theta_err = 0;
     Eigen::Vector2d cur_vec;
     Eigen::Vector2d goal_vec;
@@ -839,17 +681,14 @@ bool pathTracker::theta_goal_reached(RobotState cur_pos, RobotState goal_pos)
     goal_vec << cos(goal_pos.theta_), sin(goal_pos.theta_);
     theta_err = cur_vec.dot(goal_vec);
 
-    theta_err = fabs(angleLimitChecking(goal_pos.theta_ - cur_pos.theta_));
-    if (fabs(theta_err) < theta_tolerance_)
-    {
+    theta_err = fabs(Angle_Limit_Checking(goal_pos.theta_ - cur_pos.theta_));
+    if (fabs(theta_err) < theta_tolerance_) {
         return true;
-    }
-    else
+    } else
         return false;
 }
 
-void pathTracker::velocityPublish()
-{
+void PathTracker::Velocity_Publish() {
     geometry_msgs::Twist vel_msg;
     vel_msg.linear.x = velocity_state_.x_;
     vel_msg.linear.y = velocity_state_.y_;
@@ -857,18 +696,14 @@ void pathTracker::velocityPublish()
     vel_msg.angular.x = 0;
     vel_msg.angular.y = 0;
     vel_msg.angular.z = velocity_state_.theta_;
-    velPub_.publish(vel_msg);
+    vel_pub_.publish(vel_msg);
 }
 
-int main(int argc, char** argv)
-{
-    ros::init(argc, argv, "pathTracker");
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "PathTracker");
     ros::NodeHandle nh("");
     ros::NodeHandle nh_local("~");
-    pathTracker pathTracker_inst(nh, nh_local);
+    PathTracker PathTracker_inst(nh, nh_local);
 
-    while (ros::ok())
-    {
-        ros::spin();
-    }
+    ros::spin();
 }

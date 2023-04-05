@@ -12,6 +12,7 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Char.h>
 
 // ROS srvs
 #include "std_srvs/Empty.h"
@@ -38,21 +39,24 @@ class Navigation_Main {
     void Loop();
 
    private:
-    bool UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+    bool
+    UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
     void SetDynamicReconfigure();
 
     void SetTimeout(geometry_msgs::Pose poseGoal);
     bool isTimeout();
+    void FailToGoal();
 
     // Callback functions
     void Odom_type0_Callback(const nav_msgs::Odometry::ConstPtr &msg);
     void Odom_type1_Callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
     void PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
     void DockTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
-    void RobotMissionState_Callback(const std_msgs::Bool::ConstPtr &msg);
+    void RobotMissionState_Callback(const std_msgs::Char::ConstPtr &msg);
     void MainMission_Callback(const geometry_msgs::PoseStamped::ConstPtr &msg);
-    void DynamicParam_Callback(navigation_main::navigation_main_paramConfig &config, uint32_t level);
+    void DynamicParam_Callback(const navigation_main::navigation_main_paramConfig &config, uint32_t level);
+    void ResendGoal_Callback(const ros::TimerEvent &event);
 
     // Other functions
     double Distance_Between_A_and_B(geometry_msgs::Pose poseA, geometry_msgs::Pose poseB);
@@ -83,12 +87,15 @@ class Navigation_Main {
     bool param_update_params_;
     bool param_use_dynamic_reconfigure_;
 
+    int param_resend_goal_time_;
+
     double param_update_frequency_;
     double param_timeout_;
     double param_timeout_a_;
     double param_timeout_b_;
     double param_timeout_min_;
     double param_timeout_max_;
+    double param_resend_goal_frequency_;
 
     std::string param_node_name_;
     std::string param_robot_odom_topic_;
@@ -105,21 +112,25 @@ class Navigation_Main {
     bool is_mission_start_;
     bool is_reach_goal_;
 
-    enum class mission_type {
+    enum class MISSION_TYPE {
         PATH_TRACKER = 0,
         DOCK_TRACKER = 1,
-        IDLE = 2
+        RESEND_PATH_GOAL = 2,
+        RESEND_DOCK_GOAL = 3,
+        IDLE = 4
     };
-    mission_type mission_status_;
+    MISSION_TYPE mission_status_;
 
-    enum class odom_callback_type {
+    enum class ODOM_CALLBACK_TYPE {
         nav_msgs_Odometry = 0,
         geometry_msgs_PoseWithCovarianceStamped = 1
     };
-    odom_callback_type odom_type_;
+    ODOM_CALLBACK_TYPE odom_type_;
 
     // Timeout
     ros::Time start_time_;
+    ros::Timer resend_goal_timer_;
+    int resend_goal_time_;
 
     // Robot Odometry
     geometry_msgs::PoseStamped robot_goal_;
