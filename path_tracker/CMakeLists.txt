@@ -163,10 +163,6 @@ add_executable(dockTracker src/dockTracker.cpp)
 add_dependencies(dockTracker ${catkin_EXPORTED_TARGETS})
 target_link_libraries(dockTracker ${catkin_LIBRARIES})
 
-add_executable(dockTracker_sim src/dockTracker_sim.cpp)
-add_dependencies(dockTracker_sim ${catkin_EXPORTED_TARGETS})
-target_link_libraries(dockTracker_sim ${catkin_LIBRARIES})
-
 #############
 ## Install ##
 #############

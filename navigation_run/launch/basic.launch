@@ -1,0 +1,164 @@
+<launch>
+    <!-- choose what the mode you want. Simulation or Run Real Robot -->
+    <arg name="is_run" default="true" />
+    <arg name="is_sim" default="false" />
+
+    <!-- which robot -->
+    <arg name="is_robot" default="false" />
+    <arg name="is_robot1" default="false" />
+    <arg name="is_robot2" default="false" />
+    <arg name="is_rival1" default="false" />
+    <arg name="is_rival2" default="false" />
+
+    <arg name="robot_name" default="" if="$(arg is_robot)"/>
+    <arg name="robot_name" default="robot1" if="$(arg is_robot1)"/>
+    <arg name="robot_name" default="robot2" if="$(arg is_robot2)"/>
+    <arg name="robot_name" default="rival1" if="$(arg is_rival1)"/>
+    <arg name="robot_name" default="rival2" if="$(arg is_rival2)"/>
+
+    <include file="$(find navigation_main)/launch/main.launch" >
+        <!-- sim or run -->
+        <arg name="is_run" value="$(arg is_run)" />
+        <arg name="is_sim" value="$(arg is_sim)" />
+
+        <!-- which robot -->
+        <arg name="is_robot" value="$(arg is_robot)" />
+        <arg name="is_robot1" value="$(arg is_robot1)" />
+        <arg name="is_robot2" value="$(arg is_robot2)" />
+        <arg name="is_rival1" value="$(arg is_rival1)" />
+        <arg name="is_rival2" value="$(arg is_rival2)" />
+    </include>
+ 
+    <!-- Localization -->
+    <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" if="$(arg is_run)"/>
+
+
+    <!-- robot1 -->
+    <group ns="$(arg robot_name)">
+
+        <!-- Map File -->
+        <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
+
+        <!-- Map Server -->
+        <!-- Publish: /map, /map_metadata -->
+        <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
+            <param name="frame_id" value="map" if="$(arg is_robot)"/>
+            <param name="frame_id" value="robot1/map" if="$(arg is_robot1)"/>
+            <param name="frame_id" value="robot2/map" if="$(arg is_robot2)"/>
+        </node>
+
+        <!-- Move Base Node -->
+        <!-- Subscribe: /move_base_simple/goal -->
+        <!-- Publish: /cmd_vel -->
+        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" if="$(arg is_robot1)">
+            <remap from="cmd_vel" to ="vel_obseleted" />
+            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+
+            <rosparam file="$(find navigation_run)/config/costmap_common_run_params1.yaml" command="load" ns="global_costmap" if="$(arg is_run)"/>
+            <rosparam file="$(find navigation_run)/config/costmap_common_run_params1.yaml" command="load" ns="local_costmap" if="$(arg is_run)"/>
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params1.yaml" command="load" ns="global_costmap" if="$(arg is_sim)"/>
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params1.yaml" command="load" ns="local_costmap" if="$(arg is_sim)"/>
+
+            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
+
+            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
+            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+        </node>
+
+        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" if="$(arg is_robot2)">
+            <remap from="cmd_vel" to ="vel_obseleted" />
+            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+
+            <rosparam file="$(find navigation_run)/config/costmap_common_run_params2.yaml" command="load" ns="global_costmap" if="$(arg is_run)"/>
+            <rosparam file="$(find navigation_run)/config/costmap_common_run_params2.yaml" command="load" ns="local_costmap" if="$(arg is_run)"/>
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params2.yaml" command="load" ns="global_costmap" if="$(arg is_sim)"/>
+            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params2.yaml" command="load" ns="local_costmap" if="$(arg is_sim)"/>
+
+            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
+
+            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
+            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+        </node>
+
+        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" if="$(arg is_rival1)">
+            <remap from="cmd_vel" to ="vel_obseleted" />
+            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params1.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params1.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
+
+            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
+            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+        </node>
+
+        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" if="$(arg is_rival2)">
+            <remap from="cmd_vel" to ="vel_obseleted" />
+            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params2.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find navigation_run)/config/rival_sim_params/costmap_common_rival_params2.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
+
+            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
+            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+        </node>
+
+        <!-- path_Tracker -->
+        <include file="$(find path_tracker)/launch/pathTracker.launch">
+            <!-- sim or run -->
+            <arg name="is_sim" value="$(arg is_sim)" />
+            <arg name="is_run" value="$(arg is_run)" />
+            
+            <!-- which robot -->
+            <arg name="is_robot" value="$(arg is_robot)"/>
+            <arg name="is_robot1" value="$(arg is_robot1)" />
+            <arg name="is_robot2" value="$(arg is_robot2)" />
+            <arg name="is_rival1" value="$(arg is_rival1)" />
+            <arg name="is_rival2" value="$(arg is_rival2)" />
+        </include>
+
+        <!-- docking_tracker -->
+        <include file="$(find path_tracker)/launch/dockTracker.launch">
+            <!-- sim or run -->
+            <arg name="is_sim" value="$(arg is_sim)" />
+            <arg name="is_run" value="$(arg is_run)" />
+            
+            <!-- which robot -->
+            <arg name="is_robot" value="$(arg is_robot)"/>
+            <arg name="is_robot1" value="$(arg is_robot1)" />
+            <arg name="is_robot2" value="$(arg is_robot2)" />
+            <arg name="is_rival1" value="$(arg is_rival1)" />
+            <arg name="is_rival2" value="$(arg is_rival2)" />
+        </include>
+
+        <!-- low pass filter on pt's cmd_vel -->
+        <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
+            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
+            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
+        </node>
+
+        <!-- BELOW IS ONLY FOR SIMULATION -->
+
+        <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
+        <!-- x y z r p y -->
+        <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
+        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 $(arg robot_name)/map $(arg robot_name)/odom 30" if="$(arg is_sim)"/>
+
+        <!-- Robot odometry simulator-->
+        <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
+        <node pkg="navigation_run" name="odometry" type="odometry_global_velocity" if="$(arg is_sim)">
+            <param name="tf_prefix" value="$(arg robot_name)" />
+        </node>
+
+    </group>   
+    
+</launch>

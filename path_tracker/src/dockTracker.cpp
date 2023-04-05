@@ -197,7 +197,7 @@ void DockTracker::timerCB(const ros::TimerEvent& e)
             finished.data = 1;
             goalreachedPub_.publish(finished);
             // }
-            ROS_INFO("[Dock Tracker]: Successfully docked!");
+            ROS_INFO("[Dock Tracker] : Successfully docked!");
         }
     }
     else

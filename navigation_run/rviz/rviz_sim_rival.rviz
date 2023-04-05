@@ -7,7 +7,6 @@ Panels:
         - /Robot1_odom1/Shape1
         - /Robot2_odom1/Shape1
         - /Rival1_Odom1/Shape1
-        - /Rival2_Odom1
         - /Rival2_Odom1/Shape1
       Splitter Ratio: 0.4740740656852722
     Tree Height: 426
@@ -171,18 +170,6 @@ Visualization Manager:
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
       Topic: /robot2/move_base/GlobalPlanner/plan
-      Unreliable: false
-      Value: true
-    - Circles color: 170; 0; 0
-      Class: Obstacles
-      Enabled: true
-      Margin color: 0; 170; 0
-      Name: Obstacles
-      Opacity: 0.75
-      Queue Size: 10
-      Segments color: 170; 170; 0
-      Segments thickness: 0.029999999329447746
-      Topic: /robot1/obstacles_to_base
       Unreliable: false
       Value: true
     - Class: rviz/TF
@@ -475,8 +462,6 @@ Visualization Manager:
     - Class: rviz/SetGoal
       Topic: /robot1/mission
     - Class: rviz/SetGoal
-      Topic: /robot2/mission
-      Class: rviz/SetGoal
       Topic: /rival1/mission
     - Class: rviz/PublishPoint
       Single click: true
@@ -501,9 +486,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.5597963333129883
       Target Frame: <Fixed Frame>
-      Yaw: 4.70858097076416
+      Yaw: 4.718581199645996
     Saved: ~
 Window Geometry:
   Displays:
@@ -522,4 +507,4 @@ Window Geometry:
     collapsed: true
   Width: 1386
   X: 404
-  Y: 63
+  Y: 27

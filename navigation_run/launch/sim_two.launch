@@ -1,143 +1,26 @@
 <launch>
+    <!-- Set is_sim to true if you want to run simulation. -->
+    <!-- robot1 -->
+    <include file="$(find navigation_run)/launch/basic.launch">
+        <arg name="is_run" value="false" />
+        <arg name="is_sim" value="true" />
 
-    <!-- Set isSim to true if you want to run simulation. -->
-    <arg name="isSim" default="true" />
-    <arg name="isRun" default="false" />
-
-    <include file="$(find navigation_main)/launch/main_sim_robot12.launch" if="$(arg isSim)">
-
-        <!-- 0 -> nav_msgs::Odometry -->
-        <!-- 1 -> geometry_msgs::PoseWithCovarianceStamped -->
-        <arg name="odom_type" value="0" if="$(arg isSim)"/>
-        <arg name="odom_type" value="1" if="$(arg isRun)"/>
-
+        <!-- which robot -->
+        <arg name="is_robot1" default="true" />
     </include>
 
-    <group ns="robot1">
-        <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
-        <!-- x y z r p y -->
-        <node pkg="tf" type="static_transform_publisher" name="map_to_map1" args="0 0 0 0 0 0 map robot1/map 30" />
-        <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
+    <!-- robot2 -->
+    <include file="$(find navigation_run)/launch/basic.launch">
+        <arg name="is_run" value="false" />
+        <arg name="is_sim" value="true" />
 
-        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot1/map robot1/odom 30" />
+        <!-- which robot -->
+        <arg name="is_robot2" default="true" />
+    </include>
 
-        <!-- Map File -->
-        <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
+    <node pkg="tf" type="static_transform_publisher" name="map_to_map1" args="0 0 0 0 0 0 map robot1/map 30"/>
+    <node pkg="tf" type="static_transform_publisher" name="map_to_map2" args="0 0 0 0 0 0 map robot2/map 30"/>
 
-        <!-- Map Server -->
-        <!-- Publish: /map, /map_metadata -->
-        <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
-            <param name="frame_id" value="robot1/map" />
-        </node>
-
-        <!-- Robot odometry simulator-->
-        <node pkg="navigation_run" name="odometry" type="odometry_sim" if="$(arg isSim)">
-            <param name="tf_prefix" value="robot1" />
-        </node>
-
-        <!-- Move Base Node -->
-        <!-- Subscribe: /move_base_simple/goal -->
-        <!-- Publish: /cmd_vel -->
-        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-            <remap from="cmd_vel" to ="vel_obseleted" />
-            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
-
-            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params1.yaml" command="load" ns="global_costmap" />
-            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params1.yaml" command="load" ns="local_costmap" />
-            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
-            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
-
-            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
-            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
-            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
-        </node>
-
-        <!-- path_Tracker -->
-        <include file="$(find path_tracker)/launch/pathTracker.launch">
-            <arg name="isSim" value="$(arg isSim)" />
-            <arg name="isRobot1" value="true" />
-        </include>
-
-        <!-- low pass filter on pt's cmd_vel -->
-        <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
-            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
-            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
-        </node>
-
-        <!-- obstacle_simulation.launch -->
-        <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-        </include>
-
-        <!-- docking_tracker -->
-        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
-            <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
-            <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
-            <remap from="dock_goal" to="dock_tracker_goal"/>
-        </node>
-    </group>
-
-    <group ns="robot2">
-        <!-- Transformation Configuration ... Setting Up the Relationships Between Coordinate Frames -->
-        <!-- x y z r p y -->
-        <node pkg="tf" type="static_transform_publisher" name="map_to_map2" args="0 0 0 0 0 0 map robot2/map 30" />
-        <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
-
-        <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 robot2/map robot2/odom 30" />
-
-        <!-- Map File -->
-        <arg name="map_file" default="$(find map_server)/mytest/basic_map.yaml"/>
-
-        <!-- Map Server -->
-        <!-- Publish: /map, /map_metadata -->
-        <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)">
-            <param name="frame_id" value="robot2/map" />
-        </node>
-        <!-- Robot odometry simulator-->
-        <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
-        <node pkg="navigation_run" name="odometry" type="odometry_sim">
-            <param name="tf_prefix" value="robot2" />
-        </node>
-
-        <!-- Move Base Node -->
-        <!-- Subscribe: /move_base_simple/goal -->
-        <!-- Publish: /cmd_vel -->
-        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-            <remap from="cmd_vel" to ="vel_obseleted" />
-            <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
-            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params2.yaml" command="load" ns="global_costmap" />
-            <rosparam file="$(find navigation_run)/config/costmap_common_sim_params2.yaml" command="load" ns="local_costmap" />
-            <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
-            <rosparam file="$(find navigation_run)/config/local_costmap_params.yaml" command="load" />
-
-            <!-- <rosparam file="$(find navigation_run)/config/base_local_planner_params.yaml" command="load" /> -->
-            <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
-            <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
-        </node>
-
-        <!-- path_Tracker -->
-        <include file="$(find path_tracker)/launch/pathTracker.launch">
-            <arg name="isRobot1" value="false" />
-            <arg name="isSim" value="$(arg isSim)" />
-        </include>
-
-        <!-- low pass filter on pt's cmd_vel -->
-        <node pkg="lpf" type="vel_lpf" name="vel_lpf" output="screen">
-            <rosparam file="$(find lpf)/params/lpf.yaml" command="load" />
-            <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
-        </node>
-
-        <!-- obstacle_simulation.launch -->
-        <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch">
-        </include>
-
-        <!-- docking_tracker -->
-        <node name="docking_tracker" pkg="path_tracker" type="dockTracker_sim" output="screen">
-            <rosparam file="$(find path_tracker)/params/dockTracker.yaml" command="load" />
-            <remap from="cmd_vel" to="dock_tracker_cmd_vel"/>
-            <remap from="dock_goal" to="dock_tracker_goal"/>
-        </node>
-    </group>
-
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim1.rviz" if="$(arg isSim)"/>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find navigation_run)/rviz/rviz_sim1.rviz" />
 
 </launch>
