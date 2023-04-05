@@ -4,7 +4,7 @@
 
   #hexagonal footprint
   # footprint: [[0,0.15],[0.1299,0.075],[0.1299,-0.075],[0,-0.15],[-0.1299,-0.075],[-0.1299,0.075]]
-  robot_radius: 0.155
+  robot_radius: 0.19
   #tf
   global_frame: robot1/map
   robot_base_frame: robot1/base_footprint

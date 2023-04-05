@@ -19,7 +19,7 @@ linear_transition_velocity: 0.15
 linear_transition_acceleration: 0.6
 
 # deceleration
-linear_kp: 0.73
+linear_kp: 1
 #linear_kp: 0.6
 linear_brake_distance_ratio: 0.35
 linear_min_brake_distance: 0.33
