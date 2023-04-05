@@ -29,8 +29,8 @@ private:
     ros::Subscriber goal_sub_;
     ros::Subscriber pose_sub_;
     void goalCB(const geometry_msgs::PoseStamped& data);
-    // void poseCB(const nav_msgs::Odometry& data);
-    void poseCB(const geometry_msgs::PoseWithCovarianceStamped& data);
+    void poseCB_Odometry(const nav_msgs::Odometry& data);
+    void poseCB_PoseWithCovarianceStamped(const geometry_msgs::PoseWithCovarianceStamped& data);
     
     // Publisher
     ros::Publisher pub_;
@@ -59,6 +59,7 @@ private:
     double linear_max_vel_;
     double profile_percent_;
     double tolerance_;
+    int odom_type_;
 
     double distance(double x1, double y1, double x2, double y2);
 };

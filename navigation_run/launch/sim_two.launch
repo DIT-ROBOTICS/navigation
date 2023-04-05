@@ -1,7 +1,6 @@
 <launch>
 
     <include file="$(find navigation_main)/launch/main_sim_robot12.launch">
-
         <!-- 0 -> nav_msgs::Odometry -->
         <!-- 1 -> geometry_msgs::PoseWithCovarianceStamped -->
         <!-- Remember to change the topic name. -->
@@ -54,6 +53,7 @@
 
         <!-- path_Tracker -->
         <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+            <param name="frame" value="robot1/map" />
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
             <remap from="nav_goal" to="path_tracker_goal"/>
@@ -123,6 +123,7 @@
 
         <!-- path_Tracker -->
         <node name="path_tracker" pkg="path_tracker" type="pathTracker_sim" output="screen">
+            <param name="frame" value="robot2/map" />
             <remap from="global_filter" to="odom"/>
             <remap from="cmd_vel" to="raw_cmd_vel"/>
             <remap from="nav_goal" to="path_tracker_goal"/>

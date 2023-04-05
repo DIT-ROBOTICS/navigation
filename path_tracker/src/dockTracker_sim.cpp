@@ -47,7 +47,6 @@ bool DockTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     bool get_param_ok = true;
     bool prev_active = p_active_;
     get_param_ok = nh_local_.param<bool>("active", p_active_, true);
-    // get_param_ok = nh_local_.param<string>("", _, "");
     get_param_ok = nh_local_.param<double>("control_frequency", control_frequency_, 50);
     get_param_ok = nh_local_.param<double>("linear_max_velocity", linear_max_vel_, 0.3);
     get_param_ok = nh_local_.param<double>("profile_percent", profile_percent_, 0.2);
