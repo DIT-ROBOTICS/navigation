@@ -34,7 +34,11 @@
     <arg name="timeout_b" default="5.0" />
     <arg name="min_timeout" default="10.0" />
     <arg name="max_timeout" default="100.0" />
+
+    <!-- Resend Goal when the goal is blocked and it isn't timeout yet. -->
+    <!-- (1 / resend_goal_frequency) * resend_goal_time = total waiting time for resending goal.  -->
     <arg name="resend_goal_frequency" default="1.0" />
+    <arg name="resend_goal_time" default="10" />
 
     <group ns="$(arg robot_name)">
         <!--  Node  -->
@@ -49,6 +53,8 @@
             <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
             <param name="update_params" value="$(arg update_params)" />
             <param name="odom_type" value="$(arg odom_type)" />
+            <param name="resend_goal_frequency" type="double" value="$(arg resend_goal_frequency)" />
+            <param name="resend_goal_time" type="int" value="$(arg resend_goal_time)" />
 
             <param name="robot_odom_topic" type="string" value="$(arg robot_name)/ekf_pose" if="$(arg is_run)"/>
             <param name="robot_odom_topic" type="string" value="$(arg robot_name)/odom" if="$(arg is_sim)"/>
