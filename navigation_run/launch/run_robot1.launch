@@ -1,4 +1,7 @@
 <launch>
+    <node pkg="tf" type="static_transform_publisher" name="map_to_map1" args="0 0 0 0 0 0 map robot1/map 30"/>
+    <node pkg="tf" type="static_transform_publisher" name="map_to_map2" args="0 0 0 0 0 0 map robot2/map 30"/>
+    
     <!-- Set is_sim to true if you want to run simulation. -->
     <include file="$(find navigation_run)/launch/basic.launch">
         <arg name="is_run" value="true" />

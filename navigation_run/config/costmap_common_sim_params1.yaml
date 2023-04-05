@@ -110,7 +110,7 @@
     # Predict Length
     PredictLength:
       Robot:
-        Path: 50 # Unit: none
+        Path: 10 # Unit: none
       Rival:
         Odom: 1        # Unit: s
         Resolution: 0.05 # Unit: m
