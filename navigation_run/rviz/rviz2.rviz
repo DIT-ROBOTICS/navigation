@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Status1
+        - /Map3
         - /Pose1
       Splitter Ratio: 0.5
     Tree Height: 717
@@ -36,7 +36,7 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
-      Cell Size: 0.10000000149011612
+      Cell Size: 0.05000000074505806
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: true
@@ -50,19 +50,19 @@ Visualization Manager:
         Y: 1
         Z: 0
       Plane: XY
-      Plane Cell Count: 30
+      Plane Cell Count: 60
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: Map
       Topic: /robot2/map
       Unreliable: false
       Use Timestamp: false
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/Map
       Color Scheme: costmap
@@ -73,7 +73,7 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 0.30000001192092896
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
@@ -330,7 +330,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.920544147491455
+      Distance: 10.150322914123535
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -338,17 +338,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.2215466499328613
-        Y: 1.3125883340835571
-        Z: 0.14875441789627075
+        X: 1.5667401552200317
+        Y: 1.4616680145263672
+        Z: 0.14840640127658844
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5647963285446167
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 0.012234458699822426
+      Yaw: 0.007234459742903709
     Saved: ~
 Window Geometry:
   Displays:
