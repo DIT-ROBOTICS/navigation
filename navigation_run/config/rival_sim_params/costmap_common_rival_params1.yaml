@@ -95,8 +95,8 @@
         Odom: /robot2/odom
         Path: /robot2/move_base/GlobalPlanner/plan
       Rival:
-        Odom1: /rival1/odom
-        Odom2: /rival2/odom
+        Odom1: /rival1/odomm
+        Odom2: /rival2/odomm
     
     # Timeout -1 -> Disable Timeout 
     Timeout:
