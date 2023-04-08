@@ -58,17 +58,6 @@
         <!-- Local costmap namespace -->
         <param name="local_costmap/global_frame" value="robot$(arg num)/map" />
         <param name="local_costmap/robot_base_frame" value="robot$(arg num)/base_footprint" />
-        <param name="local_costmap/path_layer/RobotType" value="$(arg num)" />
-        <param name="local_costmap/path_layer/PredictLength/Robot/Path" value="$(arg PredictLength)" />
-        <param name="local_costmap/path_layer/OdomCallbackType" value="0" if="$(arg is_sim)" />
-        <param name="local_costmap/path_layer/OdomCallbackType" value="1" if="$(arg is_run)" />
-        <param name="local_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/ekf_pose" if="$(arg is_run)" />
-        <param name="local_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/odom" if="$(arg is_sim)" />
-        <param name="local_costmap/path_layer/Topic/Robot/Path" value="/robot$(arg OdomNum)/move_base/GlobalPlanner/plan" />
-        <param name="local_costmap/path_layer/Topic/Rival/Odom1" value="/RivalOdom_1" if="$(arg is_run)" />
-        <param name="local_costmap/path_layer/Topic/Rival/Odom1" value="/rival1/odom" if="$(arg is_sim)" />
-        <param name="local_costmap/path_layer/Topic/Rival/Odom2" value="/RivalOdom_2" if="$(arg is_run)" />
-        <param name="local_costmap/path_layer/Topic/Rival/Odom2" value="/rival2/odom" if="$(arg is_sim)" />
     </node>
 
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" if="$(arg is_rival)">
