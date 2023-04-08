@@ -6,7 +6,7 @@
         <arg name="is_sim" value="true" />
 
         <!-- which robot -->
-        <arg name="is_robot1" default="true" />
+        <arg name="is_robot1" value="true" />
     </include>
 
     <!-- robot2 -->
@@ -15,7 +15,7 @@
         <arg name="is_sim" value="true" />
 
         <!-- which robot -->
-        <arg name="is_robot2" default="true" />
+        <arg name="is_robot2" value="true" />
     </include>
 
     <!-- rival1 -->
@@ -24,7 +24,7 @@
         <arg name="is_sim" value="true" />
 
         <!-- which robot -->
-        <arg name="is_rival1" default="true" />
+        <arg name="is_rival1" value="true" />
     </include>
 
     <!-- rival2 -->
@@ -33,7 +33,7 @@
         <arg name="is_sim" value="true" />
 
         <!-- which robot -->
-        <arg name="is_rival2" default="true" />
+        <arg name="is_rival2" value="true" />
     </include>
 
     <node pkg="tf" type="static_transform_publisher" name="map_to_robot1" args="0 0 0 0 0 0 map robot1/map 30"/>

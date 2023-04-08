@@ -5,6 +5,6 @@
         <arg name="is_sim" value="false" />
 
         <!-- which robot -->
-        <arg name="is_robot" default="true" />
+        <arg name="is_robot" value="true" />
     </include>
 </launch>

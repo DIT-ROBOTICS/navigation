@@ -1,0 +1,93 @@
+<launch>
+
+    <!-- Move base path_layer param -->
+    <arg name="PredictLength_robot1" default="50" />
+    <arg name="PredictLength_robot2" default="1" />
+
+    <arg name="is_run" default="true" />
+    <arg name="is_sim" default="false" />
+
+    <!-- which robot -->
+    <arg name="is_robot" default="false" />
+    <arg name="is_robot1" default="false" />
+    <arg name="is_robot2" default="false" />
+    <arg name="is_rival1" default="false" />
+    <arg name="is_rival2" default="false" />
+
+    <!-- Variable -->
+    <arg name="is_rival" value="false" if="$(arg is_robot)" />
+    <arg name="is_rival" value="false" if="$(arg is_robot1)" />
+    <arg name="is_rival" value="false" if="$(arg is_robot2)" />
+    <arg name="is_rival" value="true" if="$(arg is_rival1)" />
+    <arg name="is_rival" value="true" if="$(arg is_rival2)" />
+    <arg name="PredictLength" default="$(arg PredictLength_robot1)" if="$(arg is_robot1)" />
+    <arg name="PredictLength" default="$(arg PredictLength_robot2)" if="$(arg is_robot2)" />
+    <arg name="num" default="1" if="$(arg is_robot1)" />
+    <arg name="num" default="2" if="$(arg is_robot2)" />
+    <arg name="num" default="1" if="$(arg is_rival1)" />
+    <arg name="num" default="2" if="$(arg is_rival2)" />
+    <arg name="OdomNum" default="2" if="$(arg is_robot1)" />
+    <arg name="OdomNum" default="1" if="$(arg is_robot2)" />
+
+    <!-- Subscribe: /move_base_simple/goal -->
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" unless="$(arg is_rival)">
+        <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+        <remap from="cmd_vel" to ="vel_obseleted" />
+
+        <rosparam file="$(find navigation_run)/config/costmap_common_params_robot.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find navigation_run)/config/costmap_common_params_robot.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+        <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+
+        <!-- Global costmap namespace -->
+        <param name="global_costmap/global_frame" value="robot$(arg num)/map" />
+        <param name="global_costmap/robot_base_frame" value="robot$(arg num)/base_footprint" />
+        <param name="global_costmap/path_layer/RobotType" value="$(arg num)" />
+        <param name="global_costmap/path_layer/PredictLength/Robot/Path" value="$(arg PredictLength)" />
+        <param name="global_costmap/path_layer/OdomCallbackType" value="0" if="$(arg is_sim)" />
+        <param name="global_costmap/path_layer/OdomCallbackType" value="1" if="$(arg is_run)" />
+        <param name="global_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/ekf_pose" if="$(arg is_run)" />
+        <param name="global_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/odom" if="$(arg is_sim)" />
+        <param name="global_costmap/path_layer/Topic/Robot/Path" value="/robot$(arg OdomNum)/move_base/GlobalPlanner/plan" />
+        <param name="global_costmap/path_layer/Topic/Rival/Odom1" value="/RivalOdom_1" if="$(arg is_run)" />
+        <param name="global_costmap/path_layer/Topic/Rival/Odom1" value="/rival1/odom" if="$(arg is_sim)" />
+        <param name="global_costmap/path_layer/Topic/Rival/Odom2" value="/RivalOdom_2" if="$(arg is_run)" />
+        <param name="global_costmap/path_layer/Topic/Rival/Odom2" value="/rival2/odom" if="$(arg is_sim)" />
+
+        <!-- Local costmap namespace -->
+        <param name="local_costmap/global_frame" value="robot$(arg num)/map" />
+        <param name="local_costmap/robot_base_frame" value="robot$(arg num)/base_footprint" />
+        <param name="local_costmap/path_layer/RobotType" value="$(arg num)" />
+        <param name="local_costmap/path_layer/PredictLength/Robot/Path" value="$(arg PredictLength)" />
+        <param name="local_costmap/path_layer/OdomCallbackType" value="0" if="$(arg is_sim)" />
+        <param name="local_costmap/path_layer/OdomCallbackType" value="1" if="$(arg is_run)" />
+        <param name="local_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/ekf_pose" if="$(arg is_run)" />
+        <param name="local_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/odom" if="$(arg is_sim)" />
+        <param name="local_costmap/path_layer/Topic/Robot/Path" value="/robot$(arg OdomNum)/move_base/GlobalPlanner/plan" />
+        <param name="local_costmap/path_layer/Topic/Rival/Odom1" value="/RivalOdom_1" if="$(arg is_run)" />
+        <param name="local_costmap/path_layer/Topic/Rival/Odom1" value="/rival1/odom" if="$(arg is_sim)" />
+        <param name="local_costmap/path_layer/Topic/Rival/Odom2" value="/RivalOdom_2" if="$(arg is_run)" />
+        <param name="local_costmap/path_layer/Topic/Rival/Odom2" value="/rival2/odom" if="$(arg is_sim)" />
+    </node>
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" if="$(arg is_rival)">
+        <remap from="cmd_vel" to ="vel_obseleted" />
+        <!--when using pathTracker, needed to remap cmd_vel to another topic name-->
+
+        <rosparam file="$(find navigation_run)/config/costmap_common_params_rival.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find navigation_run)/config/costmap_common_params_rival.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
+        <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
+
+        <!-- Global costmap namespace -->
+        <param name="global_costmap/global_frame" value="rival$(arg num)/map" />
+        <param name="global_costmap/robot_base_frame" value="rival$(arg num)/base_footprint" />
+
+        <!-- Local costmap namespace -->
+        <param name="local_costmap/global_frame" value="rival$(arg num)/map" />
+        <param name="local_costmap/robot_base_frame" value="rival$(arg num)/base_footprint" />
+    </node>
+
+</launch>
