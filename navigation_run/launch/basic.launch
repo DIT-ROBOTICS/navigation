@@ -30,7 +30,12 @@
     </include>
 
     <!-- Localization -->
-    <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" if="$(arg is_run)"/>
+    <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" if="$(arg is_run)" >
+        <arg name="robot_name" value="robot1" if="$(arg is_robot1)"/>
+        <arg name="robot_name_slash" value="robot1/" if="$(arg is_robot1)"/>
+        <arg name="robot_name" value="robot2" if="$(arg is_robot2)"/>
+        <arg name="robot_name_slash" value="robot2/" if="$(arg is_robot2)"/>
+    </include>
 
     <group ns="$(arg robot_name)">
         <!-- Map Info -->
