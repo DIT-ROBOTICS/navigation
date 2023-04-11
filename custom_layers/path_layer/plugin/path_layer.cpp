@@ -17,6 +17,7 @@ void PathLayer::onInitialize() {
     std::string RobotOdom_CB_TopicName;
     std::string RobotPath_CB_TopicName;
     std::string RivalOdom_CB_TopicName[2];
+    std::string Rival_Obstacle_CB_TopicName;
     int temp_OdomType;
 
     // ---------------- Read YAML parameter ----------------
@@ -38,11 +39,13 @@ void PathLayer::onInitialize() {
     nh.param<std::string>("Topic/Robot/Path", RobotPath_CB_TopicName, "/move_base/GlobalPlanner/plan");
     nh.param<std::string>("Topic/Rival/Odom1", RivalOdom_CB_TopicName[0], "/RivalOdom_1");
     nh.param<std::string>("Topic/Rival/Odom2", RivalOdom_CB_TopicName[1], "/RivalOdom_2");
+    nh.param<std::string>("Topic/Rival/Obstacle", Rival_Obstacle_CB_TopicName, "/RivalObstacle");
 
     // Timeout
     nh.param("Timeout/Robot/Odom", RobotOdomTimeout, 1.0);
     nh.param("Timeout/Robot/Path", RobotPathTimeout, 1.0);
     nh.param("Timeout/Rival/Odom", RivalOdomTimeout, 1.0);
+    nh.param("Timeout/Rival/Obstacle", RivalObstacleTimeout, 1.0);
 
     // PredictLength
     nh.param("PredictLength/Robot/Path", RobotPredictLength, 1);
@@ -66,10 +69,11 @@ void PathLayer::onInitialize() {
 
     RivalOdom_Sub[0] = nh.subscribe(RivalOdom_CB_TopicName[0], 1000, &PathLayer::RivalOdom1_CB, this);
     RivalOdom_Sub[1] = nh.subscribe(RivalOdom_CB_TopicName[1], 1000, &PathLayer::RivalOdom2_CB, this);
+    RivalObstacle_Sub = nh.subscribe(Rival_Obstacle_CB_TopicName, 1000, &PathLayer::RivalObstacle_CB, this);
 
     // Init variable
-    isRobotPath = isRobotOdom = isRivalOdom[0] = isRivalOdom[1] = false;
-    RobotPathLastTime = ros::Time::now();
+    isRobotPath = isRobotOdom = isRivalOdom[0] = isRivalOdom[1] = isRivalObstacle = false;
+    RobotPathLastTime = RivalOdomLastTime[0] = RivalOdomLastTime[1] = RivalObstacleLastTime = ros::Time::now();
 
     current_ = true;
     default_value_ = costmap_2d::NO_INFORMATION;
@@ -109,6 +113,8 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
         if (RivalOdomTimeout != -1 && CurrentTime - RivalOdomLastTime[i].toSec() > RivalOdomTimeout)
             isRivalOdom[i] = false;
     }
+    if (RivalObstacleTimeout != -1 && CurrentTime - RivalObstacleLastTime.toSec() > RivalObstacleTimeout)
+        isRivalObstacle = false;
 
     // Get the Costmap lock. (Optional)
     boost::unique_lock<mutex_t> lock(*(getMutex()));
@@ -136,6 +142,9 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
     }
     if (isRivalOdom[1]) {
         InflatePredictPath(ROBOT_TYPE::RIVAL2);
+    }
+    if (isRivalObstacle) {
+        InflatePredictPath(ROBOT_TYPE::OBSTACLE);
     }
 
     *min_x = 0.0;
@@ -224,6 +233,49 @@ void PathLayer::InflatePredictPath(ROBOT_TYPE type) {
             // InflationRadius *= RivalRadiusDecline;
             InscribedRadius *= RivalRadiusDecline;
         }
+    } else if (type == ROBOT_TYPE::OBSTACLE) {
+        int ObstacleSize = RivalObstacle.circles.size();
+        for (int i = 0; i < ObstacleSize; i++) {
+            double mark_x = RivalObstacle.circles[i].center.x;
+            double mark_y = RivalObstacle.circles[i].center.y;
+
+            // Rival Object
+            InflatePoint(mark_x, mark_y, costmap_2d::LETHAL_OBSTACLE, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
+
+            double len = sqrt(pow(RivalObstacle.circles[i].velocity.x, 2) + pow(RivalObstacle.circles[i].velocity.y, 2)) * RivalOdom_PredictTime;
+            if (len == 0.0) {
+                return;
+            }
+
+            double theta = 0.0;
+            if (RivalObstacle.circles[i].velocity.x == 0.0) {
+                theta = RivalObstacle.circles[i].velocity.y >= 0 ? M_PI_2 : -M_PI_2;
+            } else {
+                theta = std::atan(RivalObstacle.circles[i].velocity.y / RivalObstacle.circles[i].velocity.x);
+                if (RivalObstacle.circles[i].velocity.x <= 0) {
+                    theta += M_PI;
+                }
+            }
+
+            const double IncX = RivalOdom_Resolution * std::cos(theta);
+            const double IncY = RivalOdom_Resolution * std::sin(theta);
+            double InflationRadius = RivalInflationRadius;
+            double InscribedRadius = RivalInscribedRadius;
+
+            unsigned int mx;
+            unsigned int my;
+            for (double i = 0.0; i < len; i += RivalOdom_Resolution) {
+                mark_x += IncX;
+                mark_y += IncY;
+                if (worldToMap(mark_x, mark_y, mx, my)) {
+                    InflatePoint(mark_x, mark_y, 252, InflationRadius, RivalCostScalingFactor, InscribedRadius);
+                } else {
+                    break;
+                }
+                // InflationRadius *= RivalRadiusDecline;
+                InscribedRadius *= RivalRadiusDecline;
+            }
+        }
     }
 }
 
@@ -296,6 +348,12 @@ void PathLayer::RivalOdom2_CB(const nav_msgs::Odometry& Odom) {
     RivalOdom[1] = Odom;
     isRivalOdom[1] = true;
     RivalOdomLastTime[1] = ros::Time::now();
+}
+
+void PathLayer::RivalObstacle_CB(const obstacle_detector::Obstacles& Obstacle) {
+    RivalObstacle = Obstacle;
+    isRivalObstacle = true;
+    RivalObstacleLastTime = ros::Time::now();
 }
 
 }  // namespace path_layer_namespace
