@@ -234,25 +234,24 @@ void PathLayer::InflatePredictPath(ROBOT_TYPE type) {
             InscribedRadius *= RivalRadiusDecline;
         }
     } else if (type == ROBOT_TYPE::OBSTACLE) {
-        int ObstacleSize = RivalObstacle.circles.size();
-        for (int i = 0; i < ObstacleSize; i++) {
-            double mark_x = RivalObstacle.circles[i].center.x;
-            double mark_y = RivalObstacle.circles[i].center.y;
+        for (auto Obstacle : RivalObstacle.circles) {
+            double mark_x = Obstacle.center.x;
+            double mark_y = Obstacle.center.y;
 
             // Rival Object
             InflatePoint(mark_x, mark_y, costmap_2d::LETHAL_OBSTACLE, RivalInflationRadius, RivalCostScalingFactor, RivalInscribedRadius);
 
-            double len = sqrt(pow(RivalObstacle.circles[i].velocity.x, 2) + pow(RivalObstacle.circles[i].velocity.y, 2)) * RivalOdom_PredictTime;
+            double len = sqrt(pow(Obstacle.velocity.x, 2) + pow(Obstacle.velocity.y, 2)) * RivalOdom_PredictTime;
             if (len == 0.0) {
-                return;
+                continue;
             }
 
             double theta = 0.0;
-            if (RivalObstacle.circles[i].velocity.x == 0.0) {
-                theta = RivalObstacle.circles[i].velocity.y >= 0 ? M_PI_2 : -M_PI_2;
+            if (Obstacle.velocity.x == 0.0) {
+                theta = Obstacle.velocity.y >= 0 ? M_PI_2 : -M_PI_2;
             } else {
-                theta = std::atan(RivalObstacle.circles[i].velocity.y / RivalObstacle.circles[i].velocity.x);
-                if (RivalObstacle.circles[i].velocity.x <= 0) {
+                theta = std::atan(Obstacle.velocity.y / Obstacle.velocity.x);
+                if (Obstacle.velocity.x <= 0) {
                     theta += M_PI;
                 }
             }
