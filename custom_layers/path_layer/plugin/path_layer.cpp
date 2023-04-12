@@ -154,7 +154,7 @@ void PathLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
 }
 
 void PathLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j) {
-    if (!enabled_ || !(isRobotOdom || isRobotPath || isRivalOdom[0] || isRivalOdom[1]))
+    if (!enabled_ || !(isRobotOdom || isRobotPath || isRivalOdom[0] || isRivalOdom[1] || isRivalObstacle))
         return;
 
     // Get the costmap lock.
