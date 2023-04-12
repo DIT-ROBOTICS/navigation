@@ -19,6 +19,8 @@
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "nav_msgs/Odometry.h"
 #include "nav_msgs/Path.h"
+#include "obstacle_detector/CircleObstacle.h"
+#include "obstacle_detector/Obstacles.h"
 
 // other
 #include <algorithm>
@@ -33,7 +35,8 @@ enum class ROBOT_TYPE {
     ROBOT2,
     RIVAL,
     RIVAL1,
-    RIVAL2
+    RIVAL2,
+    OBSTACLE
 };
 
 enum OdomCallbackType {
@@ -111,14 +114,18 @@ class PathLayer : public costmap_2d::CostmapLayer {
     // ------------------------- RivalOdom -------------------------
     // Sub
     ros::Subscriber RivalOdom_Sub[2];
+    ros::Subscriber RivalObstacle_Sub;
 
     nav_msgs::Odometry RivalOdom[2];
+    obstacle_detector::Obstacles RivalObstacle;
 
     double RivalOdom_Resolution;
     double RivalOdom_PredictTime;
 
     void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
     void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
+
+    void RivalObstacle_CB(const obstacle_detector::Obstacles& Obstacle);
 
     // ------------------------- Functions -------------------------
 
@@ -129,6 +136,10 @@ class PathLayer : public costmap_2d::CostmapLayer {
     ros::Time RivalOdomLastTime[2];
     double RivalOdomTimeout;
     bool isRivalOdom[2];
+
+    ros::Time RivalObstacleLastTime;
+    double RivalObstacleTimeout;
+    bool isRivalObstacle;
 };
 
 }  // namespace path_layer_namespace
