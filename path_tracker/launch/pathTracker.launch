@@ -1,7 +1,10 @@
 <launch>
 
+    <!-- choose what the mode you want. Simulation or Run Real Robot -->
     <arg name="is_run" default="true" />
     <arg name="is_sim" default="false" />
+
+    <!-- which robot -->
     <arg name="is_robot" default="false" />
     <arg name="is_robot1" default="false" />
     <arg name="is_robot2" default="false" />

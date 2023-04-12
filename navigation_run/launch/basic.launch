@@ -16,19 +16,6 @@
     <arg name="robot_name" default="rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="rival2" if="$(arg is_rival2)"/>
 
-    <include file="$(find navigation_main)/launch/main.launch">
-        <!-- sim or run -->
-        <arg name="is_run" value="$(arg is_run)" />
-        <arg name="is_sim" value="$(arg is_sim)" />
-
-        <!-- which robot -->
-        <arg name="is_robot" value="$(arg is_robot)" />
-        <arg name="is_robot1" value="$(arg is_robot1)" />
-        <arg name="is_robot2" value="$(arg is_robot2)" />
-        <arg name="is_rival1" value="$(arg is_rival1)" />
-        <arg name="is_rival2" value="$(arg is_rival2)" />
-    </include>
-
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" if="$(arg is_run)" >
         <arg name="robot_name" value="robot1" if="$(arg is_robot1)"/>
@@ -37,7 +24,7 @@
         <arg name="robot_name_slash" value="robot2/" if="$(arg is_robot2)"/>
     </include>
 
-    <group ns="$(arg robot_name)">
+    <group ns="$(arg robot_name)" unless="$(arg is_robot)">
         <!-- Map Info -->
         <node pkg="map_server" name="map_server" type="map_server" args="$(find map_server)/mytest/basic_map.yaml">
             <param name="frame_id" value="map" if="$(arg is_robot)"/>
@@ -47,11 +34,26 @@
 
         <!-- Localization Sim -->
         <!-- odom to base_footprint transform will be provided by the robot_pose_ekf node -->
-        <!-- <node pkg="navigation_run" name="odometry" type="odom" /> -->
         <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 $(arg robot_name)/map $(arg robot_name)/odom 30" if="$(arg is_sim)"/>
+        
+        <!-- Fake Localization -->
         <node pkg="navigation_run" name="odometry" type="odometry_global_velocity" if="$(arg is_sim)">
             <param name="tf_prefix" value="$(arg robot_name)" />
         </node>
+
+        <!-- Navigation Main -->
+        <include file="$(find navigation_main)/launch/main.launch">
+            <!-- sim or run -->
+            <arg name="is_run" value="$(arg is_run)" />
+            <arg name="is_sim" value="$(arg is_sim)" />
+
+            <!-- which robot -->
+            <arg name="is_robot" value="$(arg is_robot)" />
+            <arg name="is_robot1" value="$(arg is_robot1)" />
+            <arg name="is_robot2" value="$(arg is_robot2)" />
+            <arg name="is_rival1" value="$(arg is_rival1)" />
+            <arg name="is_rival2" value="$(arg is_rival2)" />
+        </include>
 
         <!-- move base -->
         <include file="$(find navigation_run)/launch/move_base.launch">

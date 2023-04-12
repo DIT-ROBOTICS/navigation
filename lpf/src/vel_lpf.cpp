@@ -6,7 +6,7 @@ double beta = 0.0;
 double vx[3] = {0.0};
 double vy[3] = {0.0};
 double vth[3] = {0.0};
-double control_frequency_ = 50.0;
+double publish_frequency = 50.0;
 // double last_time;
 // double now_time;
 // double dt = 0.0;
@@ -29,16 +29,12 @@ int main(int argc, char** argv){
   ros::NodeHandle nh_local("~");
 
   nh_local.param<double>("beta", beta, 0.2);
-  nh_local.param<double>("control_frequency", control_frequency_, 50.0);
+  nh_local.param<double>("publish_frequency", publish_frequency, 50.0);
 
   ros::Publisher lpf_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
   ros::Subscriber sub = nh.subscribe("raw_cmd_vel", 1, lpf_callback);
-  
-  // ros::Timer timer = nh.createTimer(ros::Duration(1.0 / control_frequency_), &timerCallback);
-  // timer.setPeriod(ros::Duration(1.0 / control_frequency_), false);
-  // timer.start();
 
-  ros::Rate r(control_frequency_);
+  ros::Rate r(publish_frequency);
 
   while(ros::ok()){
     //Simple low-pass filter

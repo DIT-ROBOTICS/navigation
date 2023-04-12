@@ -10,6 +10,5 @@
                 subscribers: [ cmd_vel ]
         </rosparam>
     </node>
-    <include file="$(find eurobot_localization)/launch/eurobot_localization.launch" />
-
+    
 </launch>
