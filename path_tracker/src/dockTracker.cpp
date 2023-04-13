@@ -217,9 +217,9 @@ void DockTracker::timerCB(const ros::TimerEvent& e)
             //         , dist_, pose_[0], pose_[1], goal_[0], goal_[1]);
         }
 
-        if(pose_[2] != goal_[2]){
-            vel_[2] = ang_vel;
-        }
+        // if(pose_[2] != goal_[2]){
+        //     vel_[2] = ang_vel;
+        // }
 
         // stop: 3 cases
         // 1. rivals appear
@@ -235,11 +235,12 @@ void DockTracker::timerCB(const ros::TimerEvent& e)
             vel_[1] = 0.0;
         }
         // 3. at the right angle
-        if(fabs(goal_[2]-pose_[2]) < ang_tolerance_){
-            vel_[2] = 0.0;
-        }
+        // if(fabs(goal_[2]-pose_[2]) < ang_tolerance_){
+        //     vel_[2] = 0.0;
+        // }
         // return finishornot
-        if((dist_ < tolerance_ && fabs(goal_[2]-pose_[2]) < ang_tolerance_) || rival_dist_ <= rival_tolerance_){
+        // && fabs(goal_[2]-pose_[2]) < ang_tolerance_) 
+        if(dist_ < tolerance_ || rival_dist_ <= rival_tolerance_){
             if_get_goal_ = false;
             // Return finishornot = true!
             if (!(rival_dist_ <= rival_tolerance_)){
