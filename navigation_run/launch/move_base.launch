@@ -50,9 +50,9 @@
         <param name="global_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/ekf_pose" if="$(arg is_run)" />
         <param name="global_costmap/path_layer/Topic/Robot/Odom" value="/robot$(arg OdomNum)/odom" if="$(arg is_sim)" />
         <param name="global_costmap/path_layer/Topic/Robot/Path" value="/robot$(arg OdomNum)/move_base/GlobalPlanner/plan" />
-        <param name="global_costmap/path_layer/Topic/Rival/Odom1" value="/RivalOdom_1" if="$(arg is_run)" />
+        <param name="global_costmap/path_layer/Topic/Rival/Odom1" value="/rival1/odom1" if="$(arg is_run)" />
         <param name="global_costmap/path_layer/Topic/Rival/Odom1" value="/rival1/odom" if="$(arg is_sim)" />
-        <param name="global_costmap/path_layer/Topic/Rival/Odom2" value="/RivalOdom_2" if="$(arg is_run)" />
+        <param name="global_costmap/path_layer/Topic/Rival/Odom2" value="/rival2/odom" if="$(arg is_run)" />
         <param name="global_costmap/path_layer/Topic/Rival/Odom2" value="/rival2/odom" if="$(arg is_sim)" />
 
         <!-- Local costmap namespace -->
