@@ -50,11 +50,15 @@ path_layer:
       Path: 1.0
     Rival:
       Odom: 1.0
+      Obstacle: 1.0
+  Topic:
+    Rival:
+      Obstacle: /RivalObstacle
   # Predict Length
   PredictLength:
     # Robot param will be set in move_base.launch
     Rival:
-      Odom: 1          # Unit: s
+      Odom: 0          # Unit: s
       Resolution: 0.05 # Unit: m
 
 

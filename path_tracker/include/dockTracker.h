@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <ros/time.h>
 #include <ros/console.h>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -35,7 +36,6 @@ class DockTracker
     void poseCB_Odometry(const nav_msgs::Odometry& data);
     void poseCB_PoseWithCovarianceStamped(const geometry_msgs::PoseWithCovarianceStamped& data);
     void rivalCB_Odometry(const nav_msgs::Odometry& data);
-    void rivalCB_PoseWithCovarianceStamped(const geometry_msgs::PoseWithCovarianceStamped& data);
     
     // Publisher
     ros::Publisher pub_;
@@ -58,13 +58,16 @@ class DockTracker
     double dist_;
     double cosx_;
     double sinx_;
-    double rival_;
+    double rival_dist_;
 
     bool p_active_;
     double control_frequency_;
     double linear_max_vel_;
+    double angular_max_vel_;
+    double div_;
     double profile_percent_;
     double tolerance_;
+    double ang_tolerance_;
     int odom_type_;
     double rival_tolerance_;
 
