@@ -14,7 +14,7 @@ theta_tolerance: 0.1
 # linear_max_velocity: 0.7 #0.4
 # linear_acceleration: 0.5 #0.2
 linear_max_velocity: 0.4 #0.4
-linear_acceleration: 0.2 #0.2
+linear_acceleration: 0.4 #0.2
 linear_acceleration_profile: linear
 
 # transition
@@ -23,7 +23,7 @@ linear_transition_acceleration: 0.6
 
 # deceleration
 # linear_kp: 1
-linear_kp: 0.45
+linear_kp: 1
 linear_brake_distance_ratio: 0.35
 linear_min_brake_distance: 0.4
 linear_deceleration_profile: p_control
