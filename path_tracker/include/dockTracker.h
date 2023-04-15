@@ -51,8 +51,16 @@ class DockTracker
     // Timer
     ros::Timer timer_;
     void timerCB(const ros::TimerEvent& e);
+
+    void move();
+    void rotate();
+
     double t_bef_;
     double t_now_;
+
+    bool move_finished_;
+    bool rotate_finished_;
+    bool rival_appeared_;
 
     double goal_[3];
     double pose_[3];
@@ -62,6 +70,7 @@ class DockTracker
     bool count_dock_dist_;
     double a_;
     double dist_;
+    double ang_diff_;
     double cosx_;
     double sinx_;
     double rival_dist_;
@@ -77,6 +86,6 @@ class DockTracker
     int odom_type_;
     double rival_tolerance_;
 
-
+    MODE mode_;
     double distance(double x1, double y1, double x2, double y2);
 };

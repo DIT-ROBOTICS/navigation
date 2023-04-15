@@ -42,6 +42,7 @@ void DockTracker::initialize()
     count_dock_dist_ = false;
     rival_dist_ = 10.0;
     dist_ = 0.0;
+
     timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &DockTracker::timerCB, this, false, false);
     timer_.setPeriod(ros::Duration(1.0 / control_frequency_), false);
     timer_.start();
@@ -122,148 +123,24 @@ void DockTracker::velocityPUB()
 
 void DockTracker::timerCB(const ros::TimerEvent& e)
 {
-    // simple p control
     if (if_get_goal_)
     {
-        // calculate current distance to dock goal
-        dist_ = distance(pose_[0], pose_[1], goal_[0], goal_[1]);
-
-        // robot coordinate's inner product to cosx_ and deal with signs
-        cosx_ = ((goal_[0] - pose_[0]) * cos(pose_[2]) + (goal_[1] - pose_[1]) * sin(pose_[2])) / dist_;
-        sinx_ = sqrt(1 - pow(cosx_, 2));
-        if ((cos(pose_[2]) * (goal_[1] - pose_[1])) - (sin(pose_[2]) * (goal_[0] - pose_[0])) < 0)
-            sinx_ *= -1;
-
-        // remember docking distance
-        if (!count_dock_dist_)
-        {
-            dock_dist_ = dist_;
-            a_ = pow(linear_max_vel_, 2) / (2 * profile_percent_ * dock_dist_);
-            count_dock_dist_ = true;
-        }
-
-        // check if profile cut-off point valid
-        if (profile_percent_ > 0.5 || profile_percent_ < 0.0)
-        {
-            profile_percent_ = 0.5;
-            // ROS_INFO("[Dock Tracker]: Profile percent out of range, using 0.5!");
-        }
-
-        // current time when going in this loop
-        t_now_ = ros::Time::now().toSec();
-        double dt = t_now_ - t_bef_;
-
-        // distribute a fix angular velocity on the minimum travel time
-        // double ang_vel = (goal_[2] - pose_[2]) / (dock_dist_ / linear_max_vel_);
-        // if(fabs(ang_vel) > angular_max_vel_){
-        //     if(ang_vel < 0) ang_vel = -1*angular_max_vel_;
-        //     else ang_vel = angular_max_vel_;
-        // }
-        double ang_vel = angular_max_vel_;
-        double ang_diff = goal_[2]-pose_[2];
-        while(ang_diff >= M_PI){
-            ang_diff -= 2 * M_PI;
-        }
-        while(ang_diff <= -M_PI){
-            ang_diff += 2 * M_PI;
-        }
-        if(ang_diff > 0)
-            ang_vel = angular_max_vel_;
-        else if(ang_diff < 0)
-            ang_vel = -1*angular_max_vel_;
-
-        // ROS_INFO("ang_diff: %f",ang_diff);
-        // ROS_INFO("ang_vel: %f",ang_vel);
-
-        // velocity profile: trapezoidal
-        // accelerate
-        if (dist_ > (1 - profile_percent_) * dock_dist_)
-        {
-            if (fabs(hypot(vel_[0], vel_[1])) >= linear_max_vel_)
-            {
-                vel_[0] = linear_max_vel_ * cosx_;
-                vel_[1] = linear_max_vel_ * sinx_;
-                vel_[2] = 0.0;
+        switch(mode_){
+            case MODE::MOVE:{
+                move();
+                break;
             }
-            else
-            {
-                vel_[0] = vel_[0] + a_ * dt * cosx_;
-                vel_[1] = vel_[1] + a_ * dt * sinx_;
-                vel_[2] = 0.0;
+            case MODE::ROTATE:{
+                rotate();
+                break;
             }
-            // ROS_INFO("[Dock Tracker]: Accelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
-        }
-        // uniform velocity
-        else if (dist_ <= (1 - profile_percent_) * dock_dist_ && dist_ >= profile_percent_ * dock_dist_)
-        {
-            vel_[0] = linear_max_vel_ * cosx_;
-            vel_[1] = linear_max_vel_ * sinx_;
-            vel_[2] = 0.0;
-            
-            // ROS_INFO("[Dock Tracker]: Uniform Velocity!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
-        }
-        // deccelerate
-        else if (dist_ < profile_percent_ * dock_dist_)
-        {
-            vel_[0] = linear_max_vel_ * (dist_ / (profile_percent_ * dock_dist_)) * cosx_;  // vel_[0]-a_*dt*cosx_;
-            vel_[1] = linear_max_vel_ * (dist_ / (profile_percent_ * dock_dist_)) * sinx_;  // vel_[1]-a_*dt*sinx_;
-            vel_[2] = 0.0;
-            // ROS_INFO("[Dock Tracker]: Deccelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
-        }
-        // error message
-        else
-        {
-            // ROS_WARN("[Dock Tracker]: Docking distance goes wrong(dist_, px, py, gx, gy): %f %f %f %f %f"
-            //         , dist_, pose_[0], pose_[1], goal_[0], goal_[1]);
-        }
-
-        // if(pose_[2] != goal_[2]){
-        //     vel_[2] = ang_vel;
-        // }
-
-        // stop: 3 cases
-        // 1. rivals appear
-        if(rival_dist_ <= rival_tolerance_){
-            vel_[0] = 0.0;
-            vel_[1] = 0.0;
-            vel_[2] = 0.0;
-        }
-        // 2. on the point
-        if (dist_ < tolerance_)
-        {
-            vel_[0] = 0.0;
-            vel_[1] = 0.0;
-        }
-        // 3. at the right angle
-        // if(fabs(goal_[2]-pose_[2]) < ang_tolerance_){
-        //     vel_[2] = 0.0;
-        // }
-        // return finishornot
-        // && fabs(goal_[2]-pose_[2]) < ang_tolerance_) 
-        if(dist_ < tolerance_ || rival_dist_ <= rival_tolerance_){
-            if_get_goal_ = false;
-            // Return finishornot = true!
-            if (!(rival_dist_ <= rival_tolerance_)){
-                std_msgs::Char finished;
-                finished.data = 1;
-                goalreachedPub_.publish(finished);
-                ROS_INFO("[Dock Tracker] : Successfully docked!");
-            }
-            else{
-                std_msgs::Char finished;
-                finished.data = 2;
-                goalreachedPub_.publish(finished);
-                ROS_INFO("[Dock Tracker] : Meet rival! Waiting navigation_main to resend goal...");
+            case MODE::MOVEANDROTATE:{
+                break;
             }
         }
+        // publish cmd_vel
+        velocityPUB();
     }
-    else
-    {
-        // ROS_INFO_STREAM_THROTTLE(5, "[Dock Tracker]: No goal received!");
-    }
-
-    // publish cmd_vel
-    velocityPUB();
 
     // ROS_INFO("%f %f %f", vel_[0], vel_[1], dt);
 
@@ -271,22 +148,161 @@ void DockTracker::timerCB(const ros::TimerEvent& e)
     t_bef_ = t_now_;
 }
 
+void DockTracker::move()
+{
+    // calculate current distance to dock goal
+    dist_ = distance(pose_[0], pose_[1], goal_[0], goal_[1]);
+
+    // 1. rivals appear
+    if(rival_dist_ <= rival_tolerance_){
+        vel_[0] = vel_[1] = vel_[2] = 0.0;
+        std_msgs::Char finished;
+        finished.data = 2;
+        goalreachedPub_.publish(finished);
+        ROS_INFO("[Dock Tracker] : Meet rival! Waiting navigation_main to resend goal...");
+        return;
+    }
+    // 2. on the point
+    if (dist_ < tolerance_)
+    {
+        vel_[0] = 0.0;
+        vel_[1] = 0.0;
+        vel_[2] = 0.0;
+        if_get_goal_ = false;
+        std_msgs::Char finished;
+        finished.data = 1;
+        goalreachedPub_.publish(finished);
+        ROS_INFO("[Dock Tracker] : Move Successfully docked!");
+        return;
+    }
+
+    // robot coordinate's inner product to cosx_ and deal with signs
+    cosx_ = ((goal_[0] - pose_[0]) * cos(pose_[2]) + (goal_[1] - pose_[1]) * sin(pose_[2])) / dist_;
+    sinx_ = sqrt(1 - pow(cosx_, 2));
+    if ((cos(pose_[2]) * (goal_[1] - pose_[1])) - (sin(pose_[2]) * (goal_[0] - pose_[0])) < 0)
+        sinx_ *= -1;
+
+    // remember docking distance
+    if (!count_dock_dist_)
+    {
+        dock_dist_ = dist_;
+        a_ = pow(linear_max_vel_, 2) / (2 * profile_percent_ * dock_dist_);
+        count_dock_dist_ = true;
+    }
+
+    // check if profile cut-off point valid
+    if (profile_percent_ > 0.5 || profile_percent_ < 0.0)
+    {
+        profile_percent_ = 0.5;
+        // ROS_INFO("[Dock Tracker]: Profile percent out of range, using 0.5!");
+    }
+
+    // current time when going in this loop
+    t_now_ = ros::Time::now().toSec();
+    double dt = t_now_ - t_bef_;
+
+    // velocity profile: trapezoidal
+    // accelerate
+    if (dist_ > (1 - profile_percent_) * dock_dist_)
+    {
+        if (fabs(hypot(vel_[0], vel_[1])) >= linear_max_vel_)
+        {
+            vel_[0] = linear_max_vel_ * cosx_;
+            vel_[1] = linear_max_vel_ * sinx_;
+            vel_[2] = 0.0;
+        }
+        else
+        {
+            vel_[0] = vel_[0] + a_ * dt * cosx_;
+            vel_[1] = vel_[1] + a_ * dt * sinx_;
+            vel_[2] = 0.0;
+        }
+        // ROS_INFO("[Dock Tracker]: Accelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
+    }
+    // uniform velocity
+    else if (dist_ <= (1 - profile_percent_) * dock_dist_ && dist_ >= profile_percent_ * dock_dist_)
+    {
+        vel_[0] = linear_max_vel_ * cosx_;
+        vel_[1] = linear_max_vel_ * sinx_;
+        vel_[2] = 0.0;
+        
+        // ROS_INFO("[Dock Tracker]: Uniform Velocity!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
+    }
+    // deccelerate
+    else if (dist_ < profile_percent_ * dock_dist_)
+    {
+        vel_[0] = linear_max_vel_ * (dist_ / (profile_percent_ * dock_dist_)) * cosx_;  // vel_[0]-a_*dt*cosx_;
+        vel_[1] = linear_max_vel_ * (dist_ / (profile_percent_ * dock_dist_)) * sinx_;  // vel_[1]-a_*dt*sinx_;
+        vel_[2] = 0.0;
+        // ROS_INFO("[Dock Tracker]: Deccelerate!(v, dist_): %f %f", hypot(vel_[0], vel_[1]), dist_);
+    }
+
+}
+
+void DockTracker::rotate()
+{
+    double ang_vel = angular_max_vel_;
+    ang_diff_ = goal_[2]-pose_[2];
+
+    while(ang_diff_ >= M_PI){
+        ang_diff_ -= 2 * M_PI;
+    }
+    while(ang_diff_ <= -M_PI){
+        ang_diff_ += 2 * M_PI;
+    }
+    ROS_INFO("%f, %f", ang_diff_, ang_tolerance_);
+    if(fabs(ang_diff_) < ang_tolerance_){
+        vel_[0] = vel_[1] = vel_[2] = 0.0;
+        if_get_goal_ = false;
+        std_msgs::Char finished;
+        finished.data = 1;
+        goalreachedPub_.publish(finished);
+        ROS_INFO("[Dock Tracker] : Successfully dock-rotated!");
+    }
+
+    if(ang_diff_ > 0)
+        ang_vel = angular_max_vel_;
+    else if(ang_diff_ < 0)
+        ang_vel = -1*angular_max_vel_;
+
+    // ROS_INFO("ang_diff_: %f",ang_diff_);
+    // ROS_INFO("ang_vel: %f",ang_vel);
+    vel_[0] = vel_[1] = 0.0;
+    vel_[2] = ang_vel;
+    
+
+}
+
 void DockTracker::goalCB(const geometry_msgs::PoseStamped& data)
 {
-    vel_[0] = 0.0;
-    vel_[1] = 0.0;
-    vel_[2] = 0.0;
+    ROS_INFO("[Dock Tracker]: Dock goal received!");
+
+    vel_[0] = vel_[1] = vel_[2] =0.0;
     tf2::Quaternion q;
     tf2::fromMsg(data.pose.orientation, q);
     tf2::Matrix3x3 qt(q);
     double _, yaw;
     qt.getRPY(_, _, yaw);
+
+    if(data.header.frame_id == "dock_mov"){
+        mode_ = MODE::MOVE;
+        ROS_INFO("[Dock Tracker]: Set Mode to MOVE!");
+    }else if(data.header.frame_id == "dock_rot"){
+        mode_ = MODE::ROTATE;
+        ROS_INFO("[Dock Tracker]: Set Mode to ROTATE!");
+    }else if(data.header.frame_id == "dock_rotandmove"){
+        mode_ = MODE::MOVEANDROTATE;
+    }
+
     goal_[0] = data.pose.position.x;  // + dock_dist_*cos(yaw);
     goal_[1] = data.pose.position.y;  // + dock_dist_*sin(yaw);
     goal_[2] = yaw;
+    ang_diff_ = goal_[2]-pose_[2];
+    dist_ = distance(pose_[0], pose_[1], goal_[0], goal_[1]);
+
     if_get_goal_ = true;
     t_bef_ = ros::Time::now().toSec();
-    ROS_INFO("[Dock Tracker]: Dock goal received!");
+
 }
 
 void DockTracker::poseCB_Odometry(const nav_msgs::Odometry& data){
