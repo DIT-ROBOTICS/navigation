@@ -14,6 +14,12 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Char.h>
 
+enum class MODE {
+    MOVE = 0,
+    ROTATE,
+    MOVEANDROTATE,
+};
+
 class DockTracker
 {
   public:
@@ -70,6 +76,7 @@ class DockTracker
     double ang_tolerance_;
     int odom_type_;
     double rival_tolerance_;
+
 
     double distance(double x1, double y1, double x2, double y2);
 };

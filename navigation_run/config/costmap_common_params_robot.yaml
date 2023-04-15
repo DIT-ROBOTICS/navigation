@@ -35,11 +35,11 @@ path_layer:
   # Inflation parameters
   Inflation:
     Robot:
-      CostScalingFactor: 7
+      CostScalingFactor: 15
       InscribedRadius: 0.15         # Unit: m
       InflationRadius: 0.45         # Unit: m (MaxDistance)
     Rival:
-      CostScalingFactor: 7
+      CostScalingFactor: 15
       InscribedRadius: 0.15         # Unit: m
       InflationRadius: 0.45         # Unit: m (MaxDistance)
       InscribedRadiusDecline: 0.85  # Unit: m / Resolution
