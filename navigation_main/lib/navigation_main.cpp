@@ -269,7 +269,7 @@ void Navigation_Main::MainMission_Callback(const geometry_msgs::PoseStamped::Con
     this->resend_goal_timer_.stop();
 
     // Choose which mode we want to use here.
-    if (msg->header.frame_id == "dock") {
+    if (msg->header.frame_id.substr(0, 4) == "dock") {
         this->mission_status_ = MISSION_TYPE::DOCK_TRACKER;
         robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode.");
