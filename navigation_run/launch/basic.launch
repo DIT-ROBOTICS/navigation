@@ -19,7 +19,9 @@
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization_robots.launch" if="$(arg is_run)" >
         <arg name="active_robot1" value="1" if="$(arg is_robot1)"/>
+        <arg name="active_robot1" value="0" unless="$(arg is_robot1)"/>
         <arg name="active_robot2" value="1" if="$(arg is_robot2)"/>
+        <arg name="active_robot2" value="0" unless="$(arg is_robot2)"/>
     </include>
 
     <group ns="$(arg robot_name)" unless="$(arg is_robot)">
