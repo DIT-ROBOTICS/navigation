@@ -23,10 +23,13 @@
     <arg name="robot_name" default="/rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="/rival2" if="$(arg is_rival2)"/>
 
-    <arg name="robot_obs_name" default="/robot1_no" if="$(arg is_robot2)" />
-    <arg name="robot_obs_name" default="/robot2_no" if="$(arg is_robot1)" />
-    <arg name="robot_obs_name" default="/rival1_no" if="$(arg is_rival2)" />
-    <arg name="robot_obs_name" default="/rival2_no" if="$(arg is_rival1)" />
+    <!-- The other robot name, here we regard it as an obstacle. -->
+    <arg name="robot_obs_name_suffix" default="_no" if="$(arg is_run)"/>
+    <arg name="robot_obs_name_suffix" default="" if="$(arg is_sim)"/>
+    <arg name="robot_obs_name" default="/robot1$(arg robot_obs_name_suffix)" if="$(arg is_robot2)" />
+    <arg name="robot_obs_name" default="/robot2$(arg robot_obs_name_suffix)" if="$(arg is_robot1)" />
+    <arg name="robot_obs_name" default="/rival1$(arg robot_obs_name_suffix)" if="$(arg is_rival2)" />
+    <arg name="robot_obs_name" default="/rival2$(arg robot_obs_name_suffix)" if="$(arg is_rival1)" />
 
     <arg name="rival1_name" default="/rival1" unless="$(arg is_rival)" />
     <arg name="rival1_name" default="/robot1" if="$(arg is_rival)" />
@@ -39,8 +42,6 @@
     <arg name="odom_type" default="0" if="$(arg is_sim)"/>
     <arg name="odom_type" default="1" if="$(arg is_run)"/>
 
-    <arg name="odom_timeout" default="2.0" />
-
     <arg name="update_frequency" default="20.0" />
     <arg name="update_params" default="false" />
     <arg name="default_active" default="true"/>
@@ -52,6 +53,9 @@
     <arg name="timeout_b" default="5.0" />
     <arg name="min_timeout" default="10.0" />
     <arg name="max_timeout" default="100.0" />
+
+    <!-- Used to determine whether odom data is timeout -->
+    <arg name="odom_timeout" default="2.0" />
 
     <!-- Stop Distance -->
     <arg name="stop_distance" default="0.4" />
@@ -89,6 +93,8 @@
         <param name="rival1_odom_topic" type="string" value="$(arg rival1_name)/odom"/>
         <!-- rival2 pose -->
         <param name="rival2_odom_topic" type="string" value="$(arg rival2_name)/odom"/>
+        <!-- rival obstacle pose -->
+        <param name="rival_obstacle_topic" type="string" value="/RivalObstacle" />
         <!-- goal topic -->
         <param name="robot_mission_state_topic" type="string" value="$(arg robot_name)/finishornot" />
         <param name="robot_path_tracker_goal_topic" type="string" value="$(arg robot_name)/path_tracker_goal" />
