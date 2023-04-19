@@ -38,7 +38,7 @@ angular_acceleration: 0.4 # 0.7
 # angular_acceleration_profile: linear
 
 # transition
-angular_transition_velocity: 0.15
+angular_transition_velocity: 0.1
 angular_transition_acceleration: 0.6
 
 # deceleration

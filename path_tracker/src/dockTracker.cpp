@@ -333,7 +333,7 @@ void DockTracker::poseCB_PoseWithCovarianceStamped(const geometry_msgs::PoseWith
 void DockTracker::rivalCB_Odometry(const nav_msgs::Odometry& data){
     double dist = distance(pose_[0], pose_[1], data.pose.pose.position.x, data.pose.pose.position.y);
     rival_dist_ =  dist;
-    ROS_INFO("[Dock Tracker]: Rival distance: %f",rival_dist_);
+    // ROS_INFO("[Dock Tracker]: Rival distance: %f",rival_dist_);
 }
 
 int main(int argc, char** argv)
