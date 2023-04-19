@@ -10,18 +10,36 @@
     <arg name="is_rival1" default="false" />
     <arg name="is_rival2" default="false" />
 
+    <!-- Check is rival, for distinguish state -->
+    <arg name="is_rival" default="false" if="$(arg is_robot1)" />
+    <arg name="is_rival" default="false" if="$(arg is_robot2)" />
+    <arg name="is_rival" default="true" if="$(arg is_rival1)" />
+    <arg name="is_rival" default="true" if="$(arg is_rival2)" />
+
+    <!-- Each robot name. Note that the state is based on who am I. -->
     <arg name="robot_name" default="" if="$(arg is_robot)"/>
     <arg name="robot_name" default="/robot1" if="$(arg is_robot1)"/>
     <arg name="robot_name" default="/robot2" if="$(arg is_robot2)"/>
     <arg name="robot_name" default="/rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="/rival2" if="$(arg is_rival2)"/>
-    
+
+    <arg name="robot_obs_name" default="/robot1_no" if="$(arg is_robot2)" />
+    <arg name="robot_obs_name" default="/robot2_no" if="$(arg is_robot1)" />
+    <arg name="robot_obs_name" default="/rival1_no" if="$(arg is_rival2)" />
+    <arg name="robot_obs_name" default="/rival2_no" if="$(arg is_rival1)" />
+
+    <arg name="rival1_name" default="/rival1" unless="$(arg is_rival)" />
+    <arg name="rival1_name" default="/robot1" if="$(arg is_rival)" />
+    <arg name="rival2_name" default="/rival2" unless="$(arg is_rival)" />
+    <arg name="rival2_name" default="/robot2" if="$(arg is_rival)" />
+
     <!-- 0 -> nav_msgs::Odometry -->
     <!-- 1 -> geometry_msgs::PoseWithCovarianceStamped -->
     <!-- Remember to change the topic name. -->
     <arg name="odom_type" default="0" if="$(arg is_sim)"/>
     <arg name="odom_type" default="1" if="$(arg is_run)"/>
 
+    <arg name="odom_timeout" default="2.0" />
 
     <arg name="update_frequency" default="20.0" />
     <arg name="update_params" default="false" />
@@ -34,6 +52,9 @@
     <arg name="timeout_b" default="5.0" />
     <arg name="min_timeout" default="10.0" />
     <arg name="max_timeout" default="100.0" />
+
+    <!-- Stop Distance -->
+    <arg name="stop_distance" default="0.4" />
 
     <!-- Resend Goal when the goal is blocked and it isn't timeout yet. -->
     <!-- (1 / resend_goal_frequency) * resend_goal_time = total waiting time for resending goal.  -->
@@ -54,11 +75,20 @@
         <param name="odom_type" value="$(arg odom_type)" />
         <param name="resend_goal_frequency" type="double" value="$(arg resend_goal_frequency)" />
         <param name="resend_goal_time" type="int" value="$(arg resend_goal_time)" />
+        <param name="stop_distance" type="double" value="$(arg stop_distance)"/>
+        <param name="odom_timeout" type="double" value="$(arg odom_timeout)" />
 
         <!-- change directly in value="" -->
         <!-- robot pose -->
         <param name="robot_odom_topic" type="string" value="$(arg robot_name)/ekf_pose" if="$(arg is_run)"/>
         <param name="robot_odom_topic" type="string" value="$(arg robot_name)/odom" if="$(arg is_sim)"/>
+        <!-- another robot pose -->
+        <param name="robot_odom_obs_topic" type="string" value="$(arg robot_obs_name)/ekf_pose" if="$(arg is_run)"/>
+        <param name="robot_odom_obs_topic" type="string" value="$(arg robot_obs_name)/odom" if="$(arg is_sim)"/>
+        <!-- rival1 pose -->
+        <param name="rival1_odom_topic" type="string" value="$(arg rival1_name)/odom"/>
+        <!-- rival2 pose -->
+        <param name="rival2_odom_topic" type="string" value="$(arg rival2_name)/odom"/>
         <!-- goal topic -->
         <param name="robot_mission_state_topic" type="string" value="$(arg robot_name)/finishornot" />
         <param name="robot_path_tracker_goal_topic" type="string" value="$(arg robot_name)/path_tracker_goal" />

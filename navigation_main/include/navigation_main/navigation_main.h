@@ -49,16 +49,21 @@ class Navigation_Main {
     void FailToGoal();
 
     // Callback functions
-    void Odom_type0_Callback(const nav_msgs::Odometry::ConstPtr &msg);
-    void Odom_type1_Callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
-    void PathTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
-    void DockTrackerCmdVel_Callback(const geometry_msgs::Twist::ConstPtr &msgs);
-    void RobotMissionState_Callback(const std_msgs::Char::ConstPtr &msg);
-    void MainMission_Callback(const geometry_msgs::PoseStamped::ConstPtr &msg);
-    void DynamicParam_Callback(const navigation_main::navigation_main_paramConfig &config, uint32_t level);
-    void ResendGoal_Callback(const ros::TimerEvent &event);
+    void Robot_Odom_type0_CB(const nav_msgs::Odometry::ConstPtr &msg);
+    void Robot_Odom_type1_CB(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
+    void Robot_Obs_Odom_type0_CB(const nav_msgs::Odometry::ConstPtr &msg);
+    void Robot_Obs_Odom_type1_CB(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
+    void Rival1_Odom_CB(const nav_msgs::Odometry::ConstPtr &msg);
+    void Rival2_Odom_CB(const nav_msgs::Odometry::ConstPtr &msg);
+    void PathTrackerCmdVel_CB(const geometry_msgs::Twist::ConstPtr &msgs);
+    void DockTrackerCmdVel_CB(const geometry_msgs::Twist::ConstPtr &msgs);
+    void RobotMissionState_CB(const std_msgs::Char::ConstPtr &msg);
+    void MainMission_CB(const geometry_msgs::PoseStamped::ConstPtr &msg);
+    void DynamicParam_CB(const navigation_main::navigation_main_paramConfig &config, uint32_t level);
+    void ResendGoal_CB(const ros::TimerEvent &event);
 
     // Other functions
+    bool isCloseToOtherRobots();
     double Distance_Between_A_and_B(geometry_msgs::Pose poseA, geometry_msgs::Pose poseB);
 
     // NodeHandle
@@ -67,6 +72,8 @@ class Navigation_Main {
 
     // Subscriber
     ros::Subscriber robot_odom_sub_;
+    ros::Subscriber robot_obs_odom_sub_;
+    ros::Subscriber rival_odom_sub_[2];
     ros::Subscriber robot_path_tracker_cmd_vel_sub_;
     ros::Subscriber robot_dock_tracker_cmd_vel_sub_;
     ros::Subscriber robot_mission_state_sub_;
@@ -96,9 +103,13 @@ class Navigation_Main {
     double param_timeout_min_;
     double param_timeout_max_;
     double param_resend_goal_frequency_;
+    double param_stop_distance_;
+    double param_odom_timeout_;
 
     std::string param_node_name_;
     std::string param_robot_odom_topic_;
+    std::string param_robot_obs_odom_topic_;
+    std::string param_rival_odom_topic_[2];
     std::string param_robot_mission_state_topic_;
     std::string param_robot_path_tracker_goal_topic_;
     std::string param_robot_dock_tracker_goal_topic_;
@@ -112,12 +123,20 @@ class Navigation_Main {
     bool is_mission_start_;
     bool is_reach_goal_;
 
-    enum class MISSION_TYPE {
+    enum MISSION_TYPE {
+        // Do mission
         PATH_TRACKER = 0,
         DOCK_TRACKER = 1,
+
+        // Mission point was blocked
         RESEND_PATH_GOAL = 2,
         RESEND_DOCK_GOAL = 3,
-        IDLE = 4
+
+        // Too close to other robots
+        STOP_PATH = 4,
+        STOP_DOCK = 5,
+
+        IDLE = 6
     };
     MISSION_TYPE mission_status_;
 
@@ -132,9 +151,14 @@ class Navigation_Main {
     ros::Timer resend_goal_timer_;
     int resend_goal_time_;
 
+    ros::Time robot_obs_odom_time_;
+    ros::Time rival_odom_time_[2];
+
     // Robot Odometry
     geometry_msgs::PoseStamped robot_goal_;
     geometry_msgs::Pose robot_odom_;
+    geometry_msgs::Pose robot_obs_odom_;
+    geometry_msgs::Pose rival_odom_[2];
     geometry_msgs::Twist robot_cmd_vel_;
 };
 
