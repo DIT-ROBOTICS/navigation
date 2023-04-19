@@ -14,6 +14,9 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Char.h>
 
+#include "obstacle_detector/CircleObstacle.h"
+#include "obstacle_detector/Obstacles.h"
+
 // ROS srvs
 #include "std_srvs/Empty.h"
 
@@ -55,6 +58,7 @@ class Navigation_Main {
     void Robot_Obs_Odom_type1_CB(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
     void Rival1_Odom_CB(const nav_msgs::Odometry::ConstPtr &msg);
     void Rival2_Odom_CB(const nav_msgs::Odometry::ConstPtr &msg);
+    void RivalObstacles_CB(const obstacle_detector::Obstacles::ConstPtr &msg);
     void PathTrackerCmdVel_CB(const geometry_msgs::Twist::ConstPtr &msgs);
     void DockTrackerCmdVel_CB(const geometry_msgs::Twist::ConstPtr &msgs);
     void RobotMissionState_CB(const std_msgs::Char::ConstPtr &msg);
@@ -65,6 +69,7 @@ class Navigation_Main {
     // Other functions
     bool isCloseToOtherRobots();
     double Distance_Between_A_and_B(geometry_msgs::Pose poseA, geometry_msgs::Pose poseB);
+    void Check_Odom_CB_Timeout();
 
     // NodeHandle
     ros::NodeHandle *nh_local_;
@@ -74,6 +79,7 @@ class Navigation_Main {
     ros::Subscriber robot_odom_sub_;
     ros::Subscriber robot_obs_odom_sub_;
     ros::Subscriber rival_odom_sub_[2];
+    ros::Subscriber rival_obstacle_sub_;
     ros::Subscriber robot_path_tracker_cmd_vel_sub_;
     ros::Subscriber robot_dock_tracker_cmd_vel_sub_;
     ros::Subscriber robot_mission_state_sub_;
@@ -110,6 +116,7 @@ class Navigation_Main {
     std::string param_robot_odom_topic_;
     std::string param_robot_obs_odom_topic_;
     std::string param_rival_odom_topic_[2];
+    std::string param_rival_obstacle_topic_;
     std::string param_robot_mission_state_topic_;
     std::string param_robot_path_tracker_goal_topic_;
     std::string param_robot_dock_tracker_goal_topic_;
@@ -122,6 +129,10 @@ class Navigation_Main {
     // Variables
     bool is_mission_start_;
     bool is_reach_goal_;
+    bool is_robot_obs_odom_timeout_;
+    bool is_rival1_odom_timeout_;
+    bool is_rival2_odom_timeout_;
+    bool is_rival_obstacle_timeout_;
 
     enum MISSION_TYPE {
         // Do mission
@@ -153,12 +164,14 @@ class Navigation_Main {
 
     ros::Time robot_obs_odom_time_;
     ros::Time rival_odom_time_[2];
+    ros::Time rival_obstacle_time_;
 
     // Robot Odometry
     geometry_msgs::PoseStamped robot_goal_;
     geometry_msgs::Pose robot_odom_;
     geometry_msgs::Pose robot_obs_odom_;
     geometry_msgs::Pose rival_odom_[2];
+    obstacle_detector::Obstacles rival_obstacles_;
     geometry_msgs::Twist robot_cmd_vel_;
 };
 
