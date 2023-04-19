@@ -374,8 +374,10 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
     ROS_INFO("Goal received ! (%f, %f, %f)", goal_pose_.x_, goal_pose_.y_, goal_pose_.theta_);
 
     global_path_past_ = global_path_;
-    if (!Planner_Client(cur_pose_, goal_pose_)) {
+    if (!Planner_Client(cur_pose_, goal_pose_) && working_mode_ == MODE::IDLE) {
         is_goal_blocked_ = true;
+        goal_reached_.data = 2;
+        goal_reached_pub_.publish(goal_reached_);
         return;
     }
     is_goal_blocked_ = false;

@@ -200,7 +200,7 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
             this->robot_dock_tracker_goal_pub_ = this->nh_global_->advertise<geometry_msgs::PoseStamped>(param_robot_dock_tracker_goal_topic_, 100);
 
             // Create Timer for resend goal.
-            this->resend_goal_timer_ = nh_local_->createTimer(ros::Duration(param_resend_goal_frequency_), &Navigation_Main::ResendGoal_CB, this, false, false);
+            this->resend_goal_timer_ = nh_local_->createTimer(ros::Duration(1.0 / param_resend_goal_frequency_), &Navigation_Main::ResendGoal_CB, this, false, false);
 
             // Service for Update params.
             if (this->param_update_params_) {
