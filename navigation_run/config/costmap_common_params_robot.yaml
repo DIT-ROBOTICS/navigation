@@ -4,7 +4,7 @@ raytrace_range: 3 # clear the overlapped obstacles on the path, only for the obs
 
 # hexagonal footprint
 # footprint: [[0,0.15],[0.1299,0.075],[0.1299,-0.075],[0,-0.15],[-0.1299,-0.075],[-0.1299,0.075]]
-robot_radius: 0.19
+robot_radius: 0.14
 
 # map info
 map_topic: map
@@ -36,12 +36,12 @@ path_layer:
   Inflation:
     Robot:
       CostScalingFactor: 15
-      InscribedRadius: 0.19         # Unit: m
-      InflationRadius: 0.5         # Unit: m (MaxDistance)
+      InscribedRadius: 0.25         # Unit: m
+      InflationRadius: 0.50         # Unit: m (MaxDistance)
     Rival:
       CostScalingFactor: 15
-      InscribedRadius: 0.19         # Unit: m
-      InflationRadius: 0.5         # Unit: m (MaxDistance)
+      InscribedRadius: 0.25         # Unit: m
+      InflationRadius: 0.50         # Unit: m (MaxDistance)
       InscribedRadiusDecline: 0.85  # Unit: m / Resolution
   # Timeout -1 -> Disable Timeout 
   Timeout:

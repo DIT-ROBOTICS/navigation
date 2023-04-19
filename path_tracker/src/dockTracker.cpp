@@ -19,7 +19,7 @@ DockTracker::~DockTracker()
     nh_local_.deleteParam("profile_percent");
     nh_local_.deleteParam("stop_tolerance");
     nh_local_.deleteParam("odom_type");
-    nh_local_.deleteParam("rival_tolerance");
+    // nh_local_.deleteParam("rival_tolerance");
 }
 
 void DockTracker::initialize()
@@ -40,7 +40,7 @@ void DockTracker::initialize()
     dock_dist_ = 0.05;
     if_get_goal_ = false;
     count_dock_dist_ = false;
-    rival_dist_ = 10.0;
+    // rival_dist_ = 10.0;
     dist_ = 0.0;
 
     timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &DockTracker::timerCB, this, false, false);
@@ -63,7 +63,7 @@ bool DockTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     get_param_ok = nh_local_.param<double>("point_stop_tolerance", tolerance_, 0.005);
     get_param_ok = nh_local_.param<double>("angle_stop_tolerance", ang_tolerance_, 0.01);
     get_param_ok = nh_local_.param<int>("odom_type", odom_type_, 0);
-    get_param_ok = nh_local_.param<double>("rival_tolerance", rival_tolerance_, 0.40);
+    // get_param_ok = nh_local_.param<double>("rival_tolerance", rival_tolerance_, 0.40);
 
     if (p_active_ != prev_active)
     {
@@ -76,8 +76,8 @@ bool DockTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
             }else if(odom_type_ == 1){
                 pose_sub_ = nh_.subscribe("ekf_pose", 50, &DockTracker::poseCB_PoseWithCovarianceStamped, this);
             }
-            rival1_sub_ = nh_.subscribe("/rival1/odom", 50, &DockTracker::rivalCB_Odometry, this);
-            rival2_sub_ = nh_.subscribe("/rival2/odom", 50, &DockTracker::rivalCB_Odometry, this);
+            // rival1_sub_ = nh_.subscribe("/rival1/odom", 50, &DockTracker::rivalCB_Odometry, this);
+            // rival2_sub_ = nh_.subscribe("/rival2/odom", 50, &DockTracker::rivalCB_Odometry, this);
             pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
             goalreachedPub_ = nh_.advertise<std_msgs::Char>("finishornot", 1);
         }
@@ -154,14 +154,14 @@ void DockTracker::move()
     dist_ = distance(pose_[0], pose_[1], goal_[0], goal_[1]);
 
     // 1. rivals appear
-    if(rival_dist_ <= rival_tolerance_){
-        vel_[0] = vel_[1] = vel_[2] = 0.0;
-        std_msgs::Char finished;
-        finished.data = 2;
-        goalreachedPub_.publish(finished);
-        ROS_INFO("[Dock Tracker] : Meet rival! Waiting navigation_main to resend goal...");
-        return;
-    }
+    // if(rival_dist_ <= rival_tolerance_){
+    //     vel_[0] = vel_[1] = vel_[2] = 0.0;
+    //     std_msgs::Char finished;
+    //     finished.data = 2;
+    //     goalreachedPub_.publish(finished);
+    //     ROS_INFO("[Dock Tracker] : Meet rival! Waiting navigation_main to resend goal...");
+    //     return;
+    // }
     // 2. on the point
     if (dist_ < tolerance_)
     {
@@ -330,11 +330,11 @@ void DockTracker::poseCB_PoseWithCovarianceStamped(const geometry_msgs::PoseWith
     // ROS_INFO("odom: %f %f", pose_[0], pose_[1]);
 }
 
-void DockTracker::rivalCB_Odometry(const nav_msgs::Odometry& data){
-    double dist = distance(pose_[0], pose_[1], data.pose.pose.position.x, data.pose.pose.position.y);
-    rival_dist_ =  dist;
-    // ROS_INFO("[Dock Tracker]: Rival distance: %f",rival_dist_);
-}
+// void DockTracker::rivalCB_Odometry(const nav_msgs::Odometry& data){
+//     double dist = distance(pose_[0], pose_[1], data.pose.pose.position.x, data.pose.pose.position.y);
+//     rival_dist_ =  dist;
+//     ROS_INFO("[Dock Tracker]: Rival distance: %f",rival_dist_);
+// }
 
 int main(int argc, char** argv)
 {

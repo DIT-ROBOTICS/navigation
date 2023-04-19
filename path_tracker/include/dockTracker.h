@@ -36,12 +36,12 @@ class DockTracker
     // Subscriber
     ros::Subscriber goal_sub_;
     ros::Subscriber pose_sub_;
-    ros::Subscriber rival1_sub_;
-    ros::Subscriber rival2_sub_;
+    // ros::Subscriber rival1_sub_;
+    // ros::Subscriber rival2_sub_;
     void goalCB(const geometry_msgs::PoseStamped& data);
     void poseCB_Odometry(const nav_msgs::Odometry& data);
     void poseCB_PoseWithCovarianceStamped(const geometry_msgs::PoseWithCovarianceStamped& data);
-    void rivalCB_Odometry(const nav_msgs::Odometry& data);
+    // void rivalCB_Odometry(const nav_msgs::Odometry& data);
     
     // Publisher
     ros::Publisher pub_;
@@ -60,7 +60,7 @@ class DockTracker
 
     bool move_finished_;
     bool rotate_finished_;
-    bool rival_appeared_;
+    // bool rival_appeared_;
 
     double goal_[3];
     double pose_[3];
@@ -73,7 +73,7 @@ class DockTracker
     double ang_diff_;
     double cosx_;
     double sinx_;
-    double rival_dist_;
+    // double rival_dist_;
 
     bool p_active_;
     double control_frequency_;
@@ -84,7 +84,7 @@ class DockTracker
     double tolerance_;
     double ang_tolerance_;
     int odom_type_;
-    double rival_tolerance_;
+    // double rival_tolerance_;
 
     MODE mode_;
     double distance(double x1, double y1, double x2, double y2);
