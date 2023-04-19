@@ -58,8 +58,8 @@
 
     <!-- Resend Goal when the goal is blocked and it isn't timeout yet. -->
     <!-- (1 / resend_goal_frequency) * resend_goal_time = total waiting time for resending goal.  -->
-    <arg name="resend_goal_frequency" default="1.0" />
-    <arg name="resend_goal_time" default="10" />
+    <arg name="resend_goal_frequency" default="2.0" />
+    <arg name="resend_goal_time" default="5" />
 
     <!--  Node  -->
     <node pkg="navigation_main" name="navigation_main" type="navigation_main_node" args="navigation_main" output="screen">

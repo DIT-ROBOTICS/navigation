@@ -24,6 +24,11 @@
         <arg name="active_robot2" value="0" unless="$(arg is_robot2)"/>
     </include>
 
+    <!-- Camera -->
+    <include file="$(find usb_cam)/launch/FULLHD.launch" if="$(arg is_run)"/>
+    <include file="$(find aruco_ros)/launch/onRobot.launch" if="$(arg is_run)"/>
+    
+
     <group ns="$(arg robot_name)" unless="$(arg is_robot)">
         <!-- Map Info -->
         <node pkg="map_server" name="map_server" type="map_server" args="$(find map_server)/mytest/basic_map.yaml">

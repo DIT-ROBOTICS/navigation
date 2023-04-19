@@ -119,6 +119,7 @@ class PathTracker {
     bool p_active_;
     double control_frequency_;
     double lookahead_d_;
+    double blocked_lookahead_d_;
     double waiting_timeout_;
 
     double linear_kp_;

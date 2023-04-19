@@ -76,6 +76,7 @@ bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     nh_local_.param<double>("control_frequency", control_frequency_, 50);
     nh_local_.param<double>("lookahead_distance", lookahead_d_, 0.2);
     nh_local_.param<double>("waiting_timeout", waiting_timeout_, 3);
+    nh_local_.param<double>("blocked_lookahead_distance", blocked_lookahead_d_, 0.2);
 
     nh_local_.param<int>("odom_type", temp_odom_callback_type_, 0);
     nh_local_.param<std::string>("odom_topic_name", odom_topic_name_, "odom");
@@ -156,21 +157,35 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
 
         case MODE::TRACKING: {
             // goal reached
-            if (is_XY_Reached(cur_pose_, goal_pose_) && is_Theta_Reached(cur_pose_, goal_pose_) &&
-                !is_goal_blocked_) {
-                ROS_INFO("[Path Tracker]: GOAL REACHED !");
-                Switch_Mode(MODE::IDLE);
-                velocity_state_.x_ = 0;
-                velocity_state_.y_ = 0;
-                velocity_state_.theta_ = 0;
-                Velocity_Publish();
+            if (is_XY_Reached(cur_pose_, goal_pose_) && is_Theta_Reached(cur_pose_, goal_pose_)) {
+                if(!is_goal_blocked_){
+                    ROS_INFO("[Path Tracker]: GOAL REACHED !");
+                    Switch_Mode(MODE::IDLE);
+                    velocity_state_.x_ = 0;
+                    velocity_state_.y_ = 0;
+                    velocity_state_.theta_ = 0;
+                    Velocity_Publish();
 
-                is_goal_blocked_ = false;
+                    is_goal_blocked_ = false;
 
-                // publish /finishornot
-                goal_reached_.data = 1;
-                goal_reached_pub_.publish(goal_reached_);
-                break;
+                    // publish /finishornot
+                    goal_reached_.data = 1;
+                    goal_reached_pub_.publish(goal_reached_);
+                    break;
+                }else if(is_goal_blocked_){
+                    ROS_INFO("[Path Tracker]: Goal is blocked ... Local goal reached !");
+                    Switch_Mode(MODE::IDLE);
+                    velocity_state_.x_ = 0;
+                    velocity_state_.y_ = 0;
+                    velocity_state_.theta_ = 0;
+                    Velocity_Publish();
+
+                    is_goal_blocked_ = false;
+
+                    // publish /finishornot
+                    goal_reached_.data = 2;
+                    goal_reached_pub_.publish(goal_reached_);
+                }
             }
 
             if (working_mode_pre_ == MODE::TRANSITION) {
@@ -181,10 +196,11 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
                     is_global_path_switched_ = true;
                 }
             }
-
+            
+            // if goal is blocked, use next local goal as the goal pose to track 
             RobotState local_goal;
             if (!Planner_Client(cur_pose_, goal_pose_)) {
-                local_goal = Rolling_Window(cur_pose_, global_path_, lookahead_d_);
+                local_goal = Rolling_Window(cur_pose_, global_path_, blocked_lookahead_d_);
                 goal_pose_.x_ = local_goal.x_;
                 goal_pose_.y_ = local_goal.y_;
                 goal_pose_.theta_ = local_goal.theta_;
@@ -193,12 +209,6 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
 
                 is_global_path_switched_ = false;
                 is_goal_blocked_ = true;
-
-                // publish /finishornot
-                goal_reached_.data = 2;
-                goal_reached_pub_.publish(goal_reached_);
-
-                Switch_Mode(MODE::IDLE);
 
                 return;
             }
@@ -366,11 +376,6 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
     global_path_past_ = global_path_;
     if (!Planner_Client(cur_pose_, goal_pose_)) {
         is_goal_blocked_ = true;
-
-        // publish /finishornot
-        goal_reached_.data = 2;
-        goal_reached_pub_.publish(goal_reached_);
-
         return;
     }
     is_goal_blocked_ = false;

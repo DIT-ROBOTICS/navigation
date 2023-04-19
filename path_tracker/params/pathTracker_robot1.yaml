@@ -7,6 +7,8 @@ waiting_timeout: 5
 
 xy_tolerance: 0.02
 theta_tolerance: 0.1
+blocked_lookahead_distance: 0.2
+
 
 ### linear parameter
 
