@@ -9,4 +9,4 @@ linear_max_velocity: 0.2
 angular_max_velocity: 0.8
 point_stop_tolerance: 0.02
 angle_stop_tolerance: 0.1
-rival_tolerance: 0.41
+# rival_tolerance: 0.41
