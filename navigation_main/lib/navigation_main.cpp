@@ -67,10 +67,14 @@ void Navigation_Main::Loop() {
         // If there has some time remaining, retry to finish the mission.
         // Otherwise, return failure to the goal. (The timeout handler will send this failure.)
         robot_cmd_vel_.linear.x = robot_cmd_vel_.linear.y = robot_cmd_vel_.angular.z = 0.0;
+        geometry_msgs::PoseStamped interrupt_tracker_ = this->robot_goal_;
+        interrupt_tracker_.pose.position.x = interrupt_tracker_.pose.position.y = interrupt_tracker_.pose.orientation.z = interrupt_tracker_.pose.orientation.w = -1.0;
         if (mission_status_ == MISSION_TYPE::DOCK_TRACKER) {
             mission_status_ = MISSION_TYPE::STOP_DOCK;
+            robot_dock_tracker_goal_pub_.publish(interrupt_tracker_);
         } else {
             mission_status_ = MISSION_TYPE::STOP_PATH;
+            robot_path_tracker_goal_pub_.publish(interrupt_tracker_);
         }
 
         // Start the timer to count up
