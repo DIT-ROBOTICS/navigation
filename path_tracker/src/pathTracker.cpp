@@ -142,7 +142,7 @@ bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
     switch (working_mode_) {
         case MODE::GLOBAL_PATH_RECEIVED: {
-            if (working_mode_pre_ == MODE::IDLE) {
+            if (working_mode_pre_ == MODE::IDLE || working_mode_pre_ == MODE::GLOBAL_PATH_RECEIVED) {
                 Switch_Mode(MODE::TRACKING);
                 break;
             } else if (working_mode_pre_ == MODE::TRACKING) {
@@ -158,7 +158,7 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
         case MODE::TRACKING: {
             // goal reached
             if (is_XY_Reached(cur_pose_, goal_pose_) && is_Theta_Reached(cur_pose_, goal_pose_)) {
-                if(!is_goal_blocked_){
+                if (!is_goal_blocked_) {
                     ROS_INFO("[Path Tracker]: GOAL REACHED !");
                     Switch_Mode(MODE::IDLE);
                     velocity_state_.x_ = 0;
@@ -172,7 +172,7 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
                     goal_reached_.data = 1;
                     goal_reached_pub_.publish(goal_reached_);
                     break;
-                }else if(is_goal_blocked_){
+                } else if (is_goal_blocked_) {
                     ROS_INFO("[Path Tracker]: Goal is blocked ... Local goal reached !");
                     Switch_Mode(MODE::IDLE);
                     velocity_state_.x_ = 0;
@@ -196,8 +196,8 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
                     is_global_path_switched_ = true;
                 }
             }
-            
-            // if goal is blocked, use next local goal as the goal pose to track 
+
+            // if goal is blocked, use next local goal as the goal pose to track
             RobotState local_goal;
             if (!Planner_Client(cur_pose_, goal_pose_)) {
                 local_goal = Rolling_Window(cur_pose_, global_path_, blocked_lookahead_d_);
@@ -372,6 +372,12 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
 
     goal_pose_.theta_ = yaw;
     ROS_INFO("Goal received ! (%f, %f, %f)", goal_pose_.x_, goal_pose_.y_, goal_pose_.theta_);
+
+    if (goal_pose_.x_ == -1 && goal_pose_.y_ == -1) {
+        Switch_Mode(MODE::IDLE);
+        Switch_Mode(MODE::IDLE);
+        return;
+    }
 
     global_path_past_ = global_path_;
     if (!Planner_Client(cur_pose_, goal_pose_) && working_mode_ == MODE::IDLE) {
