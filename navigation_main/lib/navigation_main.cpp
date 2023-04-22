@@ -11,6 +11,7 @@ Navigation_Main::~Navigation_Main() {
         this->robot_obs_odom_sub_.shutdown();
         this->rival_odom_sub_[0].shutdown();
         this->rival_odom_sub_[1].shutdown();
+        this->rival_obstacle_sub_.shutdown();
         this->robot_mission_state_sub_.shutdown();
         this->robot_path_tracker_goal_pub_.shutdown();
         this->robot_dock_tracker_goal_pub_.shutdown();
@@ -30,10 +31,10 @@ void Navigation_Main::Init(ros::NodeHandle *nh_global, ros::NodeHandle *nh_local
     nh_global_ = nh_global;
     nh_local_ = nh_local;
     param_node_name_ = node_name;
-    robot_odom_.position.x = robot_odom_.position.y = 0.0;
-    robot_obs_odom_.position.x = robot_obs_odom_.position.y = 0.0;
-    rival_odom_[0].position.x = rival_odom_[0].position.y = 0.0;
-    rival_odom_[1].position.x = rival_odom_[1].position.y = 0.0;
+    robot_odom_.position.x = robot_odom_.position.y = -100.0;
+    robot_obs_odom_.position.x = robot_obs_odom_.position.y = -100.0;
+    rival_odom_[0].position.x = rival_odom_[0].position.y = -100.0;
+    rival_odom_[1].position.x = rival_odom_[1].position.y = -100.0;
     robot_obs_odom_time_ = rival_odom_time_[0] = rival_odom_time_[1] = ros::Time::now();
     mission_status_ = MISSION_TYPE::IDLE;
 
@@ -53,9 +54,11 @@ double Navigation_Main::GetUpdateFrequency() {
 
 void Navigation_Main::Loop() {
     // Fail to reach the goal (Timeout)
-    if (param_active_ && is_mission_start_ && isTimeout()) {
+    if (is_mission_start_ && isTimeout()) {
         FailToGoal();
     }
+
+    Check_Odom_CB_Timeout();
 
     if ((mission_status_ == MISSION_TYPE::PATH_TRACKER || mission_status_ == MISSION_TYPE::DOCK_TRACKER) && isCloseToOtherRobots()) {
         // The goal is too close to other robot.
@@ -64,13 +67,17 @@ void Navigation_Main::Loop() {
         // If there has some time remaining, retry to finish the mission.
         // Otherwise, return failure to the goal. (The timeout handler will send this failure.)
         robot_cmd_vel_.linear.x = robot_cmd_vel_.linear.y = robot_cmd_vel_.angular.z = 0.0;
+        geometry_msgs::PoseStamped interrupt_tracker_ = this->robot_goal_;
+        interrupt_tracker_.pose.position.x = interrupt_tracker_.pose.position.y = interrupt_tracker_.pose.orientation.z = interrupt_tracker_.pose.orientation.w = -1.0;
         if (mission_status_ == MISSION_TYPE::DOCK_TRACKER) {
             mission_status_ = MISSION_TYPE::STOP_DOCK;
+            robot_dock_tracker_goal_pub_.publish(interrupt_tracker_);
         } else {
             mission_status_ = MISSION_TYPE::STOP_PATH;
+            robot_path_tracker_goal_pub_.publish(interrupt_tracker_);
         }
 
-        // Start the resend timer;
+        // Start the timer to count up
         resend_goal_time_ = 0;
         resend_goal_timer_.start();
     } else if ((mission_status_ == MISSION_TYPE::STOP_PATH || mission_status_ == MISSION_TYPE::STOP_DOCK) && !isCloseToOtherRobots()) {
@@ -79,9 +86,11 @@ void Navigation_Main::Loop() {
         } else {
             mission_status_ = MISSION_TYPE::PATH_TRACKER;
         }
+
         resend_goal_timer_.stop();
     }
 
+    // Pub the robot cmd_vel to STM
     this->robot_cmd_vel_pub_.publish(this->robot_cmd_vel_);
 }
 
@@ -146,6 +155,9 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
     if (this->nh_local_->param<std::string>("rival2_odom_topic", param_rival_odom_topic_[1], "/rival2/odom")) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_rival_odom_topic_[1]);
     }
+    if (this->nh_local_->param<std::string>("rival_obstacle_topic", param_rival_obstacle_topic_, "/RivalObstacle")) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_rival_obstacle_topic_);
+    }
     if (this->nh_local_->param<std::string>("robot_mission_state_topic", param_robot_mission_state_topic_, "/robot1/finishornot")) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : Subscribe topic " << param_robot_mission_state_topic_);
     }
@@ -188,6 +200,7 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
             }
             this->rival_odom_sub_[0] = this->nh_global_->subscribe(param_rival_odom_topic_[0], 100, &Navigation_Main::Rival1_Odom_CB, this);
             this->rival_odom_sub_[1] = this->nh_global_->subscribe(param_rival_odom_topic_[1], 100, &Navigation_Main::Rival2_Odom_CB, this);
+            this->rival_obstacle_sub_ = this->nh_global_->subscribe(param_rival_obstacle_topic_, 100, &Navigation_Main::RivalObstacles_CB, this);
             this->robot_mission_state_sub_ = this->nh_global_->subscribe(param_robot_mission_state_topic_, 100, &Navigation_Main::RobotMissionState_CB, this);
             this->main_mission_state_sub_ = this->nh_global_->subscribe(param_main_mission_topic_, 100, &Navigation_Main::MainMission_CB, this);
             this->robot_path_tracker_cmd_vel_sub_ = this->nh_global_->subscribe(param_robot_path_tracker_cmd_vel_topic_, 100, &Navigation_Main::PathTrackerCmdVel_CB, this);
@@ -216,6 +229,7 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
             this->robot_obs_odom_sub_.shutdown();
             this->rival_odom_sub_[0].shutdown();
             this->rival_odom_sub_[1].shutdown();
+            this->rival_obstacle_sub_.shutdown();
             this->robot_mission_state_sub_.shutdown();
             this->robot_path_tracker_goal_pub_.shutdown();
             this->robot_dock_tracker_goal_pub_.shutdown();
@@ -253,8 +267,37 @@ void Navigation_Main::SetTimeout(geometry_msgs::Pose poseGoal) {
     ROS_INFO_STREAM("[" << param_node_name_ << "] : set timeout to " << param_timeout_);
 }
 
+void Navigation_Main::Check_Odom_CB_Timeout() {
+    ros::Time current_time_ = ros::Time::now();
+
+    is_robot_obs_odom_timeout_ = ((current_time_ - robot_obs_odom_time_).toSec() >= param_odom_timeout_) ? true : false;
+    is_rival1_odom_timeout_ = ((current_time_ - rival_odom_time_[0]).toSec() >= param_odom_timeout_) ? true : false;
+    is_rival2_odom_timeout_ = ((current_time_ - rival_odom_time_[1]).toSec() >= param_odom_timeout_) ? true : false;
+    is_rival_obstacle_timeout_ = ((current_time_ - rival_obstacle_time_).toSec() >= param_odom_timeout_) ? true : false;
+}
+
 bool Navigation_Main::isCloseToOtherRobots() {
-    return (Distance_Between_A_and_B(robot_goal_.pose, robot_obs_odom_) <= param_stop_distance_ || Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[0]) <= param_stop_distance_ || Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[1]) <= param_stop_distance_);
+    if (!is_robot_obs_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, robot_obs_odom_) <= param_stop_distance_) {
+        return true;
+    }
+    if (!is_rival1_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[0]) <= param_stop_distance_) {
+        return true;
+    }
+    if (!is_rival2_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[1]) <= param_stop_distance_) {
+        return true;
+    }
+    if (!is_rival_obstacle_timeout_) {
+        geometry_msgs::Pose obstacle_pose_temp_;
+        for (auto obstacle_ : rival_obstacles_.circles) {
+            obstacle_pose_temp_.position.x = obstacle_.center.x;
+            obstacle_pose_temp_.position.y = obstacle_.center.y;
+            if (Distance_Between_A_and_B(robot_goal_.pose, obstacle_pose_temp_) <= param_stop_distance_) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 double Navigation_Main::Distance_Between_A_and_B(geometry_msgs::Pose poseA, geometry_msgs::Pose poseB) {
@@ -271,7 +314,7 @@ void Navigation_Main::Robot_Odom_type1_CB(const geometry_msgs::PoseWithCovarianc
 }
 
 void Navigation_Main::RobotMissionState_CB(const std_msgs::Char::ConstPtr &msg) {
-    if (param_active_ && is_mission_start_) {
+    if (is_mission_start_) {
         if (msg->data == 1) {
             is_mission_start_ = false;
             is_reach_goal_ = true;
@@ -378,19 +421,28 @@ void Navigation_Main::ResendGoal_CB(const ros::TimerEvent &event) {
 
 void Navigation_Main::Robot_Obs_Odom_type0_CB(const nav_msgs::Odometry::ConstPtr &msg) {
     robot_obs_odom_ = msg->pose.pose;
+    is_robot_obs_odom_timeout_ = false;
     robot_obs_odom_time_ = ros::Time::now();
 }
 void Navigation_Main::Robot_Obs_Odom_type1_CB(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) {
     robot_obs_odom_ = msg->pose.pose;
+    is_robot_obs_odom_timeout_ = false;
     robot_obs_odom_time_ = ros::Time::now();
 }
 void Navigation_Main::Rival1_Odom_CB(const nav_msgs::Odometry::ConstPtr &msg) {
     rival_odom_[0] = msg->pose.pose;
+    is_rival1_odom_timeout_ = false;
     rival_odom_time_[0] = ros::Time::now();
 }
 void Navigation_Main::Rival2_Odom_CB(const nav_msgs::Odometry::ConstPtr &msg) {
     rival_odom_[1] = msg->pose.pose;
+    is_rival2_odom_timeout_ = false;
     rival_odom_time_[1] = ros::Time::now();
+}
+void Navigation_Main::RivalObstacles_CB(const obstacle_detector::Obstacles::ConstPtr &msg) {
+    rival_obstacles_ = *msg;
+    is_rival_obstacle_timeout_ = false;
+    rival_obstacle_time_ = ros::Time::now();
 }
 
 void Navigation_Main::FailToGoal() {
@@ -410,7 +462,7 @@ void Navigation_Main::FailToGoal() {
     temp.data = false;
     main_mission_state_pub_.publish(temp);
 
-    this->mission_status_ = MISSION_TYPE::IDLE;
-    this->robot_cmd_vel_.linear.x = this->robot_cmd_vel_.linear.y = this->robot_cmd_vel_.angular.z = 0.0;
+    mission_status_ = MISSION_TYPE::IDLE;
+    robot_cmd_vel_.linear.x = robot_cmd_vel_.linear.y = robot_cmd_vel_.angular.z = 0.0;
     resend_goal_timer_.stop();
 }
