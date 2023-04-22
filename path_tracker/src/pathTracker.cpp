@@ -142,7 +142,7 @@ bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
 void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
     switch (working_mode_) {
         case MODE::GLOBAL_PATH_RECEIVED: {
-            if (working_mode_pre_ == MODE::IDLE) {
+            if (working_mode_pre_ == MODE::IDLE || working_mode_pre_ == MODE::GLOBAL_PATH_RECEIVED) {
                 Switch_Mode(MODE::TRACKING);
                 break;
             } else if (working_mode_pre_ == MODE::TRACKING) {
@@ -196,8 +196,8 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
                     is_global_path_switched_ = true;
                 }
             }
-            
-            // if goal is blocked, use next local goal as the goal pose to track 
+
+            // if goal is blocked, use next local goal as the goal pose to track
             RobotState local_goal;
             if (!Planner_Client(cur_pose_, goal_pose_)) {
                 local_goal = Rolling_Window(cur_pose_, global_path_, blocked_lookahead_d_);
@@ -384,6 +384,12 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
     }
 
     ROS_INFO("Goal received ! (%f, %f, %f)", goal_pose_.x_, goal_pose_.y_, goal_pose_.theta_);
+
+    if (goal_pose_.x_ == -1 && goal_pose_.y_ == -1) {
+        Switch_Mode(MODE::IDLE);
+        Switch_Mode(MODE::IDLE);
+        return;
+    }
 
     global_path_past_ = global_path_;
 

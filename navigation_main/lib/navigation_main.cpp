@@ -83,12 +83,16 @@ void Navigation_Main::Loop() {
     } else if ((mission_status_ == MISSION_TYPE::STOP_PATH || mission_status_ == MISSION_TYPE::STOP_DOCK) && !isCloseToOtherRobots()) {
         if (mission_status_ == MISSION_TYPE::STOP_DOCK) {
             mission_status_ = MISSION_TYPE::DOCK_TRACKER;
+            robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
         } else {
             mission_status_ = MISSION_TYPE::PATH_TRACKER;
+            robot_path_tracker_goal_pub_.publish(this->robot_goal_);
         }
 
         resend_goal_timer_.stop();
     }
+
+    // ROS_INFO_STREAM("State : " << mission_status_);
 
     // Pub the robot cmd_vel to STM
     this->robot_cmd_vel_pub_.publish(this->robot_cmd_vel_);
