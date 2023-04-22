@@ -20,7 +20,7 @@ linear_acceleration: 0.4 #0.2
 linear_acceleration_profile: linear
 
 # transition
-linear_transition_velocity: 0.15
+linear_transition_velocity: 0.3
 linear_transition_acceleration: 0.6
 
 # deceleration

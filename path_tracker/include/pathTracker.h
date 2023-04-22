@@ -21,6 +21,20 @@
 #include <std_msgs/Char.h>
 #include <std_srvs/Empty.h>
 
+/** process of pathTracker when each event happen **/
+// (1) normal mode
+//     goal received                                            reached
+// IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING ----------> IDLE
+// 
+// (2) goal changed when tracking
+//    goal received                                  goal received              reached
+// IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING ---------->  TRANSITION ----------> IDLE
+// 
+// (3) goal is so closed to rival, stopped by nav_main. 
+//    goal received                     
+// IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING --> 
+
+
 enum class MODE {
     IDLE = 0,
     TRACKING,
@@ -71,6 +85,7 @@ class PathTracker {
     void Pose_type0_Callback(const nav_msgs::Odometry::ConstPtr& pose_msg);
     void Pose_type1_Callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_msg);
     void Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose_msg);
+
     // void actionCallback(const std_msgs::Bool::ConstPtr& action_msg);
 
     geometry_msgs::PoseArray obstacle_pose_;

@@ -135,7 +135,7 @@ bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
         }
     }
 
-    ROS_INFO_STREAM("[Path Tracker]: set param ok");
+    ROS_INFO_STREAM("[PathTracker]: set param ok");
     return true;
 }
 
@@ -159,7 +159,7 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
             // goal reached
             if (is_XY_Reached(cur_pose_, goal_pose_) && is_Theta_Reached(cur_pose_, goal_pose_)) {
                 if(!is_goal_blocked_){
-                    ROS_INFO("[Path Tracker]: GOAL REACHED !");
+                    ROS_INFO("[PathTracker]: GOAL REACHED !");
                     Switch_Mode(MODE::IDLE);
                     velocity_state_.x_ = 0;
                     velocity_state_.y_ = 0;
@@ -173,7 +173,7 @@ void PathTracker::Timer_Callback(const ros::TimerEvent& e) {
                     goal_reached_pub_.publish(goal_reached_);
                     break;
                 }else if(is_goal_blocked_){
-                    ROS_INFO("[Path Tracker]: Goal is blocked ... Local goal reached !");
+                    ROS_INFO("[PathTracker]: Goal is blocked ... Local goal reached !");
                     Switch_Mode(MODE::IDLE);
                     velocity_state_.x_ = 0;
                     velocity_state_.y_ = 0;
@@ -371,9 +371,23 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
     qt.getRPY(_, _, yaw);
 
     goal_pose_.theta_ = yaw;
+
+    // If the goal is so closed to rival, or other reason that nav_main stopped robot. It will send vx=vy=0
+    if(goal_pose_.x_ == -1 && goal_pose_.y_ == -1){
+        ROS_INFO("[PathTracker]: Something wrong ! stopped by nav_main");
+        Switch_Mode(MODE::IDLE);
+        velocity_state_.x_ = 0;
+        velocity_state_.y_ = 0;
+        velocity_state_.theta_ = 0;
+        Velocity_Publish();
+        return;
+    }
+
     ROS_INFO("Goal received ! (%f, %f, %f)", goal_pose_.x_, goal_pose_.y_, goal_pose_.theta_);
 
     global_path_past_ = global_path_;
+
+    // if working_mode is IDLE, don't need to deceleration, just send 2 to nav_main
     if (!Planner_Client(cur_pose_, goal_pose_) && working_mode_ == MODE::IDLE) {
         is_goal_blocked_ = true;
         goal_reached_.data = 2;
@@ -545,7 +559,7 @@ double PathTracker::Angle_Limit_Checking(double theta) {
     return fmod(theta + 2 * M_PI, 2 * M_PI);
 }
 
-// Path tracker for omni drive robot
+// PathTracker for omni drive robot
 void PathTracker::Omni_Controller(RobotState local_goal, RobotState cur_pos) {
     double linear_velocity = 0.0;
     double angular_velocity = 0.0;
