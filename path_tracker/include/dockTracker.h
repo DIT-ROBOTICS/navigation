@@ -1,34 +1,36 @@
+#include <ros/console.h>
 #include <ros/ros.h>
 #include <ros/time.h>
-#include <ros/console.h>
 #define _USE_MATH_DEFINES
-#include <cmath>
-#include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Char.h>
+#include <std_srvs/Empty.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <std_srvs/Empty.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Char.h>
+
+#include <cmath>
 
 enum class MODE {
     MOVE = 0,
     ROTATE,
+    VIBRATE,
     MOVEANDROTATE,
+    IDLE
 };
 
-class DockTracker
-{
-  public:
+class DockTracker {
+   public:
     DockTracker(ros::NodeHandle& nh, ros::NodeHandle& nh_local);
     ~DockTracker();
     bool initializeParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
     void initialize();
 
-  private:
+   private:
     ros::NodeHandle nh_;
     ros::NodeHandle nh_local_;
     ros::ServiceServer params_srv_;
@@ -42,7 +44,7 @@ class DockTracker
     void poseCB_Odometry(const nav_msgs::Odometry& data);
     void poseCB_PoseWithCovarianceStamped(const geometry_msgs::PoseWithCovarianceStamped& data);
     // void rivalCB_Odometry(const nav_msgs::Odometry& data);
-    
+
     // Publisher
     ros::Publisher pub_;
     ros::Publisher goalreachedPub_;
@@ -54,6 +56,7 @@ class DockTracker
 
     void move();
     void rotate();
+    void vibrate();
 
     double t_bef_;
     double t_now_;
@@ -85,6 +88,15 @@ class DockTracker
     double ang_tolerance_;
     int odom_type_;
     // double rival_tolerance_;
+
+    // vibrate-mode
+    int vibrate_time_now_;
+    int vibrate_time_goal_;
+    double vibrate_lin_vel_;
+    double vibrate_pos_start_x_;
+    double vibrate_pos_start_y_;
+    double vibrate_tolerance_;
+    double vibrate_lin_dist_;
 
     MODE mode_;
     double distance(double x1, double y1, double x2, double y2);
