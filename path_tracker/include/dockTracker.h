@@ -18,6 +18,7 @@
 enum class MODE {
     MOVE = 0,
     ROTATE,
+    VIBRATE,
     MOVEANDROTATE,
     IDLE
 };
@@ -55,6 +56,7 @@ class DockTracker {
 
     void move();
     void rotate();
+    void vibrate();
 
     double t_bef_;
     double t_now_;
@@ -86,6 +88,15 @@ class DockTracker {
     double ang_tolerance_;
     int odom_type_;
     // double rival_tolerance_;
+
+    // vibrate-mode
+    int vibrate_time_now_;
+    int vibrate_time_goal_;
+    double vibrate_lin_vel_;
+    double vibrate_pos_start_x_;
+    double vibrate_pos_start_y_;
+    double vibrate_tolerance_;
+    double vibrate_lin_dist_;
 
     MODE mode_;
     double distance(double x1, double y1, double x2, double y2);

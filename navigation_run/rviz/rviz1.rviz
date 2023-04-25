@@ -4,10 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Grid1
         - /TF1/Frames1
       Splitter Ratio: 0.5667506456375122
-    Tree Height: 717
+    Tree Height: 642
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -23,7 +22,6 @@ Panels:
     Name: Views
     Splitter Ratio: 0.5
   - Class: rviz/Time
-    Experimental: false
     Name: Time
     SyncMode: 0
     SyncSource: LaserScan
@@ -136,12 +134,12 @@ Visualization Manager:
           Value: true
         Value: true
       Enabled: true
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
+      Head Length: 0.10000000149011612
+      Head Radius: 0.05000000074505806
       Name: PoseWithCovariance
       Queue Size: 10
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
+      Shaft Length: 0.5
+      Shaft Radius: 0.019999999552965164
       Shape: Arrow
       Topic: /robot1/ekf_pose
       Unreliable: false
@@ -159,56 +157,10 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        map:
-          Value: true
-        robot1/base_footprint:
-          Value: true
-        robot1/beacon01:
-          Value: true
-        robot1/beacon02:
-          Value: true
-        robot1/beacon03:
-          Value: true
-        robot1/beacon1:
-          Value: true
-        robot1/beacon2:
-          Value: true
-        robot1/beacon3:
-          Value: true
-        robot1/imu_link:
-          Value: true
-        robot1/laser_frame:
-          Value: false
-        robot1/map:
-          Value: true
-        robot1/odom:
-          Value: true
-        robot2/base_footprint:
-          Value: false
-        robot2/beacon01:
-          Value: true
-        robot2/beacon02:
-          Value: true
-        robot2/beacon03:
-          Value: true
-        robot2/beacon1:
-          Value: true
-        robot2/beacon2:
-          Value: true
-        robot2/beacon3:
-          Value: true
-        robot2/imu_link:
-          Value: true
-        robot2/laser_frame:
-          Value: true
-        robot2/map:
-          Value: true
-        robot2/odom:
-          Value: true
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -216,47 +168,9 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          robot1/map:
-            robot1/beacon1:
-              {}
-            robot1/beacon2:
-              {}
-            robot1/beacon3:
-              {}
-            robot1/odom:
-              robot1/base_footprint:
-                robot1/beacon01:
-                  {}
-                robot1/beacon02:
-                  {}
-                robot1/beacon03:
-                  {}
-                robot1/imu_link:
-                  {}
-                robot1/laser_frame:
-                  {}
-          robot2/map:
-            robot2/beacon1:
-              {}
-            robot2/beacon2:
-              {}
-            robot2/beacon3:
-              {}
-            robot2/odom:
-              robot2/base_footprint:
-                robot2/beacon01:
-                  {}
-                robot2/beacon02:
-                  {}
-                robot2/beacon03:
-                  {}
-                robot2/imu_link:
-                  {}
-                robot2/laser_frame:
-                  {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -289,14 +203,14 @@ Visualization Manager:
       Axes Length: 1
       Axes Radius: 0.10000000149011612
       Class: rviz/Pose
-      Color: 255; 25; 0
+      Color: 0; 0; 255
       Enabled: true
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
+      Head Length: 0.10000000149011612
+      Head Radius: 0.05000000074505806
       Name: Pose
       Queue Size: 10
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
+      Shaft Length: 0.5
+      Shaft Radius: 0.019999999552965164
       Shape: Arrow
       Topic: /robot1/path_tracker_goal
       Unreliable: false
@@ -329,7 +243,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.677741050720215
+      Distance: 5.834953784942627
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -337,9 +251,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 2.149411678314209
-        Y: 1.074503779411316
-        Z: 0.14534997940063477
+        X: 1.3969727754592896
+        Y: 1.0151550769805908
+        Z: 0.14610256254673004
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -347,15 +261,15 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 0.01042533852159977
+      Yaw: 0.0004253387451171875
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: true
-  Height: 1043
+  Height: 968
   Hide Left Dock: true
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000018f00000375fc0200000007fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000003750000000000fffffffaffffffff0100000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730000000000ffffffff0000009d00fffffffb000000100044006900730070006c0061007900730000000000000001560000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000003c00000003efc0100000002fb0000000800540069006d00650100000000000003c0000002eb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003c00000037500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000018f0000032afc0200000007fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d0000032a0000000000fffffffaffffffff0100000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730000000000ffffffff0000009d00fffffffb000000100044006900730070006c0061007900730000000000000001560000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000003c00000003efc0100000002fb0000000800540069006d00650100000000000003c0000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000003c00000032a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -365,5 +279,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 960
-  X: 1920
-  Y: 0
+  X: 0
+  Y: 27

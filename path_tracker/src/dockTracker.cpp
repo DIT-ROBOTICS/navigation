@@ -39,6 +39,7 @@ void DockTracker::initialize() {
     count_dock_dist_ = false;
     // rival_dist_ = 10.0;
     dist_ = 0.0;
+    vibrate_time_now_ = 0;
 
     timer_ = nh_.createTimer(ros::Duration(1.0 / control_frequency_), &DockTracker::timerCB, this, false, false);
     timer_.setPeriod(ros::Duration(1.0 / control_frequency_), false);
@@ -58,6 +59,13 @@ bool DockTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     get_param_ok = nh_local_.param<double>("profile_percent", profile_percent_, 0.2);
     get_param_ok = nh_local_.param<double>("point_stop_tolerance", tolerance_, 0.005);
     get_param_ok = nh_local_.param<double>("angle_stop_tolerance", ang_tolerance_, 0.01);
+
+    // vibrate-mode
+    get_param_ok = nh_local_.param<int>("vibrate_time", vibrate_time_goal_, 5);
+    get_param_ok = nh_local_.param<double>("vibrate_lin_vel", vibrate_lin_vel_, 0.1);
+    get_param_ok = nh_local_.param<double>("vibrate_lin_distance", vibrate_lin_dist_, 0.01);
+    get_param_ok = nh_local_.param<double>("vibrate_tolerance", vibrate_tolerance_, 0.01);
+
     get_param_ok = nh_local_.param<int>("odom_type", odom_type_, 0);
     // get_param_ok = nh_local_.param<double>("rival_tolerance", rival_tolerance_, 0.40);
 
@@ -116,6 +124,10 @@ void DockTracker::timerCB(const ros::TimerEvent& e) {
             }
             case MODE::ROTATE: {
                 rotate();
+                break;
+            }
+            case MODE::VIBRATE: {
+                vibrate();
                 break;
             }
             case MODE::MOVEANDROTATE: {
@@ -246,6 +258,48 @@ void DockTracker::rotate() {
     vel_[2] = ang_vel;
 }
 
+void DockTracker::vibrate() {
+    // vibrate n time.   n = vibrate_time_goal 
+    if(vibrate_time_now_ >= vibrate_time_goal_){
+        vel_[0] = vel_[1] = vel_[2] = 0.0;
+        if_get_goal_ = false;
+        vibrate_time_now_ = 0;
+        std_msgs::Char finished;
+        finished.data = 1;
+        goalreachedPub_.publish(finished);
+        ROS_INFO("[Dock Tracker] : Successfully dock-vibrated!");
+        return;
+    }
+
+    double lin_vel = vibrate_lin_vel_;
+    if(vibrate_time_now_ % 2 == 0){
+        goal_[0] = vibrate_pos_start_x_;
+        goal_[1] = vibrate_pos_start_y_ + vibrate_lin_dist_ / 2.0;
+    }else if(vibrate_time_now_ % 2 == 1){
+        goal_[0] = vibrate_pos_start_x_;
+        goal_[1] = vibrate_pos_start_y_ - vibrate_lin_dist_ / 2.0;
+    }
+
+    // check if reach goal
+    // ROS_INFO("x:%f, y:%f, goal_x:%f, goal_y:%f",pose_[0], pose_[1], goal_[0], goal_[1] );
+    dist_ = distance(pose_[0], pose_[1], goal_[0], goal_[1]);
+    if (dist_ < vibrate_tolerance_) {
+        vel_[0] = vel_[1] = vel_[2] = 0.0;
+        vibrate_time_now_++;
+        ROS_INFO("[Dock Tracker] : Vibrate time:%d", vibrate_time_now_);
+    }else{
+        // calculate the angle that we send to odometry mcu
+        cosx_ = ((goal_[0] - pose_[0]) * cos(pose_[2]) + (goal_[1] - pose_[1]) * sin(pose_[2])) / dist_;
+        sinx_ = sqrt(1 - pow(cosx_, 2));
+        if ((cos(pose_[2]) * (goal_[1] - pose_[1])) - (sin(pose_[2]) * (goal_[0] - pose_[0])) < 0)
+            sinx_ *= -1;
+
+        vel_[0] = vibrate_lin_vel_ * cosx_;
+        vel_[1] = vibrate_lin_vel_ * sinx_;
+    }
+
+}
+
 void DockTracker::goalCB(const geometry_msgs::PoseStamped& data) {
     ROS_INFO("[Dock Tracker]: Dock goal received!");
 
@@ -268,7 +322,14 @@ void DockTracker::goalCB(const geometry_msgs::PoseStamped& data) {
     } else if (data.header.frame_id == "dock_rot") {
         mode_ = MODE::ROTATE;
         ROS_INFO("[Dock Tracker]: Set Mode to ROTATE!");
-    } else if (data.header.frame_id == "dock_rotandmove") {
+    } else if(data.header.frame_id == "dock_vibrate"){
+        mode_ = MODE::VIBRATE;
+        ROS_INFO("[Dock Tracker]: Set Mode to VIBRATE!");
+        // remember the start angle
+        vibrate_pos_start_x_ = pose_[0];
+        vibrate_pos_start_y_ = pose_[1];
+    
+    }else if (data.header.frame_id == "dock_rotandmove") {
         mode_ = MODE::MOVEANDROTATE;
     }
 
