@@ -459,6 +459,11 @@ void Navigation_Main::FailToGoal() {
     }
     ROS_ERROR_STREAM("[" << param_node_name_ << "] : Mission Failed.");
 
+    geometry_msgs::PoseStamped interrupt_tracker_ = this->robot_goal_;
+    interrupt_tracker_.pose.position.x = interrupt_tracker_.pose.position.y = interrupt_tracker_.pose.orientation.z = interrupt_tracker_.pose.orientation.w = -1.0;
+    robot_path_tracker_goal_pub_.publish(interrupt_tracker_);
+    robot_dock_tracker_goal_pub_.publish(interrupt_tracker_);
+
     is_mission_start_ = false;
 
     // Publish to main for fail to finish mission.
