@@ -82,6 +82,10 @@ class DockTracker {
     double control_frequency_;
     double linear_max_vel_;
     double angular_max_vel_;
+    double cake_linear_max_vel_;
+    double cake_angular_max_vel_;
+    double cherry_linear_max_vel_;
+    double cherry_angular_max_vel_;
     double div_;
     double profile_percent_;
     double tolerance_;
@@ -92,7 +96,7 @@ class DockTracker {
     // vibrate-mode
     int vibrate_time_now_;
     int vibrate_time_goal_;
-    double vibrate_lin_vel_;
+    double vibrate_linear_max_vel_;
     double vibrate_pos_start_x_;
     double vibrate_pos_start_y_;
     double vibrate_tolerance_;
