@@ -387,7 +387,6 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
 
     if (goal_pose_.x_ == -1 && goal_pose_.y_ == -1) {
         Switch_Mode(MODE::IDLE);
-        Switch_Mode(MODE::IDLE);
         return;
     }
 
@@ -395,6 +394,7 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
 
     // if working_mode is IDLE, don't need to deceleration, just send 2 to nav_main
     if (!Planner_Client(cur_pose_, goal_pose_) && working_mode_ == MODE::IDLE) {
+        Switch_Mode(MODE::IDLE);
         is_goal_blocked_ = true;
         goal_reached_.data = 2;
         goal_reached_pub_.publish(goal_reached_);

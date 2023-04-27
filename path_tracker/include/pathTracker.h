@@ -22,8 +22,9 @@
 #include <std_srvs/Empty.h>
 
 /** process of pathTracker when each event happen **/
+
 // (1) normal mode
-//     goal received                                            reached
+//     goal received                                    reached
 // IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING ----------> IDLE
 // 
 // (2) goal changed when tracking
@@ -31,8 +32,16 @@
 // IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING ---------->  TRANSITION ----------> IDLE
 // 
 // (3) goal is so closed to rival, stopped by nav_main. 
-//    goal received                     
-// IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING --> 
+//    goal received                               rival near send -1
+// IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING ---------->  IDLE
+// 
+// (4) goal is blocked. fail to get plan
+//    cannot get plan 
+// IDLE ----------> IDLE
+// 
+// (5) goal is blocked when tracking
+//    goal received                                  something block goal, set local goal to goal
+// IDLE ----------> GLOBAL_PATH_RECEIVED --> TRACKING ---------------------------------------->  IDLE
 
 
 enum class MODE {
