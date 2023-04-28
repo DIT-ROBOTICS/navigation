@@ -33,7 +33,7 @@ linear_deceleration_profile: p_control
 
 ### angular parameter 
 
-angular_max_velocity: 0.5 # 1.5
+angular_max_velocity: 0.8 # 1.5
 angular_acceleration: 0.4 # 0.7
 
 # angular_acceleration_profile: linear
