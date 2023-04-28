@@ -58,7 +58,7 @@
     <arg name="odom_timeout" default="2.0" />
 
     <!-- Stop Distance -->
-    <arg name="stop_distance" default="0.4" />
+    <arg name="stop_distance" default="0.35" />
 
     <!-- Resend Goal when the goal is blocked and it isn't timeout yet. -->
     <!-- (1 / resend_goal_frequency) * resend_goal_time = total waiting time for resending goal.  -->

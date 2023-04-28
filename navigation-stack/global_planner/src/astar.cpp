@@ -89,7 +89,13 @@ void AStarExpansion::add(unsigned char* costs, float* potential, float prev_pote
 
     potential[next_i] = p_calc_->calculatePotential(potential, costs[next_i] + neutral_cost_, next_i, prev_potential);
     int x = next_i % nx_, y = next_i / nx_;
-    float distance = abs(end_x - x) + abs(end_y - y);
+    
+    float distance;
+    if(0){
+        distance = abs(end_x - x) + abs(end_y - y); // original
+    }else{
+        distance = hypot(fabs(end_x - x), fabs(end_y - y)); // add by ben
+    }
     // float distance = sqrt(pow(fabs(end_x - x), 2) + pow(fabs(end_y - y), 2));
     // ROS_INFO("neutral_cost: %d; costs: %f; dist*neut: %f", neutral_cost_, potential[next_i], distance * neutral_cost_);
     queue_.push_back(Index(next_i, potential[next_i] + distance * neutral_cost_));
