@@ -383,7 +383,7 @@ void PathTracker::Goal_Callback(const geometry_msgs::PoseStamped::ConstPtr& pose
         return;
     }
 
-    ROS_INFO("Goal received ! (%f, %f, %f)", goal_pose_.x_, goal_pose_.y_, goal_pose_.theta_);
+    ROS_INFO("[PathTracker]: Goal received ! (%f, %f, %f)", goal_pose_.x_, goal_pose_.y_, goal_pose_.theta_);
 
     if (goal_pose_.x_ == -1 && goal_pose_.y_ == -1) {
         Switch_Mode(MODE::IDLE);
