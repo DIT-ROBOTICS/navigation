@@ -108,5 +108,6 @@
             <remap from="cmd_vel" to="path_tracker_cmd_vel"/>
         </node>
 
+        <!-- <include file="$(find obstacle_simulation)/launch/obstacle_simulation.launch"/> -->
     </group>
 </launch>

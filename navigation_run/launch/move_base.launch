@@ -35,7 +35,7 @@
         <remap from="cmd_vel" to ="vel_obseleted" />
 
         <rosparam file="$(find navigation_run)/config/costmap_common_params_robot.yaml" command="load" ns="global_costmap" />
-        <rosparam file="$(find navigation_run)/config/costmap_common_params_robot.yaml" command="load" ns="local_costmap" />
+        <!-- <rosparam file="$(find navigation_run)/config/costmap_common_params_robot.yaml" command="load" ns="local_costmap" /> -->
         <rosparam file="$(find navigation_run)/config/global_costmap_params.yaml" command="load" />
         <rosparam file="$(find navigation_run)/config/global_planner_params.yaml" command="load" />
         <rosparam file="$(find navigation_run)/config/move_base_params.yaml" command="load" />
