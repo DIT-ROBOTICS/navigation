@@ -30,7 +30,7 @@ namespace simple_layer_namespace
   void GridLayer::onInitialize()
   {
     ros::NodeHandle nh("~/" + name_);
-    sub_ = g_nh_.subscribe("obstacle_position_array", 10, &GridLayer::obsCallback, this);
+    sub_ = g_nh_.subscribe("/obstacle_position_array", 10, &GridLayer::obsCallback, this);
 
     // read YAML parameter
 
