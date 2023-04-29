@@ -11,11 +11,6 @@
 
 namespace simple_layer_namespace
 {
-enum class Obstacle_type{
-  sample,
-  rival
-};
-
 /**
  * @class CellData
  * @brief Storage for cell information used during obstacle inflation
@@ -45,7 +40,7 @@ class Obstacle
 {
 public:
   Obstacle();
-  Obstacle(double x, double y, Obstacle_type obstacle_type, std::string source_type, ros::Time t);
+  Obstacle(double x, double y, ros::Time t);
   void set_x(double x){
     this->x_ = x;
   }
@@ -61,9 +56,6 @@ public:
   ros::Time get_time() const{
     return stamp_;
   }
-  Obstacle_type get_obstacle_type() const{
-    return obstacle_type_;
-  }
 
 private:
   double x_;
@@ -76,8 +68,6 @@ private:
   
   std::vector<double> obs_pos[20];
 
-  std::string source_type_;
-  Obstacle_type obstacle_type_;
   ros::Time stamp_;
 
 };
@@ -122,17 +112,12 @@ private:
   double inscribed_radius_;
   double cost_factor_;
 
-  std::vector<std::string> observation_sources_;
+  ros::Timer timer_;
+
   /** @brief tolerance that we think two obstacle are the same obstacle
    *  there are two type of them: sample and rival (other team's robot)
    */
-  double tolerance_sample_;
-  double tolerance_rival_;
-
-  bool filter_enabled_;  // below features in effect iff filter_enabled = TRUE
-  bool filter_quiescence_;
-  double filter_beta_;
-  bool fixed_point_remove_;
+  double tolerance_;
   double threshold_time_;
 
   /**
@@ -141,16 +126,10 @@ private:
    */
   bool ifAddToLayer(std::string observation_source_type);
 
-  /**
-   * @brief check whether the obstacle exists
-   * @param obs the obstacle to be checked
-   * @return if exists return the index of the obstacle that same with the argument obstacle, if does not exist return empty vector
-   */
-  std::vector<int> ifExists(Obstacle obs);
-
-  Obstacle lowpassFilter(Obstacle obs_new, std::vector<Obstacle> obs, std::vector<int> idxs);
   void inflate(double x, double y);
   double** min_dist_check;
+
+  void timerCallback(const ros::TimerEvent& e);
 };
 }
 #endif
