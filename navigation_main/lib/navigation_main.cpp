@@ -66,12 +66,12 @@ void Navigation_Main::Loop() {
             // The goal is too close to other robot.
             ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Too close to other robots)");
             HandleGoalUnreachable(false);
-        } else if (isGoalInBlockArea()) {
+        } else if (isInBlockArea()) {
             // The goal is in the blocked area, surrounded by obstacles or robots.
             ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : In blocked area)");
             HandleGoalUnreachable(false);
         }
-    } else if ((mission_status_ == MISSION_TYPE::STOP_PATH || mission_status_ == MISSION_TYPE::STOP_DOCK) && !isCloseToOtherRobots() && !isGoalInBlockArea()) {
+    } else if ((mission_status_ == MISSION_TYPE::STOP_PATH || mission_status_ == MISSION_TYPE::STOP_DOCK) && !isCloseToOtherRobots() && !isInBlockArea()) {
         HandleGoalUnreachable(true);
     }
 
@@ -305,7 +305,7 @@ double Navigation_Main::Distance_Between_A_and_B(const Point pointA, const Point
 }
 
 // Check whether goal is in the blocked area, which is defined by the closed area at corner.
-bool Navigation_Main::isGoalInBlockArea() {
+bool Navigation_Main::isInBlockArea() {
     std::vector<Point> obstacle_point_;
 
     // Set the point that need to be consider
@@ -353,25 +353,35 @@ bool Navigation_Main::isGoalInBlockArea() {
 
                     if (obstacle_point_[i].y <= MAP_HALF_HEIGHT) {
                         edge_point_[0].y = 0.0;
-                        vertex_point = {MAP_HALF_WIDTH, 0.0};
+                        vertex_point = {MAP_WIDTH, 0.0};
                     } else {
                         edge_point_[0].y = MAP_HEIGHT;
-                        vertex_point = {MAP_HALF_WIDTH, MAP_HEIGHT};
+                        vertex_point = {MAP_WIDTH, MAP_HEIGHT};
                     }
                 }
 
-                Point polygon_[6] = {obstacle_point_[i],
-                                     obstacle_point_[j],
-                                     edge_point_[0],
-                                     edge_point_[1],
-                                     cherry_point,
-                                     vertex_point};
+                Point polygon_[6];
+                if (edge_point_[0].x == obstacle_point_[i].x) {
+                    polygon_[0] = obstacle_point_[i];
+                    polygon_[1] = obstacle_point_[j];
+                } else {
+                    polygon_[0] = obstacle_point_[j];
+                    polygon_[1] = obstacle_point_[i];
+                }
+                polygon_[2] = cherry_point;
+                polygon_[3] = edge_point_[1];
+                polygon_[4] = vertex_point;
+                polygon_[5] = edge_point_[0];
 
-                // Check whether goal is in polygon.
-                if (isPointInPolygon({robot_goal_.pose.position.x, robot_goal_.pose.position.y}, polygon_, 6)) {
+                bool isGoalInPolygon = isPointInPolygon({robot_goal_.pose.position.x, robot_goal_.pose.position.y}, polygon_, 6);
+                bool isRobotInPolygon = isPointInPolygon({robot_odom_.position.x, robot_odom_.position.y}, polygon_, 6);
+
+                // Check whether both robot and goal in block area.
+                if (isGoalInPolygon != isRobotInPolygon) {
                     // a -> obs1 to cherry
                     // b -> obs1 to obs2
                     // c -> obs2 to edge
+
                     if (Distance_Between_A_and_B(obstacle_point_[i], obstacle_point_[j]) <= param_block_mode_distance_b_) {
                         if (edge_point_[0].x == obstacle_point_[i].x) {
                             if (Distance_Between_A_and_B(cherry_point, obstacle_point_[j]) <= param_block_mode_distance_a_ &&
@@ -395,18 +405,25 @@ bool Navigation_Main::isGoalInBlockArea() {
 
 // Reference: =.= ChatGPT =.=
 bool Navigation_Main::isPointInPolygon(const Point point, const Point polygon[], int polygon_size) {
-    bool is_in_polygon_ = true;
-    Point vertex_[2];
+    double minX = polygon[0].x;
+    double maxX = polygon[0].x;
+    double minY = polygon[0].y;
+    double maxY = polygon[0].y;
 
     for (int i = 1; i < polygon_size; i++) {
-        vertex_[0] = polygon[i - 1];
-        vertex_[1] = polygon[i];
+        minX = std::min(polygon[i].x, minX);
+        maxX = std::max(polygon[i].x, maxX);
+        minY = std::min(polygon[i].y, minY);
+        maxY = std::max(polygon[i].y, maxY);
+    }
 
-        if ((vertex_[0].y == vertex_[1].y) || (point.y < std::min(vertex_[0].y, vertex_[1].y)) || (point.y >= std::max(vertex_[0].y, vertex_[1].y))) {
-            continue;
-        }
+    if (point.x < minX || point.x > maxX || point.y < minY || point.y > maxY)
+        return false;
 
-        if (point.x < ((point.y - vertex_[0].y) * (vertex_[1].x - vertex_[0].x) / (vertex_[1].y - vertex_[0].y) + vertex_[0].x)) {
+    bool is_in_polygon_ = false;
+
+    for (int i = 0, j = polygon_size - 1; i < polygon_size; j = i++) {
+        if ((polygon[i].y > point.y) != (polygon[j].y > point.y) && point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x) {
             is_in_polygon_ = !is_in_polygon_;
         }
     }

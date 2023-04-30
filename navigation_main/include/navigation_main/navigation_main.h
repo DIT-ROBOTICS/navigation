@@ -77,7 +77,7 @@ class Navigation_Main {
     double Distance_Between_A_and_B(const geometry_msgs::Pose poseA, const geometry_msgs::Pose poseB);
     double Distance_Between_A_and_B(const Point pointA, const Point pointB);
     void Check_Odom_CB_Timeout();
-    bool isGoalInBlockArea();
+    bool isInBlockArea();
     bool isPointInPolygon(const Point point, const Point polygon[], int polygon_size);
     void HandleGoalUnreachable(bool reachable);
 
