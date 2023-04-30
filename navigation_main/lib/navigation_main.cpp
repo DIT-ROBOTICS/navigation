@@ -61,36 +61,18 @@ void Navigation_Main::Loop() {
 
     Check_Odom_CB_Timeout();
 
-    if ((mission_status_ == MISSION_TYPE::PATH_TRACKER || mission_status_ == MISSION_TYPE::DOCK_TRACKER) && (isCloseToOtherRobots() || isGoalInBlockArea())) {
-        // The goal is too close to other robot.
-        ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Too close to other robots)");
-
-        // If there has some time remaining, retry to finish the mission.
-        // Otherwise, return failure to the goal. (The timeout handler will send this failure.)
-        robot_cmd_vel_.linear.x = robot_cmd_vel_.linear.y = robot_cmd_vel_.angular.z = 0.0;
-        geometry_msgs::PoseStamped interrupt_tracker_ = this->robot_goal_;
-        interrupt_tracker_.pose.position.x = interrupt_tracker_.pose.position.y = interrupt_tracker_.pose.orientation.z = interrupt_tracker_.pose.orientation.w = -1.0;
-        if (mission_status_ == MISSION_TYPE::DOCK_TRACKER) {
-            mission_status_ = MISSION_TYPE::STOP_DOCK;
-            robot_dock_tracker_goal_pub_.publish(interrupt_tracker_);
-        } else {
-            mission_status_ = MISSION_TYPE::STOP_PATH;
-            robot_path_tracker_goal_pub_.publish(interrupt_tracker_);
+    if ((mission_status_ == MISSION_TYPE::PATH_TRACKER || mission_status_ == MISSION_TYPE::DOCK_TRACKER)) {
+        if (isCloseToOtherRobots()) {
+            // The goal is too close to other robot.
+            ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Too close to other robots)");
+            HandleGoalUnreachable(false);
+        } else if (isGoalInBlockArea()) {
+            // The goal is in the blocked area, surrounded by obstacles or robots.
+            ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : In blocked area)");
+            HandleGoalUnreachable(false);
         }
-
-        // Start the timer to count up
-        resend_goal_time_ = 0;
-        resend_goal_timer_.start();
     } else if ((mission_status_ == MISSION_TYPE::STOP_PATH || mission_status_ == MISSION_TYPE::STOP_DOCK) && !isCloseToOtherRobots() && !isGoalInBlockArea()) {
-        if (mission_status_ == MISSION_TYPE::STOP_DOCK) {
-            mission_status_ = MISSION_TYPE::DOCK_TRACKER;
-            robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
-        } else {
-            mission_status_ = MISSION_TYPE::PATH_TRACKER;
-            robot_path_tracker_goal_pub_.publish(this->robot_goal_);
-        }
-
-        resend_goal_timer_.stop();
+        HandleGoalUnreachable(true);
     }
 
     // ROS_INFO_STREAM("State : " << mission_status_);
@@ -345,6 +327,7 @@ bool Navigation_Main::isGoalInBlockArea() {
     // Choose every two points in obstacle_point to check.
     for (int i = 0; i < obstacle_point_size_; i++) {
         for (int j = i + 1; j < obstacle_point_size_; j++) {
+            // Only calculate the points in same quadrant.
             if (((obstacle_point_[i].x - MAP_HALF_WIDTH) * (obstacle_point_[j].x - MAP_HALF_WIDTH) >= 0) &&
                 ((obstacle_point_[i].y - MAP_HALF_HEIGHT) * (obstacle_point_[j].y - MAP_HALF_HEIGHT) >= 0)) {
                 Point edge_point_[2];
@@ -386,18 +369,18 @@ bool Navigation_Main::isGoalInBlockArea() {
 
                 // Check whether goal is in polygon.
                 if (isPointInPolygon({robot_goal_.pose.position.x, robot_goal_.pose.position.y}, polygon_, 6)) {
-                    // ROS_INFO_STREAM("a: " << Distance_Between_A_and_B(cherry_point, obstacle_point_[j]) << " b: " << Distance_Between_A_and_B(obstacle_point_[i], obstacle_point_[j]) << " c: " << fabs(edge_point_[0].y - obstacle_point_[i].y));
+                    // a -> obs1 to cherry
+                    // b -> obs1 to obs2
+                    // c -> obs2 to edge
                     if (Distance_Between_A_and_B(obstacle_point_[i], obstacle_point_[j]) <= param_block_mode_distance_b_) {
                         if (edge_point_[0].x == obstacle_point_[i].x) {
                             if (Distance_Between_A_and_B(cherry_point, obstacle_point_[j]) <= param_block_mode_distance_a_ &&
                                 fabs(edge_point_[0].y - obstacle_point_[i].y) <= param_block_mode_distance_c_) {
-                                // ROS_INFO_STREAM("a: " << Distance_Between_A_and_B(cherry_point, obstacle_point_[j]) << " b: " << Distance_Between_A_and_B(obstacle_point_[i], obstacle_point_[j]) << " c: " << fabs(edge_point_[0].y - obstacle_point_[i].y));
                                 return true;
                             }
                         } else {
                             if (Distance_Between_A_and_B(cherry_point, obstacle_point_[i]) <= param_block_mode_distance_a_ &&
                                 fabs(edge_point_[0].y - obstacle_point_[j].y) <= param_block_mode_distance_c_) {
-                                // ROS_INFO_STREAM("a: " << Distance_Between_A_and_B(cherry_point, obstacle_point_[j]) << " b: " << Distance_Between_A_and_B(obstacle_point_[i], obstacle_point_[j]) << " c: " << fabs(edge_point_[0].y - obstacle_point_[i].y));
                                 return true;
                             }
                         }
@@ -429,6 +412,39 @@ bool Navigation_Main::isPointInPolygon(const Point point, const Point polygon[],
     }
 
     return is_in_polygon_;
+}
+
+void Navigation_Main::HandleGoalUnreachable(bool reachable) {
+    if (reachable) {
+        // Restart to finish the mission.
+        if (mission_status_ == MISSION_TYPE::STOP_DOCK) {
+            mission_status_ = MISSION_TYPE::DOCK_TRACKER;
+            robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
+        } else {
+            mission_status_ = MISSION_TYPE::PATH_TRACKER;
+            robot_path_tracker_goal_pub_.publish(this->robot_goal_);
+        }
+
+        resend_goal_timer_.stop();
+    } else {
+        // If there has some remaining time, retry to finish the mission.
+        // Otherwise, return failure to the goal. (The timeout handler will send this failure.)
+        robot_cmd_vel_.linear.x = robot_cmd_vel_.linear.y = robot_cmd_vel_.angular.z = 0.0;
+        geometry_msgs::PoseStamped interrupt_tracker_ = this->robot_goal_;
+        interrupt_tracker_.pose.position.x = interrupt_tracker_.pose.position.y = interrupt_tracker_.pose.orientation.z = interrupt_tracker_.pose.orientation.w = -1.0;
+
+        if (mission_status_ == MISSION_TYPE::DOCK_TRACKER) {
+            mission_status_ = MISSION_TYPE::STOP_DOCK;
+            robot_dock_tracker_goal_pub_.publish(interrupt_tracker_);
+        } else {
+            mission_status_ = MISSION_TYPE::STOP_PATH;
+            robot_path_tracker_goal_pub_.publish(interrupt_tracker_);
+        }
+
+        // Start the timer to count up
+        resend_goal_time_ = 0;
+        resend_goal_timer_.start();
+    }
 }
 
 // Callback function
@@ -577,7 +593,11 @@ void Navigation_Main::FailToGoal() {
     } else if (mission_status_ == MISSION_TYPE::RESEND_PATH_GOAL || mission_status_ == MISSION_TYPE::RESEND_DOCK_GOAL) {
         ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Timeout for resending goal)");
     } else if (mission_status_ == MISSION_TYPE::STOP_DOCK || mission_status_ == MISSION_TYPE::STOP_PATH) {
-        ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Too close to other robots)");
+        if (isCloseToOtherRobots()) {
+            ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : Too close to other robots)");
+        } else {
+            ROS_WARN_STREAM("[" << param_node_name_ << "] : Fail to the goal. (reason : In blocked area)");
+        }
     }
     ROS_ERROR_STREAM("[" << param_node_name_ << "] : Mission Failed.");
 

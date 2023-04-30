@@ -79,6 +79,7 @@ class Navigation_Main {
     void Check_Odom_CB_Timeout();
     bool isGoalInBlockArea();
     bool isPointInPolygon(const Point point, const Point polygon[], int polygon_size);
+    void HandleGoalUnreachable(bool reachable);
 
     // NodeHandle
     ros::NodeHandle *nh_local_;
