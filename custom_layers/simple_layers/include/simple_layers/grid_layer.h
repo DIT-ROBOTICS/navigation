@@ -7,10 +7,18 @@
 #include <costmap_2d/GenericPluginConfig.h>
 #include <dynamic_reconfigure/server.h>
 #include "geometry_msgs/PoseArray.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Odometry.h"
 #include "ros/time.h"
 
 namespace simple_layer_namespace
 {
+
+enum class ODOM_CALLBACK_TYPE {
+    nav_msgs_Odometry = 0,
+    geometry_msgs_PoseWithCovarianceStamped
+};
+
 /**
  * @class CellData
  * @brief Storage for cell information used during obstacle inflation
@@ -87,6 +95,9 @@ public:
    * poses.poses[??].y = ...
    */
   void obsCallback(const geometry_msgs::PoseArray& poses);
+  void poseType0Callback(const nav_msgs::Odometry& pose);
+  void poseType1Callback(const geometry_msgs::PoseStamped& pose);
+
 
   virtual void onInitialize();
   virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double* min_x, double* min_y, double* max_x,
@@ -105,12 +116,18 @@ private:
 
   std::vector<Obstacle> obstacle_pos_;
   ros::Subscriber sub_;
+  ros::Subscriber sub_ekf_;
   ros::NodeHandle g_nh_;
   double update_frequency_;
 
   double inflation_radius_;
   double inscribed_radius_;
   double cost_factor_;
+
+  double clear_radius_;
+  int odom_callback_type_temp_;
+  ODOM_CALLBACK_TYPE odom_callback_type_;
+  std::string odom_topic_;
 
   ros::Timer timer_;
 
@@ -120,16 +137,11 @@ private:
   double tolerance_;
   double threshold_time_;
 
-  /**
-   * @brief check whether the observation_source_type is used
-   * @param observation_source_type the source_type to be checked
-   */
-  bool ifAddToLayer(std::string observation_source_type);
-
   void inflate(double x, double y);
   double** min_dist_check;
 
-  void timerCallback(const ros::TimerEvent& e);
+  double ekf_x_;
+  double ekf_y_;
 };
 }
 #endif
