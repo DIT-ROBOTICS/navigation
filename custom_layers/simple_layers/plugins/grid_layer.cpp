@@ -30,8 +30,6 @@ namespace simple_layer_namespace
   void GridLayer::onInitialize()
   {
     ros::NodeHandle nh("~/" + name_);
-    sub_ = g_nh_.subscribe("/obstacle_position_array", 10, &GridLayer::obsCallback, this);
-
     // read YAML parameter
 
     nh.param("inflation_radius", inflation_radius_, 0.25);
@@ -40,6 +38,23 @@ namespace simple_layer_namespace
 
     nh.param("tolerance", tolerance_, 0.1);
     nh.param("threshold_time", threshold_time_, 0.1);
+    nh.param("clear_radius", clear_radius_, 0.2);
+
+    nh.param("odom_callback_type", odom_callback_type_temp_, 0);
+    nh.param<std::string>("odom_topic", odom_topic_, "ekf_pose");
+    
+    if (odom_callback_type_temp_ == 0) {
+        odom_callback_type_ = ODOM_CALLBACK_TYPE::nav_msgs_Odometry;
+    } else if (odom_callback_type_temp_ == 1){
+        odom_callback_type_ = ODOM_CALLBACK_TYPE::geometry_msgs_PoseWithCovarianceStamped;
+    }
+
+    sub_ = g_nh_.subscribe("/obstacle_position_array", 10, &GridLayer::obsCallback, this);
+    if(odom_callback_type_ == ODOM_CALLBACK_TYPE::nav_msgs_Odometry){
+      sub_ekf_ = g_nh_.subscribe(odom_topic_, 10, &GridLayer::poseType0Callback, this);  
+    }else if(odom_callback_type_ == ODOM_CALLBACK_TYPE::geometry_msgs_PoseWithCovarianceStamped){
+      sub_ekf_ = g_nh_.subscribe(odom_topic_, 10, &GridLayer::poseType1Callback, this);
+    }
 
     current_ = true;
     default_value_ = NO_INFORMATION;
@@ -68,11 +83,27 @@ namespace simple_layer_namespace
     unsigned int obstacle_num = poses.poses.size();
     for (int i = 0; i < obstacle_num; i++){
       Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, poses.header.stamp);
+      if(hypot(poses.poses[i].position.x - ekf_x_, poses.poses[i].position.y - ekf_y_) < clear_radius_){
+        ROS_INFO("clear");
+        continue;
+      }
       obstacle_pos_.push_back(obs);
     }
     // ROS_INFO("size %d", obstacle_pos_.size());
   }
 
+  void GridLayer::poseType0Callback(const nav_msgs::Odometry &pose)
+  {
+    ekf_x_ = pose.pose.pose.position.x;
+    ekf_y_ = pose.pose.pose.position.y;
+  }
+
+  void GridLayer::poseType1Callback(const geometry_msgs::PoseStamped &pose)
+  {
+    ekf_x_ = pose.pose.position.x;
+    ekf_y_ = pose.pose.position.y;
+  }
+  
   void GridLayer::matchSize()
   {
     Costmap2D* master = layered_costmap_->getCostmap();
