@@ -30,6 +30,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 class Navigation_Main {
    public:
@@ -42,8 +43,13 @@ class Navigation_Main {
     void Loop();
 
    private:
-    bool
-    UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+    // Typedef
+    typedef struct {
+        double x;
+        double y;
+    } Point;
+
+    bool UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
     void SetDynamicReconfigure();
 
@@ -68,8 +74,12 @@ class Navigation_Main {
 
     // Other functions
     bool isCloseToOtherRobots();
-    double Distance_Between_A_and_B(geometry_msgs::Pose poseA, geometry_msgs::Pose poseB);
+    double Distance_Between_A_and_B(const geometry_msgs::Pose poseA, const geometry_msgs::Pose poseB);
+    double Distance_Between_A_and_B(const Point pointA, const Point pointB);
     void Check_Odom_CB_Timeout();
+    bool isInBlockArea();
+    bool isPointInPolygon(const Point point, const Point polygon[], int polygon_size);
+    void HandleGoalUnreachable(bool reachable);
 
     // NodeHandle
     ros::NodeHandle *nh_local_;
@@ -111,6 +121,9 @@ class Navigation_Main {
     double param_resend_goal_frequency_;
     double param_stop_distance_;
     double param_odom_timeout_;
+    double param_block_mode_distance_a_;
+    double param_block_mode_distance_b_;
+    double param_block_mode_distance_c_;
 
     std::string param_node_name_;
     std::string param_robot_odom_topic_;
@@ -156,6 +169,12 @@ class Navigation_Main {
         geometry_msgs_PoseWithCovarianceStamped = 1
     };
     ODOM_CALLBACK_TYPE odom_type_;
+
+    // Block Mode
+    const Point CHERRY_DISPENSER[2] = {{0.3, 1.0},
+                                       {2.7, 1.0}};
+    const double MAP_WIDTH = 3.0;   // x axis
+    const double MAP_HEIGHT = 2.0;  // y axis
 
     // Timeout
     ros::Time start_time_;

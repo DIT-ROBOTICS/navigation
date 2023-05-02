@@ -50,6 +50,7 @@ void PathLayer::onInitialize() {
     // PredictLength
     nh.param("PredictLength/Robot/Path", RobotPredictLength, 1);
     nh.param("PredictLength/Rival/Odom", RivalOdom_PredictTime, 0.1);
+    nh.param("PredictLength/Rival/MaxLength", RivalOdom_MaxLength, 1.0);
     nh.param("PredictLength/Rival/Resolution", RivalOdom_Resolution, 0.01);
     // ---------------- Read YAML parameter ----------------
 
@@ -203,6 +204,8 @@ void PathLayer::InflatePredictPath(ROBOT_TYPE type) {
         double len = sqrt(pow(RivalOdom[idx].twist.twist.linear.x, 2) + pow(RivalOdom[idx].twist.twist.linear.y, 2)) * RivalOdom_PredictTime;
         if (len == 0.0) {
             return;
+        } else if (len > RivalOdom_MaxLength) {
+            len = RivalOdom_MaxLength;
         }
 
         double theta = 0.0;
@@ -244,6 +247,8 @@ void PathLayer::InflatePredictPath(ROBOT_TYPE type) {
             double len = sqrt(pow(Obstacle.velocity.x, 2) + pow(Obstacle.velocity.y, 2)) * RivalOdom_PredictTime;
             if (len == 0.0) {
                 continue;
+            } else if (len > RivalOdom_MaxLength) {
+                len = RivalOdom_MaxLength;
             }
 
             double theta = 0.0;
@@ -309,7 +314,7 @@ void PathLayer::InflatePoint(double x, double y, double MaxCost, double Inflatio
                 cost = std::max(std::min(cost, MaxCost), 0.0);
 
                 if (getCost(mx, my) != costmap_2d::NO_INFORMATION) {
-                    setCost(mx, my, std::max((unsigned char)cost, getCost(mx, my)));
+                    setCost(mx, my, std::min((unsigned char)cost + getCost(mx, my), 254));
                 } else {
                     setCost(mx, my, cost);
                 }

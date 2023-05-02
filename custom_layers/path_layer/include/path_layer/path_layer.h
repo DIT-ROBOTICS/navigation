@@ -121,6 +121,7 @@ class PathLayer : public costmap_2d::CostmapLayer {
 
     double RivalOdom_Resolution;
     double RivalOdom_PredictTime;
+    double RivalOdom_MaxLength;
 
     void RivalOdom1_CB(const nav_msgs::Odometry& Odom);
     void RivalOdom2_CB(const nav_msgs::Odometry& Odom);
