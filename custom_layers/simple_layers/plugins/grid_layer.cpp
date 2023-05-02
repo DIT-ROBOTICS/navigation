@@ -42,7 +42,8 @@ namespace simple_layer_namespace
 
     nh.param("odom_callback_type", odom_callback_type_temp_, 0);
     nh.param<std::string>("odom_topic", odom_topic_, "ekf_pose");
-    
+    ROS_INFO("%d, %s", odom_callback_type_temp_, odom_topic_.c_str());
+
     if (odom_callback_type_temp_ == 0) {
         odom_callback_type_ = ODOM_CALLBACK_TYPE::nav_msgs_Odometry;
     } else if (odom_callback_type_temp_ == 1){
@@ -79,12 +80,14 @@ namespace simple_layer_namespace
 
   void GridLayer::obsCallback(const geometry_msgs::PoseArray& poses)
   {
+    // ROS_INFO("clear");
     obstacle_pos_.clear();
     unsigned int obstacle_num = poses.poses.size();
     for (int i = 0; i < obstacle_num; i++){
       Obstacle obs(poses.poses[i].position.x, poses.poses[i].position.y, poses.header.stamp);
-      if(hypot(poses.poses[i].position.x - ekf_x_, poses.poses[i].position.y - ekf_y_) < clear_radius_){
-        ROS_INFO("clear");
+      // ROS_INFO("%f, %f", obs.get_x(), ekf_x_);
+      if(hypot(obs.get_x() - ekf_x_, obs.get_y() - ekf_y_) < clear_radius_){
+        ROS_INFO("[GridLayer]: clear obstacle [x:%f, y:%f]", obs.get_x(), obs.get_y());
         continue;
       }
       obstacle_pos_.push_back(obs);
@@ -98,10 +101,10 @@ namespace simple_layer_namespace
     ekf_y_ = pose.pose.pose.position.y;
   }
 
-  void GridLayer::poseType1Callback(const geometry_msgs::PoseStamped &pose)
+  void GridLayer::poseType1Callback(const geometry_msgs::PoseWithCovarianceStamped &pose)
   {
-    ekf_x_ = pose.pose.position.x;
-    ekf_y_ = pose.pose.position.y;
+    ekf_x_ = pose.pose.pose.position.x;
+    ekf_y_ = pose.pose.pose.position.y;
   }
   
   void GridLayer::matchSize()
