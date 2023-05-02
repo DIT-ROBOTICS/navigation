@@ -8,6 +8,7 @@
 #include <dynamic_reconfigure/server.h>
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "nav_msgs/Odometry.h"
 #include "ros/time.h"
 
@@ -96,8 +97,7 @@ public:
    */
   void obsCallback(const geometry_msgs::PoseArray& poses);
   void poseType0Callback(const nav_msgs::Odometry& pose);
-  void poseType1Callback(const geometry_msgs::PoseStamped& pose);
-
+  void poseType1Callback(const geometry_msgs::PoseWithCovarianceStamped &pose);
 
   virtual void onInitialize();
   virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double* min_x, double* min_y, double* max_x,
