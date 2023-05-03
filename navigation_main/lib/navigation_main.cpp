@@ -517,10 +517,10 @@ void Navigation_Main::MainMission_CB(const geometry_msgs::PoseStamped::ConstPtr 
     }
 
     // Default timeout : 15 seconds.
-    if (str_len_ == 4) {
-        param_resend_goal_time_ = param_timeout_ = 15 * param_resend_goal_frequency_;
-    } else {
+    if ((robot_goal_.header.frame_id.substr(0, 4) == "dock" || robot_goal_.header.frame_id.substr(0, 4) == "path") && str_len_ != 4) {
         param_resend_goal_time_ = param_timeout_ = stoi(msg->header.frame_id.substr(5, timeout_idx_)) * param_resend_goal_frequency_;
+    } else {
+        param_resend_goal_time_ = param_timeout_ = 15 * param_resend_goal_frequency_;
     }
 
     // Set the msg that transmit to tracker.
