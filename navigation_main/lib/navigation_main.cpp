@@ -103,9 +103,6 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
         this->odom_type_ = (temp_odom_type_ == 0) ? ODOM_CALLBACK_TYPE::nav_msgs_Odometry : ODOM_CALLBACK_TYPE::geometry_msgs_PoseWithCovarianceStamped;
         ROS_INFO_STREAM("[" << param_node_name_ << "] : odom type set to " << temp_odom_type_);
     }
-    if (this->nh_local_->param<int>("resend_goal_time", param_resend_goal_time_, 1)) {
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : resend goal time set to " << param_resend_goal_time_);
-    }
     if (this->nh_local_->param<double>("resend_goal_frequency", param_resend_goal_frequency_, 1.0)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : resend goal frequency set to " << param_resend_goal_frequency_);
     }
@@ -520,6 +517,7 @@ void Navigation_Main::RobotMissionState_CB(const std_msgs::Char::ConstPtr &msg) 
     }
 }
 
+// msg frame id format : (path/dock) _ (timeout for resend goal) _ (other info)
 void Navigation_Main::MainMission_CB(const geometry_msgs::PoseStamped::ConstPtr &msg) {
     this->robot_goal_ = *msg;
     this->SetTimeout(this->robot_goal_.pose);
@@ -529,14 +527,37 @@ void Navigation_Main::MainMission_CB(const geometry_msgs::PoseStamped::ConstPtr 
     this->resend_goal_timer_.stop();
 
     // Choose which mode we want to use here.
-    if (msg->header.frame_id.substr(0, 4) == "dock") {
+    int timeout_idx_ = 5;
+    int str_len_ = msg->header.frame_id.length();
+    for (; timeout_idx_ < str_len_; timeout_idx_++) {
+        if (msg->header.frame_id[timeout_idx_] == '_') {
+            break;
+        }
+    }
+
+    // Default timeout : 10 seconds.
+    if (str_len_ == 4) {
+        param_resend_goal_time_ = 10 * param_resend_goal_frequency_;
+    } else {
+        param_resend_goal_time_ = stoi(msg->header.frame_id.substr(5, timeout_idx_)) * param_resend_goal_frequency_;
+    }
+
+    // Set the msg that transmit to tracker.
+    if (timeout_idx_ == str_len_ || str_len_ == 4) {
+        this->robot_goal_.header.frame_id = msg->header.frame_id.substr(0, 4);
+    } else {
+        this->robot_goal_.header.frame_id = msg->header.frame_id.substr(0, 4) + msg->header.frame_id.substr(timeout_idx_, str_len_);
+    }
+
+    // Choose the tracker for transmit.
+    if (robot_goal_.header.frame_id.substr(0, 4) == "dock") {
         this->mission_status_ = MISSION_TYPE::DOCK_TRACKER;
         robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode.");
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode : Resend timeout " << param_resend_goal_time_ / param_resend_goal_frequency_);
     } else {
         this->mission_status_ = MISSION_TYPE::PATH_TRACKER;
         robot_path_tracker_goal_pub_.publish(this->robot_goal_);
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Path mode.");
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Path mode : Resend timeout " << param_resend_goal_time_ / param_resend_goal_frequency_);
     }
 
     ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission start.");
