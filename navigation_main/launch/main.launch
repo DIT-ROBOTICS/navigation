@@ -62,8 +62,8 @@
 
     <!-- Resend Goal when the goal is blocked and it isn't timeout yet. -->
     <!-- (1 / resend_goal_frequency) * resend_goal_time = total waiting time for resending goal.  -->
+    <!-- The total waiting time is given by the Main mission frame id from main program. -->
     <arg name="resend_goal_frequency" default="2.0" />
-    <arg name="resend_goal_time" default="10" />
 
     <!-- Deny the goal if it is in the block area, surrounded by obstacles or robots. -->
     <!-- a -> Cherry dispenser to obstacle1 -->
@@ -86,7 +86,6 @@
         <param name="update_params" value="$(arg update_params)" />
         <param name="odom_type" value="$(arg odom_type)" />
         <param name="resend_goal_frequency" type="double" value="$(arg resend_goal_frequency)" />
-        <param name="resend_goal_time" type="int" value="$(arg resend_goal_time)" />
         <param name="stop_distance" type="double" value="$(arg stop_distance)"/>
         <param name="odom_timeout" type="double" value="$(arg odom_timeout)" />
         <param name="block_mode_distance_a" type="double" value="$(arg block_mode_distance_a)"/>
