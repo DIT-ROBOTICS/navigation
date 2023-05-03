@@ -42,28 +42,21 @@
     <arg name="odom_type" default="0" if="$(arg is_sim)"/>
     <arg name="odom_type" default="1" if="$(arg is_run)"/>
 
+    <!-- Used to determine whether odom data is timeout -->
+    <arg name="odom_timeout" default="2.0" />
+
     <arg name="update_frequency" default="20.0" />
     <arg name="update_params" default="false" />
     <arg name="default_active" default="true"/>
     <arg name="use_dynamic_reconfigure" default="false" />
-
-    <!-- Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout -->
-    <!-- (timeout_a) should be [1 / (robot velocity)] -->
-    <arg name="timeout_a" default="0.0" />
-    <arg name="timeout_b" default="20.0" />
-    <arg name="min_timeout" default="10.0" />
-    <arg name="max_timeout" default="100.0" />
-
-    <!-- Used to determine whether odom data is timeout -->
-    <arg name="odom_timeout" default="2.0" />
 
     <!-- Stop Distance -->
     <arg name="stop_distance" default="0.35" />
 
     <!-- Resend Goal when the goal is blocked and it isn't timeout yet. -->
     <!-- (1 / resend_goal_frequency) * resend_goal_time = total waiting time for resending goal.  -->
+    <!-- The total waiting time is given by the Main mission frame id from main program. -->
     <arg name="resend_goal_frequency" default="2.0" />
-    <arg name="resend_goal_time" default="10" />
 
     <!-- Deny the goal if it is in the block area, surrounded by obstacles or robots. -->
     <!-- a -> Cherry dispenser to obstacle1 -->
@@ -77,16 +70,11 @@
     <node pkg="navigation_main" name="navigation_main" type="navigation_main_node" args="navigation_main" output="screen">
         <!-- change by argument above -->
         <param name="active" type="boolean" value="$(arg default_active)" />
-        <param name="timeout_a" type="double" value="$(arg timeout_a)" />
-        <param name="timeout_b" type="double" value="$(arg timeout_b)" />
-        <param name="min_timeout" type="double" value="$(arg min_timeout)" />
-        <param name="max_timeout" type="double" value="$(arg max_timeout)" />
         <param name="update_frequency" type="double" value="$(arg update_frequency)" />
         <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
         <param name="update_params" value="$(arg update_params)" />
         <param name="odom_type" value="$(arg odom_type)" />
         <param name="resend_goal_frequency" type="double" value="$(arg resend_goal_frequency)" />
-        <param name="resend_goal_time" type="int" value="$(arg resend_goal_time)" />
         <param name="stop_distance" type="double" value="$(arg stop_distance)"/>
         <param name="odom_timeout" type="double" value="$(arg odom_timeout)" />
         <param name="block_mode_distance_a" type="double" value="$(arg block_mode_distance_a)"/>
