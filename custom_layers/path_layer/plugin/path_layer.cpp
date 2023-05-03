@@ -314,7 +314,7 @@ void PathLayer::InflatePoint(double x, double y, double MaxCost, double Inflatio
                 cost = std::max(std::min(cost, MaxCost), 0.0);
 
                 if (getCost(mx, my) != costmap_2d::NO_INFORMATION) {
-                    setCost(mx, my, std::min((unsigned char)cost + getCost(mx, my), 254));
+                    setCost(mx, my, std::max((unsigned char)cost, getCost(mx, my)));
                 } else {
                     setCost(mx, my, cost);
                 }
