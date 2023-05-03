@@ -11,7 +11,7 @@ case $1 in
         hostname="192.168.50.174"
         echo "Change ROS Master to 174!"
     ;;
-    "192.168.50.*" )
+    "192.168.50."* )
         echo "Change ROS Master to ${hostname}!"
     ;;
     * )
@@ -20,6 +20,6 @@ case $1 in
     ;;
 esac
 
-sed -i "s#ROS_MASTER_URI=.*#ROS_MASTER_URI=http://${hostname}:11311#g" ~/.bashrc
+sed -i "/^[^#]/s%ROS_MASTER_URI=.*%ROS_MASTER_URI=http://${hostname}:11311%g" ~/.bashrc
 
 source ~/.bashrc
