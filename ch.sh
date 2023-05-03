@@ -1,36 +1,40 @@
 #!/bin/bash -i
+#Activate script using ". ch.sh [alias/IP]" or ". ch[tab] [alias/IP]"
 
 #$1 means first argument in command [. ch.sh] [IP]
 #                                      $0      $1
 hostname=$1
 
+MY_IP=$(hostname -I)
+MY_IP=${MY_IP%?} #delete the last space
+
 #Assign IP to hostname
 case $1 in
     "p1" )
         hostname="192.168.50.118"
-        echo "Change ROS Master to ${hostname}!"
+        echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     "p2" )
         hostname="192.168.50.174"
-        echo "Change ROS Master to ${hostname}!"
+        echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     "o1" )
         hostname="192.168.50.210"
-        echo "Change ROS Master to ${hostname}!"
+        echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     "o2" )
         hostname="192.168.50.238"
-        echo "Change ROS Master to ${hostname}!"
+        echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     # "alias" )
     #     hostname="192.168.50.xxx"
-    #     echo "Change ROS Master to ${hostname}!"
+    #     echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     # ;;
     "192.168.50."* )
-        echo "Change ROS Master to ${hostname}!"
+        echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     * )
-        echo "IP Format may be wrong: ${hostname}! Try again!"
+        echo "[${MY_IP}] IP Format may be wrong: ${hostname}! Try again!"
         exit
     ;;
 esac
