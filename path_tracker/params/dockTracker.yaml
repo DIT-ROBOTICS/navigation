@@ -7,8 +7,8 @@ control_frequency: 50
 profile_percent: 0.2
 # linear_max_velocity: 0.2
 # angular_max_velocity: 0.8
-point_stop_tolerance: 0.02
-angle_stop_tolerance: 0.1
+point_stop_tolerance: 0.005
+angle_stop_tolerance: 0.02
 # rival_tolerance: 0.41
 
 # cake-mode
@@ -16,8 +16,8 @@ cake_linear_max_velocity: 0.2
 cake_angular_max_velocity: 0.8
 
 # cherry-mode
-cherry_linear_max_velocity: 0.1
-cherry_angular_max_velocity: 0.4
+cherry_linear_max_velocity: 0.08
+cherry_angular_max_velocity: 0.05
 
 # vibrate-mode
 vibrate_time: 10

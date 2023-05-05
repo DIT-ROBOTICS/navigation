@@ -36,11 +36,11 @@ path_layer:
   Inflation:
     Robot:
       CostScalingFactor: 15
-      InscribedRadius: 0.2         # Unit: m
-      InflationRadius: 0.5         # Unit: m (MaxDistance)
+      InscribedRadius: 0.19         # Unit: m
+      InflationRadius: 0.45         # Unit: m (MaxDistance)
     Rival:
       CostScalingFactor: 15
-      InscribedRadius: 0.2         # Unit: m
+      InscribedRadius: 0.15         # Unit: m
       InflationRadius: 0.45         # Unit: m (MaxDistance)
       InscribedRadiusDecline: 0.85  # Unit: m / Resolution
   # Timeout -1 -> Disable Timeout 

@@ -62,9 +62,9 @@
     <!-- a -> Cherry dispenser to obstacle1 -->
     <!-- b -> Obstacle1 to obstacle2  -->
     <!-- c -> Obstacle2 to map edge -->
-    <arg name="block_mode_distance_a" default="0.4"/>
+    <arg name="block_mode_distance_a" default="0.53"/>
     <arg name="block_mode_distance_b" default="0.8"/>
-    <arg name="block_mode_distance_c" default="0.5"/>
+    <arg name="block_mode_distance_c" default="0.53"/>
 
     <!--  Node  -->
     <node pkg="navigation_main" name="navigation_main" type="navigation_main_node" args="navigation_main" output="screen">
