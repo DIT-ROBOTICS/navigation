@@ -50,6 +50,13 @@
     <arg name="default_active" default="true"/>
     <arg name="use_dynamic_reconfigure" default="false" />
 
+    <!-- Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout -->
+    <!-- (timeout_a) should be [1 / (robot velocity)] -->
+    <arg name="timeout_a" default="0.0" />
+    <arg name="timeout_b" default="10.0" />
+    <arg name="min_timeout" default="20.0" />
+    <arg name="max_timeout" default="100.0" />
+
     <!-- Stop Distance -->
     <arg name="stop_distance" default="0.35" />
 
@@ -74,6 +81,10 @@
         <param name="use_dynamic_reconfigure" value="$(arg use_dynamic_reconfigure)"/>
         <param name="update_params" value="$(arg update_params)" />
         <param name="odom_type" value="$(arg odom_type)" />
+        <param name="timeout_a" type="double" value="$(arg timeout_a)" />
+        <param name="timeout_b" type="double" value="$(arg timeout_b)" />
+        <param name="min_timeout" type="double" value="$(arg min_timeout)" />
+        <param name="max_timeout" type="double" value="$(arg max_timeout)" />
         <param name="resend_goal_frequency" type="double" value="$(arg resend_goal_frequency)" />
         <param name="stop_distance" type="double" value="$(arg stop_distance)"/>
         <param name="odom_timeout" type="double" value="$(arg odom_timeout)" />
