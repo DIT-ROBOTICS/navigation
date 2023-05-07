@@ -5,7 +5,7 @@ control_frequency: 30
 lookahead_distance: 0.1
 waiting_timeout: 5
 
-xy_tolerance: 0.02
+xy_tolerance: 0.01
 theta_tolerance: 0.05
 blocked_lookahead_distance: 0.2
 
@@ -45,7 +45,7 @@ angular_transition_acceleration: 0.6
 
 # deceleration
 angular_kp: 0.6
-angular_brake_distance: 0.27
+angular_brake_distance: 0.4
 #angular_brake_distance: 0.23
 # angular_deceleration_profile: linear
 

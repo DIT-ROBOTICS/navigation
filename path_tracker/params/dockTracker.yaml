@@ -7,12 +7,12 @@ control_frequency: 50
 profile_percent: 0.2
 # linear_max_velocity: 0.2
 # angular_max_velocity: 0.8
-point_stop_tolerance: 0.005
-angle_stop_tolerance: 0.02
+point_stop_tolerance: 0.01
+angle_stop_tolerance: 0.01
 # rival_tolerance: 0.41
 
 # cake-mode
-cake_linear_max_velocity: 0.2
+cake_linear_max_velocity: 0.17
 cake_angular_max_velocity: 0.8
 
 # cherry-mode
