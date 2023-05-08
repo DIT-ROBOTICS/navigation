@@ -115,6 +115,18 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
     if (this->nh_local_->param<double>("odom_timeout", param_odom_timeout_, 3.0)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : odom timeout set to " << param_odom_timeout_);
     }
+    if (this->nh_local_->param<double>("timeout_a", param_timeout_a_, 5.0)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : timeout_a set to " << param_timeout_a_);
+    }
+    if (this->nh_local_->param<double>("timeout_b", param_timeout_b_, 5.0)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : timeout_b set to " << param_timeout_b_);
+    }
+    if (this->nh_local_->param<double>("min_timeout", param_timeout_min_, 5.0)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : timeout_min set to " << param_timeout_min_);
+    }
+    if (this->nh_local_->param<double>("max_timeout", param_timeout_max_, 5.0)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : timeout_max set to " << param_timeout_max_);
+    }
     if (this->nh_local_->param<double>("block_mode_distance_a", param_block_mode_distance_a_, 1.0)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : block mode distance a set to " << param_block_mode_distance_a_);
     }
@@ -240,6 +252,12 @@ void Navigation_Main::SetDynamicReconfigure() {
 
     // Set callback function to param server
     dynamic_param_srv_.setCallback(callback);
+}
+
+// Total Timeout = min_timeout < [(Distance to Goal) * (timeout_a) + (timeout_b)] < max_timeout
+void Navigation_Main::SetTimeout(geometry_msgs::Pose poseGoal) {
+    this->param_timeout_ = std::min(std::max(Distance_Between_A_and_B(poseGoal, robot_odom_) * param_timeout_a_ + param_timeout_b_, param_timeout_min_), param_timeout_max_);
+    ROS_INFO_STREAM("[" << param_node_name_ << "] : set timeout to " << param_timeout_);
 }
 
 void Navigation_Main::Check_Odom_CB_Timeout() {
@@ -502,6 +520,7 @@ void Navigation_Main::RobotMissionState_CB(const std_msgs::Char::ConstPtr &msg) 
 // msg frame id format : (path/dock) _ (timeout for resend goal) _ (other info)
 void Navigation_Main::MainMission_CB(const geometry_msgs::PoseStamped::ConstPtr &msg) {
     this->robot_goal_ = *msg;
+    this->SetTimeout(this->robot_goal_.pose);
     this->start_time_ = ros::Time::now();
     this->is_mission_start_ = true;
     this->is_reach_goal_ = false;
@@ -518,9 +537,9 @@ void Navigation_Main::MainMission_CB(const geometry_msgs::PoseStamped::ConstPtr 
 
     // Default timeout : 15 seconds.
     if ((robot_goal_.header.frame_id.substr(0, 4) == "dock" || robot_goal_.header.frame_id.substr(0, 4) == "path") && str_len_ != 4) {
-        param_resend_goal_time_ = param_timeout_ = stoi(msg->header.frame_id.substr(5, timeout_idx_)) * param_resend_goal_frequency_;
+        param_resend_goal_time_ = stoi(msg->header.frame_id.substr(5, timeout_idx_)) * param_resend_goal_frequency_;
     } else {
-        param_resend_goal_time_ = param_timeout_ = 15 * param_resend_goal_frequency_;
+        param_resend_goal_time_ = 15 * param_resend_goal_frequency_;
     }
 
     // Set the msg that transmit to tracker.
@@ -534,11 +553,11 @@ void Navigation_Main::MainMission_CB(const geometry_msgs::PoseStamped::ConstPtr 
     if (robot_goal_.header.frame_id.substr(0, 4) == "dock") {
         this->mission_status_ = MISSION_TYPE::DOCK_TRACKER;
         robot_dock_tracker_goal_pub_.publish(this->robot_goal_);
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode : timeout " << param_resend_goal_time_ / param_resend_goal_frequency_);
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Dock mode : timeout " << param_resend_goal_time_ / param_resend_goal_frequency_ << " / " << param_timeout_);
     } else {
         this->mission_status_ = MISSION_TYPE::PATH_TRACKER;
         robot_path_tracker_goal_pub_.publish(this->robot_goal_);
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : Path mode : timeout " << param_resend_goal_time_ / param_resend_goal_frequency_);
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : Path mode : timeout " << param_resend_goal_time_ / param_resend_goal_frequency_ << " / " << param_timeout_);
     }
 
     ROS_INFO_STREAM("[" << param_node_name_ << "] : Mission start.");

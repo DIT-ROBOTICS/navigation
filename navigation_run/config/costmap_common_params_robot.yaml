@@ -36,11 +36,11 @@ path_layer:
   Inflation:
     Robot:
       CostScalingFactor: 15
-      InscribedRadius: 0.2         # Unit: m
-      InflationRadius: 0.5         # Unit: m (MaxDistance)
+      InscribedRadius: 0.19         # Unit: m
+      InflationRadius: 0.45         # Unit: m (MaxDistance)
     Rival:
       CostScalingFactor: 15
-      InscribedRadius: 0.2         # Unit: m
+      InscribedRadius: 0.15         # Unit: m
       InflationRadius: 0.45         # Unit: m (MaxDistance)
       InscribedRadiusDecline: 0.85  # Unit: m / Resolution
   # Timeout -1 -> Disable Timeout 
@@ -59,7 +59,7 @@ path_layer:
     # Robot param will be set in move_base.launch
     Rival:
       Odom: 2          # Unit: s
-      MaxLength:  1.0  # Unit: m
+      MaxLength:  0.7  # Unit: m
       Resolution: 0.05 # Unit: m
 
 # obstacle_layer:
@@ -88,6 +88,6 @@ simple_layer:
 
   tolerance: 0.07
   threshold_time: 1 # unit: seconds
-  clear_radius: 0.35
+  clear_radius: 0.16
   # odom_callback_type: 0    # 0:odom, 1:ekf_pose
   # odom_topic: ekf_pose

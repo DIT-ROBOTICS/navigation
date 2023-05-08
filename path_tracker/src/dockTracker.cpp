@@ -318,14 +318,14 @@ void DockTracker::vibrate() {
 }
 
 void DockTracker::goalCB(const geometry_msgs::PoseStamped& data) {
-    ROS_INFO("[Dock Tracker]: Dock goal received! (%f, %f)", data.pose.position.x, data.pose.position.y);
-
     vel_[0] = vel_[1] = vel_[2] = 0.0;
 
     if (data.pose.position.x == -1 && data.pose.position.y == -1) {
         mode_ = MODE::IDLE;
+        ROS_INFO("[Dock Tracker]: Nav_Main stopped sending goal! Set mode to IDLE");
         return;
     }
+    ROS_INFO("[Dock Tracker]: Dock goal received! (%f, %f)", data.pose.position.x, data.pose.position.y);
 
     tf2::Quaternion q;
     tf2::fromMsg(data.pose.orientation, q);
