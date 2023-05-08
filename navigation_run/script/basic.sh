@@ -13,26 +13,19 @@ set host_cam_central "192.168.50.44"
 set loginpass "ditrobotics"
 set cmd_prompt "]#|~]?"
 
-#Set timeout, unit: seconds
+#Set timeout, delay (unit: seconds)
 set timeout 3
-set delay 0
-if {$which == "hub1"} {
+set delay1 1
+set delay2 3
+
+if {$which == "run1b"} {
   spawn ssh $user@$host_1
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
-  send "roslaunch navigation_run hub1.launch\r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       # send "roslaunch navigation_run hub1.launch\r"
-  #       send "exit \r"
-  #     }
-  #   }
-} elseif {$which == "run1b"} {
-  spawn ssh $user@$host_1
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
-  expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
   send "roslaunch navigation_run run_robot1.launch _side:=b\r"
   # expect {
   #     -re $cmd_prompt {
@@ -42,9 +35,12 @@ if {$which == "hub1"} {
   #   }
 } elseif {$which == "run1g"} {
   spawn ssh $user@$host_1
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
   send "roslaunch navigation_run run_robot1.launch _side:=g\r"
   # expect {
   #     -re $cmd_prompt {
@@ -52,23 +48,14 @@ if {$which == "hub1"} {
   #       send "exit \r"
   #     }
   #   }
-} elseif {$which == "hub2"} {
-  spawn ssh $user@$host_2
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
-  expect "password:" {send "$loginpass\r"}
-  send "roslaunch navigation_run hub2.launch\r"
-  # expect {
-  #     -re "$ " {
-  #       # send "roslaunch navigation_run hub2.launch\r"
-  #       send "exit \r"
-  #     }
-  #   }
 } elseif {$which == "run2b"} {
   spawn ssh $user@$host_2
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
   send "roslaunch navigation_run run_robot2.launch _side:=b\r"
   # expect {
   #     -re $cmd_prompt {
@@ -78,9 +65,12 @@ if {$which == "hub1"} {
   #   }
 } elseif {$which == "run2g"} {
   spawn ssh $user@$host_2
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
   send "roslaunch navigation_run run_robot2.launch _side:=g\r"
   # expect {
   #     -re $cmd_prompt {
@@ -90,9 +80,12 @@ if {$which == "hub1"} {
   #   }
 } elseif {$which == "cam_a"} {
   spawn ssh $user@$host_cam_a
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay2
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
   send "roslaunch aruco_ros cam_a.launch \r"
   # expect {
   #     -re $cmd_prompt {
@@ -102,10 +95,13 @@ if {$which == "hub1"} {
   #   }
 } elseif {$which == "cam_b"} {
   spawn ssh $user@$host_cam_b
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
-  # send "roslaunch aruco_ros cam_b.launch \r"
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
+  send "roslaunch aruco_ros cam_b.launch \r"
   # expect {
   #     -re $cmd_prompt {
   #       send "roslaunch aruco_ros cam_b.launch \r"
@@ -114,9 +110,12 @@ if {$which == "hub1"} {
   #   }
 } elseif {$which == "cam_c"} {
   spawn ssh $user@$host_cam_c
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
   send "roslaunch mklc side.launch \r"
   # expect {
   #     -re $cmd_prompt {
@@ -126,9 +125,12 @@ if {$which == "hub1"} {
   #   }
 } elseif {$which == "cam_central"} {
   spawn ssh $user_central@$host_cam_central
-  sleep $delay
-  expect "Are you sure you want to continue connecting (yes/no/\[fingerprint\])?" {send "yes\r"}
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
   send "roslaunch mklc double.launch\r"
   # expect {
   #     -re $cmd_prompt {
@@ -140,5 +142,24 @@ if {$which == "hub1"} {
   echo "Something went wrong!"
   exit 1
 }
+
+# Seperated hub.launch
+  # elseif {$which == "hub2"} {
+  #   spawn ssh $user@$host_2
+  #   sleep $delay1
+  #   expect "continue connecting" {send "yes\r"}
+  #   expect "password:" {send "$loginpass\r"}
+  #   sleep $delay2
+  #   send "byobu\r"
+  #   sleep $delay2
+  #   send "roslaunch navigation_run hub2.launch\r"
+  #   # expect {
+  #   #     -re "$ " {
+  #   #       # send "roslaunch navigation_run hub2.launch\r"
+  #   #       send "exit \r"
+  #   #     }
+  #   #   }
+  # } 
+# /Seperated hub.launch
 
 interact

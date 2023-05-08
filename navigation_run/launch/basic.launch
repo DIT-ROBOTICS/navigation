@@ -1,6 +1,6 @@
 <launch>
     <!-- choose what the mode you want. Simulation or Run Real Robot -->
-    <arg name="is_run" default="true" />
+    <arg name="is_run" default="false" />
     <arg name="is_sim" default="false" />
 
     <!-- which robot -->
@@ -19,9 +19,13 @@
     <!-- which side -->
     <arg name="side" default="b" />
 
+    <!-- Hub -->
+    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" />
+    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
+
     <!-- Main -->
-    <include file="$(find eurobot2023_main)/launch/run_blue_main.launch.launch" if="$(eval arg('side') == 'b')"/>
-    <include file="$(find eurobot2023_main)/launch/run_green_main.launch.launch" if="$(eval arg('side') == 'g')"/>
+    <include file="$(find eurobot2023_main)/launch/run_blue_main.launch" if="$(eval ((arg('side') == 'b') and (arg('is_run'))))"/>
+    <include file="$(find eurobot2023_main)/launch/run_green_main.launch" if="$(eval ((arg('side') == 'g') and (arg('is_run'))))"/>
 
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization_robots.launch" if="$(arg is_run)" >
@@ -31,7 +35,7 @@
         <arg name="active_robot2" value="0" unless="$(arg is_robot2)"/>
     </include>
 
-    <!-- Camera -->
+    <!-- On-board camera -->
     <!-- <include file="$(find usb_cam)/launch/FULLHD.launch" if="$(arg is_run)"/>
     <include file="$(find aruco_ros)/launch/onRobot.launch" if="$(arg is_run)"/> -->
     
