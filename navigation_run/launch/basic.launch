@@ -16,6 +16,13 @@
     <arg name="robot_name" default="rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="rival2" if="$(arg is_rival2)"/>
 
+    <!-- which side -->
+    <arg name="side" default="b" />
+
+    <!-- Main -->
+    <include file="$(find eurobot2023_main)/launch/run_blue_main.launch.launch" if="$(eval arg('side') == 'b')"/>
+    <include file="$(find eurobot2023_main)/launch/run_green_main.launch.launch" if="$(eval arg('side') == 'g')"/>
+
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization_robots.launch" if="$(arg is_run)" >
         <arg name="active_robot1" value="1" if="$(arg is_robot1)"/>

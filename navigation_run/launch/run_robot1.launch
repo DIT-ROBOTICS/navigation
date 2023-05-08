@@ -8,7 +8,7 @@
     <include file="$(find navigation_run)/launch/basic.launch">
         <arg name="is_run" value="true" />
         <arg name="is_sim" value="false" />
-
+        <arg name="side" default="$(arg side)" />
         <!-- which robot -->
         <arg name="is_robot1" value="true" />
     </include>
