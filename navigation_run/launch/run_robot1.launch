@@ -1,4 +1,6 @@
 <launch>
+    <arg name="side" default="b" />
+    <param name="side" value="$(arg side)"/>
     <node pkg="tf" type="static_transform_publisher" name="map_to_map1" args="0 0 0 0 0 0 map robot1/map 30"/>
     <node pkg="tf" type="static_transform_publisher" name="map_to_map2" args="0 0 0 0 0 0 map robot2/map 30"/>
 

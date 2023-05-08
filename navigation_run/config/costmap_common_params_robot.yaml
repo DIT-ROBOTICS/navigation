@@ -59,7 +59,7 @@ path_layer:
     # Robot param will be set in move_base.launch
     Rival:
       Odom: 2          # Unit: s
-      MaxLength:  1.0  # Unit: m
+      MaxLength:  0.7  # Unit: m
       Resolution: 0.05 # Unit: m
 
 # obstacle_layer:
