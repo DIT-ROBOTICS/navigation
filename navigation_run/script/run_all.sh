@@ -16,6 +16,10 @@ DIR() {
 
 DIR
 
+# Open roscore
+gnome-terminal --working-directory=$dir -- bash -c './basic.sh roscore'
+sleep 5
+
 # 2 Pandas (Robots)
 if [[ $1 = "b" ]]
 then
@@ -26,7 +30,8 @@ then
     gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1g'
     gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2g'
 else
-    echo "Please specify b/g side!"
+    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1b'
+    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2b'
 fi
 
 # gnome-terminal --working-directory=$dir -- bash -c './basic.sh hub2'

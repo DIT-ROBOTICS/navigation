@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 
-#Set variables
+# Set variables
 set which [lindex $argv 0]
 set user "ubuntu"
 set user_central "ditrobotics"
@@ -13,12 +13,23 @@ set host_cam_central "192.168.50.44"
 set loginpass "ditrobotics"
 set cmd_prompt "]#|~]?"
 
-#Set timeout, delay (unit: seconds)
+# Set timeout, delay (unit: seconds)
 set timeout 3
 set delay1 1
 set delay2 3
 
-if {$which == "run1b"} {
+
+if {$which == "roscore"} {
+  # Open roscore
+  spawn ssh $user@$host_1
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
+  expect "password:" {send "$loginpass\r"}
+  sleep $delay2
+  send "byobu -S roscore-session\r"
+  sleep $delay2
+  send "roscore\r"
+} elseif {$which == "run1b"} {
   spawn ssh $user@$host_1
   sleep $delay1
   expect "continue connecting" {send "yes\r"}
@@ -80,7 +91,7 @@ if {$which == "run1b"} {
   #   }
 } elseif {$which == "cam_a"} {
   spawn ssh $user@$host_cam_a
-  sleep $delay2
+  sleep $delay1
   expect "continue connecting" {send "yes\r"}
   expect "password:" {send "$loginpass\r"}
   sleep $delay2
