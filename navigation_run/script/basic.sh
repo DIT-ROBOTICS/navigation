@@ -15,7 +15,7 @@ set cmd_prompt "]#|~]?"
 
 # Set timeout, delay (unit: seconds)
 set timeout 3
-set delay1 1
+set delay1 0
 set delay2 3
 
 

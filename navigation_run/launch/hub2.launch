@@ -21,16 +21,18 @@
     </node> -->
 
     <!-- rosserial_python -->
-    <node pkg="rosserial_python" type="serial_node.py" name="rosserial_arm2" output="screen">
+    <node pkg="rosserial_python_revision" type="serial_node.py" name="rosserial_arm2" output="screen">
         <param name="port" value="/dev/USB1-1" />
         <param name="baud" value="115200" />
-        <param name="timeout" value="5" />
+        <param name="timeout" value="1.5" />
+        <param name="isMega2560" value="False" />
     </node>
 
-    <node pkg="rosserial_python" type="serial_node.py" name="rosserial_plate2" output="screen">
+    <node pkg="rosserial_python_revision" type="serial_node.py" name="rosserial_plate2" output="screen">
         <param name="port" value="/dev/USB1-2" />
         <param name="baud" value="115200" />
-        <param name="timeout" value="5" />
+        <param name="timeout" value="1.5" />
+        <param name="isMega2560" value="True" />
     </node>
 
 </launch>

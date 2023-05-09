@@ -36,9 +36,8 @@
     </include>
 
     <!-- On-board camera -->
-    <!-- <include file="$(find usb_cam)/launch/FULLHD.launch" if="$(arg is_run)"/>
-    <include file="$(find aruco_ros)/launch/onRobot.launch" if="$(arg is_run)"/> -->
-    
+    <include file="$(find aruco_ros)/launch/onRobot.launch" if="$(arg is_run)"/>
+       
 
     <group ns="$(arg robot_name)" unless="$(arg is_robot)">
         <!-- Map Info -->
