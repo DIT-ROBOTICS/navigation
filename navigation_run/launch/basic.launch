@@ -21,8 +21,8 @@
     <param name="side" type="int" value="$(arg side)" />
 
     <!-- Hub -->
-    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" output="screen"/>
-    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" output="screen"/>
+    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" />
+    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
 
     <!-- Main -->
     <include file="$(find eurobot2023_main)/launch/run_blue_main.launch" if="$(eval ((arg('side') == 'b') and (arg('is_run'))))"/>
