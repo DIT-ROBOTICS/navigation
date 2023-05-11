@@ -17,8 +17,8 @@ DIR() {
 DIR
 
 # Open roscore
-gnome-terminal --working-directory=$dir -- bash -c './basic.sh roscore'
-sleep 5
+# gnome-terminal --working-directory=$dir -- bash -c './basic.sh roscore'
+# sleep 5
 
 # 2 Pandas (Robots)
 if [[ $1 = "b" ]]

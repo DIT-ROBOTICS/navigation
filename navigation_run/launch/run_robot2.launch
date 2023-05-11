@@ -1,6 +1,5 @@
 <launch>
-    <arg name="side" default="b" />
-    <param name="side" value="$(arg side)"/>
+    <arg name="side" default="0" />
     
     <!-- Set is_sim to true if you want to run simulation. -->
     <include file="$(find navigation_run)/launch/basic.launch">

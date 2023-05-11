@@ -12,8 +12,8 @@ angle_stop_tolerance: 0.01
 # rival_tolerance: 0.41
 
 # cake-mode
-cake_linear_max_velocity: 0.17
-cake_angular_max_velocity: 0.8
+cake_linear_max_velocity: 0.2
+cake_angular_max_velocity: 1.2
 
 # cherry-mode
 cherry_linear_max_velocity: 0.08

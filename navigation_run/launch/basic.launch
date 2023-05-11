@@ -16,12 +16,13 @@
     <arg name="robot_name" default="rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="rival2" if="$(arg is_rival2)"/>
 
+    <arg name="side" default="0" />
     <!-- which side -->
-    <arg name="side" default="b" />
+    <param name="side" type="int" value="$(arg side)" />
 
     <!-- Hub -->
-    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" />
-    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
+    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" output="screen"/>
+    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" output="screen"/>
 
     <!-- Main -->
     <include file="$(find eurobot2023_main)/launch/run_blue_main.launch" if="$(eval ((arg('side') == 'b') and (arg('is_run'))))"/>
@@ -36,7 +37,7 @@
     </include>
 
     <!-- On-board camera -->
-    <include file="$(find aruco_ros)/launch/onRobot.launch" if="$(arg is_run)"/>
+    <!-- <include file="$(find aruco_ros)/launch/onRobot.launch" if="$(arg is_run)"/> -->
        
 
     <group ns="$(arg robot_name)" unless="$(arg is_robot)">
