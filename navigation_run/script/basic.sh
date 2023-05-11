@@ -16,7 +16,7 @@ set cmd_prompt "]#|~]?"
 # Set timeout, delay (unit: seconds)
 set timeout 3
 set delay1 0
-set delay2 1
+set delay2 2
 
 
 if {$which == "roscore"} {

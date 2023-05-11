@@ -34,6 +34,7 @@
         <arg name="active_robot1" value="0" unless="$(arg is_robot1)"/>
         <arg name="active_robot2" value="1" if="$(arg is_robot2)"/>
         <arg name="active_robot2" value="0" unless="$(arg is_robot2)"/>
+        <arg name="side" value="$(arg side)" />
     </include>
 
     <!-- On-board camera -->
