@@ -1,5 +1,6 @@
 <launch>
     <arg name="side" default="0" />
+    <arg name="basketBot" default="1" />
     <node pkg="tf" type="static_transform_publisher" name="map_to_map1" args="0 0 0 0 0 0 map robot1/map 30"/>
     <node pkg="tf" type="static_transform_publisher" name="map_to_map2" args="0 0 0 0 0 0 map robot2/map 30"/>
 
@@ -7,8 +8,12 @@
     <include file="$(find navigation_run)/launch/basic.launch">
         <arg name="is_run" value="true" />
         <arg name="is_sim" value="false" />
-        <arg name="side" default="$(arg side)" />
+
         <!-- which robot -->
         <arg name="is_robot1" value="true" />
+
+        <!-- for which side (blue/green) & robot position  -->
+        <arg name="side" default="$(arg side)" />
+        <arg name="basketBot" default="$(arg basketBot)" />
     </include>
 </launch>

@@ -10,13 +10,16 @@
     <arg name="is_rival1" default="false" />
     <arg name="is_rival2" default="false" />
 
+    <!-- for which side (blue/green) & robot position  -->
+    <arg name="side" default="0" />
+    <arg name="basketBot" default="1" />
+
     <arg name="robot_name" default="" if="$(arg is_robot)"/>
     <arg name="robot_name" default="robot1" if="$(arg is_robot1)"/>
     <arg name="robot_name" default="robot2" if="$(arg is_robot2)"/>
     <arg name="robot_name" default="rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="rival2" if="$(arg is_rival2)"/>
 
-    <arg name="side" default="0" />
     <!-- which side -->
     <param name="side" type="int" value="$(arg side)" />
 
@@ -35,6 +38,7 @@
         <arg name="active_robot2" value="1" if="$(arg is_robot2)"/>
         <arg name="active_robot2" value="0" unless="$(arg is_robot2)"/>
         <arg name="side" value="$(arg side)" />
+        <arg name="basketBot" value="$(arg basketBot)" />
     </include>
 
     <!-- On-board camera -->
