@@ -116,9 +116,9 @@ bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     if (p_active_ != prev_active) {
         if (p_active_) {
             if (odom_callback_type_ == ODOM_CALLBACK_TYPE::nav_msgs_Odometry) {
-                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type0_Callback, this);
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 5, &PathTracker::Pose_type0_Callback, this);
             } else {
-                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type1_Callback, this);
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 5, &PathTracker::Pose_type1_Callback, this);
             }
             goal_sub_ = nh_.subscribe("nav_goal", 5, &PathTracker::Goal_Callback, this);
             vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
