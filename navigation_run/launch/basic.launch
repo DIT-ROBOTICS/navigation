@@ -28,7 +28,7 @@
     <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
 
     <!-- Main -->
-    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval ((arg('side') == '0') and (arg('is_run'))))"/>
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval ((arg('side') == '0') and (arg('is_run'))))" >
         <arg name="basketBot" value="$(arg basketBot)" />
         <arg name="side" value="$(arg side)" />
     </include>
