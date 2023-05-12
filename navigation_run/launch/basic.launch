@@ -20,18 +20,16 @@
     <arg name="robot_name" default="rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="rival2" if="$(arg is_rival2)"/>
 
-    <!-- which side -->
+    <!-- for which side (blue/green) & robot position  -->
     <param name="side" type="int" value="$(arg side)" />
+    <param name="basketBot" type="int" value="$(arg basketBot)" />
 
     <!-- Hub -->
-    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" />
-    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
+    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_run)" />
+    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_run)" />
 
     <!-- Main -->
-    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval ((arg('side') == '0') and (arg('is_run'))))" >
-        <arg name="basketBot" value="$(arg basketBot)" />
-        <arg name="side" value="$(arg side)" />
-    </include>
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(arg is_run)" />
 
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization_robots.launch" if="$(arg is_run)" >
