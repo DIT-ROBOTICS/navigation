@@ -9,6 +9,8 @@ MY_IP=$(hostname -I) #get my ip
 MY_IP=${MY_IP%?} #delete the last space
 MASTER=`env | grep ROS_MASTER` #see current master
 
+DOMAIN="192.168.50."
+
 # hostname=$(echo "$hostname" | tr -d '[:space:]')
 # hostname=$(echo "$hostname" | tr -cd '[:print:]')
 
@@ -39,23 +41,27 @@ case $1 in
         echo "[${MY_IP}] Change ROS Master back to mine, ${hostname}!"
     ;;
     p1 )
-        hostname="192.168.50.118"
+        hostname="${DOMAIN}118"
         echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     p2 )
-        hostname="192.168.50.174"
+        hostname="${DOMAIN}174"
         echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     o1 )
-        hostname="192.168.50.210"
+        hostname="${DOMAIN}210"
         echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     o2 )
-        hostname="192.168.50.238"
+        hostname="${DOMAIN}238"
+        echo "[${MY_IP}] Change ROS Master to ${hostname}!"
+    ;;
+    pi )
+        hostname="${DOMAIN}137"
         echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     # alias )
-    #     hostname="192.168.50.xxx"
+    #     hostname="${DOMAIN}xxx"
     #     echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     # ;;
     [0-9]*.[0-9]*.[0-9]*.[0-9]* )
@@ -66,6 +72,10 @@ case $1 in
             # echo "problem detected!"
             return
         fi
+    ;;
+    [0-9][0-9]|[0-9][0-9][0-9] )
+        hostname="${DOMAIN}$1"
+        echo "[${MY_IP}] Change ROS Master to ${hostname}!"
     ;;
     [Ii][Pp] | --help | "")
         echo "usage: . ch.sh {m(look up current master) | my(change back to your IP) | IP | alias}"
