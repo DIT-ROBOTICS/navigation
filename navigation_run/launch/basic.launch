@@ -28,8 +28,10 @@
     <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
 
     <!-- Main -->
-    <include file="$(find eurobot2023_main)/launch/run_blue_main.launch" if="$(eval ((arg('side') == 'b') and (arg('is_run'))))"/>
-    <include file="$(find eurobot2023_main)/launch/run_green_main.launch" if="$(eval ((arg('side') == 'g') and (arg('is_run'))))"/>
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval ((arg('side') == '0') and (arg('is_run'))))"/>
+        <arg name="basketBot" value="$(arg basketBot)" />
+        <arg name="side" value="$(arg side)" />
+    </include>
 
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization_robots.launch" if="$(arg is_run)" >
