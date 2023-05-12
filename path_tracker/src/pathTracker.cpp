@@ -486,18 +486,18 @@ RobotState PathTracker::Rolling_Window(RobotState cur_pos, std::vector<RobotStat
     }
 
     // for rviz visualization
-    geometry_msgs::PoseStamped pos_msg;
-    pos_msg.header.frame_id = frame_;
-    pos_msg.header.stamp = ros::Time::now();
-    pos_msg.pose.position.x = local_goal.x_;
-    pos_msg.pose.position.y = local_goal.y_;
+    // geometry_msgs::PoseStamped pos_msg;
+    // pos_msg.header.frame_id = frame_;
+    // pos_msg.header.stamp = ros::Time::now();
+    // pos_msg.pose.position.x = local_goal.x_;
+    // pos_msg.pose.position.y = local_goal.y_;
 
-    tf2::Quaternion q;
-    q.setRPY(0, 0, local_goal.theta_);
-    pos_msg.pose.orientation.x = q.x();
-    pos_msg.pose.orientation.y = q.y();
-    pos_msg.pose.orientation.z = q.z();
-    pos_msg.pose.orientation.w = q.w();
+    // tf2::Quaternion q;
+    // q.setRPY(0, 0, local_goal.theta_);
+    // pos_msg.pose.orientation.x = q.x();
+    // pos_msg.pose.orientation.y = q.y();
+    // pos_msg.pose.orientation.z = q.z();
+    // pos_msg.pose.orientation.w = q.w();
     // local_goal_pub_.publish(pos_msg);
 
     return local_goal;

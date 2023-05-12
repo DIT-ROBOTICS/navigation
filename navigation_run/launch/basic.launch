@@ -25,8 +25,8 @@
     <param name="basketBot" type="int" value="$(arg basketBot)" />
 
     <!-- Hub -->
-    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" />
-    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
+    <!-- <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" />
+    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" /> -->
 
     <!-- Main -->
     <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(arg is_run)" />
