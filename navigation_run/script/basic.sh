@@ -5,7 +5,7 @@ set which [lindex $argv 0]
 set user "ubuntu"
 set user_central "ditrobotics"
 set host_1 "192.168.50.118"
-set host_2 "192.168.50.174"
+set host_2 "192.168.50.228"
 set host_cam_a "192.168.50.171"
 set host_cam_b "192.168.50.147"
 set host_cam_c "192.168.50.140"
@@ -31,7 +31,7 @@ if {$which == "roscore"} {
   sleep $delay2
   send "roscore\r"
 
-} elseif {$which == "run1b"} {
+} elseif {$which == "run1b1"} {
   spawn ssh $user@$host_1
   sleep $delay1
   expect "continue connecting" {send "yes\r"}
@@ -40,15 +40,9 @@ if {$which == "roscore"} {
   sleep $delay2
   send "byobu\r"
   sleep $delay2
-  send "roslaunch navigation_run run_robot1.launch side:=0\r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       # send "roslaunch navigation_run run_robot1.launch side:=0\r"
-  #       send "exit \r"
-  #     }
-  #   }
+  send "roslaunch navigation_run run_robot1.launch side:=0 basketBot:=1\r"
 
-} elseif {$which == "run1g"} {
+} elseif {$which == "run1g1"} {
   spawn ssh $user@$host_1
   sleep $delay1
   expect "continue connecting" {send "yes\r"}
@@ -57,15 +51,9 @@ if {$which == "roscore"} {
   sleep $delay2
   send "byobu\r"
   sleep $delay2
-  send "roslaunch navigation_run run_robot1.launch side:=1\r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       # send "roslaunch navigation_run run_robot1.launch side:=1\r"
-  #       send "exit \r"
-  #     }
-  #   }
+  send "roslaunch navigation_run run_robot1.launch side:=1 basketBot:=1\r"
 
-} elseif {$which == "run2b"} {
+} elseif {$which == "run2b1"} {
   spawn ssh $user@$host_2
   sleep $delay1
   expect "continue connecting" {send "yes\r"}
@@ -74,15 +62,9 @@ if {$which == "roscore"} {
   sleep $delay2
   send "byobu\r"
   sleep $delay2
-  send "roslaunch navigation_run run_robot2.launch side:=0\r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       send "roslaunch navigation_run run_robot2.launch side:=0\r"
-  #       send "exit \r"
-  #     }
-  #   }
+  send "roslaunch navigation_run run_robot2.launch side:=0 basketBot:=1\r"
 
-} elseif {$which == "run2g"} {
+} elseif {$which == "run2g1"} {
   spawn ssh $user@$host_2
   sleep $delay1
   expect "continue connecting" {send "yes\r"}
@@ -91,13 +73,51 @@ if {$which == "roscore"} {
   sleep $delay2
   send "byobu\r"
   sleep $delay2
-  send "roslaunch navigation_run run_robot2.launch side:=1\r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       send "roslaunch navigation_run run_robot2.launch side:=1\r"
-  #       send "exit \r"
-  #     }
-  #   }
+  send "roslaunch navigation_run run_robot2.launch side:=1 basketBot:=1\r"
+
+} elseif {$which == "run1b2"} {
+  spawn ssh $user@$host_1
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
+  expect "password:" {send "$loginpass\r"}
+
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
+  send "roslaunch navigation_run run_robot1.launch side:=0 basketBot:=2\r"
+
+} elseif {$which == "run1g2"} {
+  spawn ssh $user@$host_1
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
+  expect "password:" {send "$loginpass\r"}
+
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
+  send "roslaunch navigation_run run_robot1.launch side:=1 basketBot:=2\r"
+
+} elseif {$which == "run2b2"} {
+  spawn ssh $user@$host_2
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
+  expect "password:" {send "$loginpass\r"}
+
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
+  send "roslaunch navigation_run run_robot2.launch side:=0 basketBot:=2\r"
+
+} elseif {$which == "run2g2"} {
+  spawn ssh $user@$host_2
+  sleep $delay1
+  expect "continue connecting" {send "yes\r"}
+  expect "password:" {send "$loginpass\r"}
+
+  sleep $delay2
+  send "byobu\r"
+  sleep $delay2
+  send "roslaunch navigation_run run_robot2.launch side:=1 basketBot:=2\r"
 
 } elseif {$which == "cam_a"} {
   spawn ssh $user@$host_cam_a
@@ -109,12 +129,6 @@ if {$which == "roscore"} {
   send "byobu\r"
   sleep $delay2
   send "roslaunch aruco_ros cam_a.launch \r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       send "roslaunch aruco_ros cam_a.launch \r"
-  #       # send "exit \r"
-  #     }
-  #   }
 
 } elseif {$which == "cam_b"} {
   spawn ssh $user@$host_cam_b
@@ -126,12 +140,6 @@ if {$which == "roscore"} {
   send "byobu\r"
   sleep $delay2
   send "roslaunch aruco_ros cam_b.launch \r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       send "roslaunch aruco_ros cam_b.launch \r"
-  #       # send "exit \r"
-  #     }
-  #   }
 
 } elseif {$which == "cam_c"} {
   spawn ssh $user@$host_cam_c
@@ -143,12 +151,6 @@ if {$which == "roscore"} {
   send "byobu\r"
   sleep $delay2
   send "roslaunch mklc side.launch \r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       send "roslaunch mklc side.launch \r"
-  #       # send "exit \r"
-  #     }
-  #   }
 
 } elseif {$which == "cam_central"} {
   spawn ssh $user_central@$host_cam_central
@@ -160,17 +162,13 @@ if {$which == "roscore"} {
   send "byobu\r"
   sleep $delay2
   send "roslaunch mklc double.launch\r"
-  # expect {
-  #     -re $cmd_prompt {
-  #       send "roslaunch mklc double.launch\r"
-  #       # send "exit \r"
-  #     }
-  #   }
 
 } else {
   echo "Something went wrong!"
   exit 1
 }
+
+interact
 
 # Seperated hub.launch
   # elseif {$which == "hub2"} {
@@ -190,5 +188,3 @@ if {$which == "roscore"} {
   #   #   }
   # } 
 # /Seperated hub.launch
-
-interact

@@ -29,7 +29,10 @@
     <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" /> -->
 
     <!-- Main -->
-    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(arg is_run)" />
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval (arg('is_run') ==true) and (arg('is_robot1') ==true )))" />
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval (arg('is_run') ==true) and (arg('is_robot1') ==false )))" />
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval (arg('is_run') ==true) and (arg('is_robot2') ==true )))" />
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval (arg('is_run') ==true) and (arg('is_robot2') ==false )))" />
 
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization_robots.launch" if="$(arg is_run)" >

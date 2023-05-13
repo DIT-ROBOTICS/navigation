@@ -23,16 +23,30 @@ DIR
 # 2 Pandas (Robots)
 if [[ $1 = "b" ]]
 then
-    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1b'
-    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2b'
+    if [[ $2 = "1" ]]
+    then
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1b1'
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2b1'
+    elif [[ $2 = "2" ]]
+    then
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1b2'
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2b2' 
+    fi
 elif [[ $1 = "g" ]]
 then
-    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1g'
-    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2g'
-else
-    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1b'
-    gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2b'
+    if [[ $2 = "1" ]]
+    then
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1g1'
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2g1'
+    elif [[ $2 = "2" ]]
+    then
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1g2'
+        gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2g2' 
+    fi
 fi
+
+
+
 
 # gnome-terminal --working-directory=$dir -- bash -c './basic.sh hub2'
 
