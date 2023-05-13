@@ -214,6 +214,7 @@ namespace simple_layer_namespace
     // Get mark_x, mark_y in pxl
     worldToMap(x, y, mx, my);
     int inf_cost = 100;
+    int max_cost = 50;
     // Set the transversing origin on the top-left corner!
     int i_start = mx - inflation_pixel;
     int j_start = my - inflation_pixel;
@@ -244,17 +245,17 @@ namespace simple_layer_namespace
             }
             // case 1: In between the inflation and inscribed radius
             if(inscribed_radius_ <= d && d <= inflation_radius_){
-              inf_cost = round(100 * exp(-cost_factor_ * (d - inscribed_radius_)));
+              inf_cost = round(max_cost * exp(-cost_factor_ * (d - inscribed_radius_)));
               unsigned char INFLATED_COST = inf_cost;
               setCost(i, j, INFLATED_COST);
             }
             // case 2: Inside the inscribed radius, center included
             else if(0 < d && d < inscribed_radius_){
-              setCost(i, j, 100); // <-> LETHAL_OBSTACLE
+              setCost(i, j, max_cost); // <-> LETHAL_OBSTACLE
             }
             // case 3: center point is LETHAL
             else if(d == 0){
-              setCost(i, j, 240);
+              setCost(i, j, max_cost);
             }
             // case 4: Outside inflation but in the outscribed square
             else if(inflation_radius_ <= d && d <= sqrt(2) * inflation_radius_){
