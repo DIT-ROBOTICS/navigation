@@ -82,7 +82,7 @@ simple_layer:
   enabled: true
 
   update_frequency: 10
-  inflation_radius: 0.25
+  inflation_radius: 0.15
   inscribed_radius: 0.06
   cost_factor: 13.0
 
