@@ -26,10 +26,12 @@ then
     if [[ $2 = "1" ]]
     then
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1b1'
+        sleep 5
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2b1'
     elif [[ $2 = "2" ]]
     then
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1b2'
+        sleep 5
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2b2' 
     fi
 elif [[ $1 = "g" ]]
@@ -37,10 +39,12 @@ then
     if [[ $2 = "1" ]]
     then
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1g1'
+        sleep 5
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2g1'
     elif [[ $2 = "2" ]]
     then
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run1g2'
+        sleep 5
         gnome-terminal --working-directory=$dir -- bash -c './basic.sh run2g2' 
     fi
 fi
