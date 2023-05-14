@@ -49,7 +49,7 @@ path_layer:
       Odom: -1
       Path: 1.0
     Rival:
-      Odom: 1.0
+      Odom: 5
       Obstacle: 1.0
   Topic:
     Rival:

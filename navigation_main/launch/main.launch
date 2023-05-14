@@ -24,7 +24,7 @@
     <arg name="robot_name" default="/rival2" if="$(arg is_rival2)"/>
 
     <!-- The other robot name, here we regard it as an obstacle. -->
-    <arg name="robot_obs_name_suffix" default="_no" if="$(arg is_run)"/>
+    <arg name="robot_obs_name_suffix" default="" if="$(arg is_run)"/>
     <arg name="robot_obs_name_suffix" default="" if="$(arg is_sim)"/>
     <arg name="robot_obs_name" default="/robot1$(arg robot_obs_name_suffix)" if="$(arg is_robot2)" />
     <arg name="robot_obs_name" default="/robot2$(arg robot_obs_name_suffix)" if="$(arg is_robot1)" />

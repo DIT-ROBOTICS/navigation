@@ -3,7 +3,8 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /MarkerArray1
       Splitter Ratio: 0.6617646813392639
     Tree Height: 717
   - Class: rviz/Selection
@@ -217,6 +218,14 @@ Visualization Manager:
       Topic: /robot2/mission
       Unreliable: false
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: false
+      Marker Topic: /robot2/obstacle_marker
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -245,7 +254,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.953816890716553
+      Distance: 4.388068199157715
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -253,9 +262,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.3715492486953735
-        Y: 0.8467512726783752
-        Z: 0.14860272407531738
+        X: 1.4250496625900269
+        Y: 0.8835710883140564
+        Z: 0.14854925870895386
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
