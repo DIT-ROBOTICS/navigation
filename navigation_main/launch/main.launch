@@ -58,7 +58,8 @@
     <arg name="max_timeout" default="100.0" />
 
     <!-- Stop Distance -->
-    <arg name="stop_distance" default="0.35" />
+    <arg name="goal_stop_distance" default="0.35" />
+    <arg name="rival_stop_distance" default="0.35" />
 
     <!-- Resend Goal when the goal is blocked and it isn't timeout yet. -->
     <!-- (1 / resend_goal_frequency) * resend_goal_time = total waiting time for resending goal.  -->

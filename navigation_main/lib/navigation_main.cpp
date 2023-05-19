@@ -109,8 +109,11 @@ bool Navigation_Main::UpdateParams(std_srvs::Empty::Request &req, std_srvs::Empt
     if (this->nh_local_->param<double>("update_frequency", param_update_frequency_, 5.0)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : update frequency set to " << param_update_frequency_);
     }
-    if (this->nh_local_->param<double>("stop_distance", param_stop_distance_, 0.5)) {
-        ROS_INFO_STREAM("[" << param_node_name_ << "] : stop distance set to " << param_stop_distance_);
+    if (this->nh_local_->param<double>("goal_stop_distance", param_goal_stop_distance_, 0.5)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : goal stop distance set to " << param_goal_stop_distance_);
+    }
+    if (this->nh_local_->param<double>("rival_stop_distance", param_rival_stop_distance_, 0.5)) {
+        ROS_INFO_STREAM("[" << param_node_name_ << "] : rival stop distance set to " << param_rival_stop_distance_);
     }
     if (this->nh_local_->param<double>("odom_timeout", param_odom_timeout_, 3.0)) {
         ROS_INFO_STREAM("[" << param_node_name_ << "] : odom timeout set to " << param_odom_timeout_);
@@ -270,13 +273,13 @@ void Navigation_Main::Check_Odom_CB_Timeout() {
 }
 
 bool Navigation_Main::isCloseToOtherRobots() {
-    if (!is_robot_obs_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, robot_obs_odom_) <= param_stop_distance_) {
+    if (!is_robot_obs_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, robot_obs_odom_) <= param_goal_stop_distance_) {
         return true;
     }
-    if (!is_rival1_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[0]) <= param_stop_distance_) {
+    if (!is_rival1_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[0]) <= param_goal_stop_distance_) {
         return true;
     }
-    if (!is_rival2_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[1]) <= param_stop_distance_) {
+    if (!is_rival2_odom_timeout_ && Distance_Between_A_and_B(robot_goal_.pose, rival_odom_[1]) <= param_goal_stop_distance_) {
         return true;
     }
     if (!is_rival_obstacle_timeout_) {
@@ -284,7 +287,9 @@ bool Navigation_Main::isCloseToOtherRobots() {
         for (auto obstacle_ : rival_obstacles_.circles) {
             obstacle_pose_temp_.position.x = obstacle_.center.x;
             obstacle_pose_temp_.position.y = obstacle_.center.y;
-            if (Distance_Between_A_and_B(robot_goal_.pose, obstacle_pose_temp_) <= param_stop_distance_) {
+            if (Distance_Between_A_and_B(robot_goal_.pose, obstacle_pose_temp_) <= param_goal_stop_distance_) {
+                return true;
+            } else if (Distance_Between_A_and_B(robot_odom_, obstacle_pose_temp_) <= param_rival_stop_distance_) {
                 return true;
             }
         }

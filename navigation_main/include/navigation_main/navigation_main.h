@@ -119,7 +119,8 @@ class Navigation_Main {
     double param_timeout_min_;
     double param_timeout_max_;
     double param_resend_goal_frequency_;
-    double param_stop_distance_;
+    double param_goal_stop_distance_;
+    double param_rival_stop_distance_;
     double param_odom_timeout_;
     double param_block_mode_distance_a_;
     double param_block_mode_distance_b_;
