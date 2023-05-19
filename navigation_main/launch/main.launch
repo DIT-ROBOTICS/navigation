@@ -87,7 +87,8 @@
         <param name="min_timeout" type="double" value="$(arg min_timeout)" />
         <param name="max_timeout" type="double" value="$(arg max_timeout)" />
         <param name="resend_goal_frequency" type="double" value="$(arg resend_goal_frequency)" />
-        <param name="stop_distance" type="double" value="$(arg stop_distance)"/>
+        <param name="goal_stop_distance" type="double" value="$(arg goal_stop_distance)"/>
+        <param name="rival_stop_distance" type="double" value="$(arg rival_stop_distance)"/>
         <param name="odom_timeout" type="double" value="$(arg odom_timeout)" />
         <param name="block_mode_distance_a" type="double" value="$(arg block_mode_distance_a)"/>
         <param name="block_mode_distance_b" type="double" value="$(arg block_mode_distance_b)"/>
