@@ -1,6 +1,6 @@
 <launch>
     <!-- choose what the mode you want. Simulation or Run Real Robot -->
-    <arg name="is_run" default="true" />
+    <arg name="is_run" default="false" />
     <arg name="is_sim" default="false" />
 
     <!-- which robot -->
@@ -10,11 +10,27 @@
     <arg name="is_rival1" default="false" />
     <arg name="is_rival2" default="false" />
 
+    <!-- for which side (blue/green) & robot position  -->
+    <arg name="side" default="0" />
+    <arg name="basketBot" default="1" />
+
     <arg name="robot_name" default="" if="$(arg is_robot)"/>
     <arg name="robot_name" default="robot1" if="$(arg is_robot1)"/>
     <arg name="robot_name" default="robot2" if="$(arg is_robot2)"/>
     <arg name="robot_name" default="rival1" if="$(arg is_rival1)"/>
     <arg name="robot_name" default="rival2" if="$(arg is_rival2)"/>
+
+    <!-- for which side (blue/green) & robot position  -->
+    <param name="side" type="int" value="$(arg side)" />
+    <param name="basketBot" type="int" value="$(arg basketBot)" />
+
+    <!-- Hub -->
+    <include file="$(find navigation_run)/launch/hub1.launch" if="$(arg is_robot1)" />
+    <include file="$(find navigation_run)/launch/hub2.launch" if="$(arg is_robot2)" />
+
+    <!-- Main -->
+    <include file="$(find eurobot2023_main)/launch/run_main.launch" if="$(eval ((arg('is_run') == true) and (arg('is_robot1') == true)))" />
+    <include file="$(find eurobot2023_main_small)/launch/run_main.launch" if="$(eval ((arg('is_run') == true) and (arg('is_robot2') == true)))" />
 
     <!-- Localization -->
     <include file="$(find eurobot_localization)/launch/eurobot_localization_robots.launch" if="$(arg is_run)" >
@@ -22,12 +38,13 @@
         <arg name="active_robot1" value="0" unless="$(arg is_robot1)"/>
         <arg name="active_robot2" value="1" if="$(arg is_robot2)"/>
         <arg name="active_robot2" value="0" unless="$(arg is_robot2)"/>
+        <arg name="side" value="$(arg side)" />
+        <arg name="basketBot" value="$(arg basketBot)" />
     </include>
 
-    <!-- Camera -->
-    <include file="$(find usb_cam)/launch/FULLHD.launch" if="$(arg is_run)"/>
+    <!-- On-board camera -->
     <include file="$(find aruco_ros)/launch/onRobot.launch" if="$(arg is_run)"/>
-    
+       
 
     <group ns="$(arg robot_name)" unless="$(arg is_robot)">
         <!-- Map Info -->

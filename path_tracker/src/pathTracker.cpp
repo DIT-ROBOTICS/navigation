@@ -116,21 +116,21 @@ bool PathTracker::initializeParams(std_srvs::Empty::Request& req, std_srvs::Empt
     if (p_active_ != prev_active) {
         if (p_active_) {
             if (odom_callback_type_ == ODOM_CALLBACK_TYPE::nav_msgs_Odometry) {
-                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type0_Callback, this);
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 5, &PathTracker::Pose_type0_Callback, this);
             } else {
-                pose_sub_ = nh_.subscribe(odom_topic_name_, 50, &PathTracker::Pose_type1_Callback, this);
+                pose_sub_ = nh_.subscribe(odom_topic_name_, 5, &PathTracker::Pose_type1_Callback, this);
             }
-            goal_sub_ = nh_.subscribe("nav_goal", 50, &PathTracker::Goal_Callback, this);
+            goal_sub_ = nh_.subscribe("nav_goal", 5, &PathTracker::Goal_Callback, this);
             vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-            local_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
-            pose_array_pub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
+            // local_goal_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("local_goal", 10);
+            // pose_array_pub_ = nh_.advertise<geometry_msgs::PoseArray>("orientation", 10);
             goal_reached_pub_ = nh_.advertise<std_msgs::Char>("finishornot", 1);
         } else {
             pose_sub_.shutdown();
             goal_sub_.shutdown();
             vel_pub_.shutdown();
-            local_goal_pub_.shutdown();
-            pose_array_pub_.shutdown();
+            // local_goal_pub_.shutdown();
+            // pose_array_pub_.shutdown();
             goal_reached_pub_.shutdown();
         }
     }
@@ -486,19 +486,19 @@ RobotState PathTracker::Rolling_Window(RobotState cur_pos, std::vector<RobotStat
     }
 
     // for rviz visualization
-    geometry_msgs::PoseStamped pos_msg;
-    pos_msg.header.frame_id = frame_;
-    pos_msg.header.stamp = ros::Time::now();
-    pos_msg.pose.position.x = local_goal.x_;
-    pos_msg.pose.position.y = local_goal.y_;
+    // geometry_msgs::PoseStamped pos_msg;
+    // pos_msg.header.frame_id = frame_;
+    // pos_msg.header.stamp = ros::Time::now();
+    // pos_msg.pose.position.x = local_goal.x_;
+    // pos_msg.pose.position.y = local_goal.y_;
 
-    tf2::Quaternion q;
-    q.setRPY(0, 0, local_goal.theta_);
-    pos_msg.pose.orientation.x = q.x();
-    pos_msg.pose.orientation.y = q.y();
-    pos_msg.pose.orientation.z = q.z();
-    pos_msg.pose.orientation.w = q.w();
-    local_goal_pub_.publish(pos_msg);
+    // tf2::Quaternion q;
+    // q.setRPY(0, 0, local_goal.theta_);
+    // pos_msg.pose.orientation.x = q.x();
+    // pos_msg.pose.orientation.y = q.y();
+    // pos_msg.pose.orientation.z = q.z();
+    // pos_msg.pose.orientation.w = q.w();
+    // local_goal_pub_.publish(pos_msg);
 
     return local_goal;
 }
@@ -556,7 +556,7 @@ std::vector<RobotState> PathTracker::Orientation_Filter(std::vector<RobotState> 
         poses.push_back(pose);
     }
     arr_msg.poses = poses;
-    pose_array_pub_.publish(arr_msg);
+    // pose_array_pub_.publish(arr_msg);
 
     return path;
 }
